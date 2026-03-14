@@ -3,14 +3,14 @@ package com.backend.entity;
 import lombok.Getter;
 
 @Getter
-public enum UserRoles {
+public enum UserRole {
     USER(1),
     ADMIN(2),
     MODERATOR(3);
 
-    final int level;
+    private final int level;
 
-    UserRoles(int level) {
+    UserRole(int level) {
         this.level = level;
     }
 }
