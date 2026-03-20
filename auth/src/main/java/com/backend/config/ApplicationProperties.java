@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 
 @Getter
 @Setter
@@ -14,12 +15,20 @@ import org.springframework.context.annotation.Configuration;
 public class ApplicationProperties {
     private final Jwt jwt = new Jwt();
 
+    private String[] publicPaths;
+
+    /**
+     * <h3>Use RSA(RS256) Algorithm</h3>
+     */
     @Getter
     @Setter
     @NoArgsConstructor
     public static class Jwt {
-        private String secret;
+        private Resource privateKey;
+        private Resource publicKey;
         private long accessTokenExpirationSec;
         private long refreshTokenExpirationSec;
+        private String issuer;
+        private String audience;
     }
 }
