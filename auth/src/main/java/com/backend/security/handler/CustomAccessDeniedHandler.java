@@ -1,5 +1,6 @@
 package com.backend.security.handler;
 
+import com.backend.dto.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,7 +34,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
-        ErrorResponse errorResponse = ErrorResponse.builder()
+        ApiResponse<?> errorResponse = ApiResponse.builder()
                 .status(HttpServletResponse.SC_FORBIDDEN)
                 .success(false)
                 .title("Forbidden")
