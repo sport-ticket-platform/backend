@@ -2,7 +2,6 @@ package com.backend.security.userdetails;
 
 import com.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.backend.entity.User;
