@@ -12,11 +12,8 @@ import lombok.*;
  * @version 1.0.0
  * @author logTAHA
  */
-@Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class LoginResponse {
-
-    private String token;
+public record LoginResponse (
+        String token
+){
 }

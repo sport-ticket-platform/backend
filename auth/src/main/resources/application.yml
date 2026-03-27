@@ -1,0 +1,27 @@
+server:
+  address: localhost
+  port: 8080
+
+spring:
+  application:
+    name: backend
+  datasource:
+    url: jdbc:postgresql://localhost:5432/phfit-app-backend
+    username: postgres
+    password: taha1111
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+app:
+  security:
+    public-paths: /api/v1/auth/**,/error
+    jwt:
+      private-key: classpath:keys/private_key.pem
+      public-key: classpath:keys/public_key.pem
+      access-token-expiration-sec: 900
+      refresh-token-expiration-sec: 2592000
+      issuer: backend-service
+      audience: frontend

@@ -12,16 +12,10 @@ import lombok.*;
  * @version 1.0.0
  * @author logTAHA
  */
-@Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class LoginRequest {
+public record LoginRequest (
+        String username,
+        String password
+){
 
-    private String username;
-
-    /**
-     * The raw password provided by the client.
-     */
-    private String password;
 }

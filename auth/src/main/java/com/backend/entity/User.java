@@ -33,6 +33,9 @@ public class User {
     @Column(nullable = false)
     private boolean isActive = true;
 
+    @Column(length = 256)
+    private String suspendReason;
+
     @Column(nullable = false)
     private boolean isCredentialExpired = false;
 

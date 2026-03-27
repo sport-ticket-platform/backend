@@ -1,0 +1,17 @@
+info:
+  name: private path
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:8080/something
+  auth:
+    type: bearer
+    token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sInVzZXJuYW1lIjoidGFoYSIsImlzcyI6ImJhY2tlbmQtc2VydmljZSIsImF1ZCI6WyJmcm9udGVuZCJdLCJpYXQiOjE3NzQ2MjI0MjgsImV4cCI6MTc3NDYyMzMyOH0.p6q12VmyP_eGd6iWhPkqSHoM1WbqhGudt-Nb1beniyDBtPQVcsREGuZqTsb8AH-7zRHis29yL6BACKYjcWJpKHRmv7aT1qNlTQoKrsFPNjWy0AYsMZL8bfndmcuKHVvBvDyFcV2Tcvi_Fna47NKPup2BRI1OsPU3HgRugx11NiZ4WGVkrg4drT0nvGuisEgwEYZ9sV8xYGdAZWwxYIOHrOa8xo7cdyB-ny-GMjHsMNcml82mmB8MjK0t5zxOEVESrG_2vKIc3zoK5vH7ILBmj_hk1GHS9rIk-XyFtKdjKCsYMdaaA8a15en2ZM_j3KT-wAlx9UvaZUS8dK7lXKxaiw
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

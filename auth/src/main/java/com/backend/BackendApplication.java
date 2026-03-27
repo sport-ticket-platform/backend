@@ -3,7 +3,8 @@ package com.backend;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.core.userdetails.UserDetailsService;
+
+import redis.clients.jedis.Jedis;
 
 @SpringBootApplication
 public class BackendApplication {

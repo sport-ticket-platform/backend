@@ -33,15 +33,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(@NotNull String username) throws UsernameNotFoundException {
         return userRepository.findByUsername(username)
                 .map(u -> CustomUserDetails.builder()
+                        .user(u)
                         .id(u.getId())
                         .username(u.getUsername())
                         .password(u.getPassword())
                         .authorities(Collections.singletonList(
                                 new SimpleGrantedAuthority("ROLE_" + u.getRole().name())
                         ))
-                        .accountNonLocked(/*این قراره از دیتابیس ردیس خونده بشه*/true)
                         .credentialsNonExpired(!u.isCredentialExpired())
-                        .enabled(u.isActive())
                         .build()
                 ).orElseThrow(() -> new UsernameNotFoundException("username not found"));
     }
