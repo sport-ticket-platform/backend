@@ -1,18 +1,19 @@
-package com.backend.dto.error;
+package com.backend.dto;
 
 import lombok.Builder;
 
 import java.time.LocalDateTime;
 
 @Builder
-public record ErrorResponse(
-        int status,
+public record ApiResponse<T>(
         boolean success,
+        int status,
         String title,
         String message,
-        LocalDateTime timestamp,
-        // Persian
         String titleFa,
-        String messageFa
+        String messageFa,
+        T data,
+        LocalDateTime timestamp
 ) {
+
 }
