@@ -2,18 +2,17 @@ package com.backend.entity;
 
 import jakarta.persistence.*;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
-
-@Entity
-@Table(name = "users")
+@AllArgsConstructor
+@Builder
 public class User {
     @Id /**/ @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -39,14 +38,19 @@ public class User {
     @Column(nullable = false)
     private boolean isCredentialExpired = false;
 
-    @Column(nullable = false) // for force logout (check with refresh token)
-    private int tokenVersion = 1;
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column
+    private LocalDateTime lastUpdate;
 
     @PrePersist
     protected void prePersist() {
         createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void preUpdate() {
+        lastUpdate = LocalDateTime.now();
     }
 }

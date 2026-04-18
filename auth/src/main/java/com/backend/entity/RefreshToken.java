@@ -1,25 +1,25 @@
 package com.backend.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
-
-@Getter
-@Setter
-@NoArgsConstructor
 
 @Entity
 @Table(
         name = "refresh_token",
         indexes = {
                 @Index(name = "idx_user_id", columnList = "user_id"),
-                @Index(name = "idx_token", columnList = "token")
+                @Index(name = "idx_token", columnList = "token"),
+                @Index(name = "idx_device_id", columnList = "device_id")
         }
 )
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class RefreshToken {
     @Id /**/ @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,7 +27,8 @@ public class RefreshToken {
     @Column(nullable = false, unique = true)
     private String token;
 
-    @JoinColumn(nullable = false) /**/ @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
 
     @Column(nullable = false, updatable = false)
@@ -36,6 +37,7 @@ public class RefreshToken {
     @Column(nullable = false)
     private LocalDateTime expirationDate;
 
+    @Builder.Default
     @Column(nullable = false)
     private boolean isActive = true;
 

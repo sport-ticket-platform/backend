@@ -11,6 +11,7 @@ spring:
     password: taha1111
   jpa:
     hibernate:
+      # TODO: Change it in server
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true

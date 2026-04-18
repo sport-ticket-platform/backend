@@ -7,12 +7,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "application_setting")
 @Getter
 @Setter
 @NoArgsConstructor
-
-@Entity
-@Table(name = "application_setting")
 public class AppSetting {
 
     @Id

@@ -7,8 +7,10 @@ http:
   method: POST
   url: http://localhost:8080/api/v1/auth/login
   headers:
-    - name: Authorization
-      value: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sInVzZXJuYW1lIjoidGFoYSIsImlzcyI6ImJhY2tlbmQtc2VydmljZSIsImF1ZCI6WyJmcm9udGVuZCJdLCJpYXQiOjE3NzQ2MjIyNDQsImV4cCI6MTc3NDYyMjI0NX0.lbzd1JOjxKjoLJ9t9ZyW-oIQmoE34ETcOGRzM21w4VNB8fsCcBpi6hHzCQeIZCZG2l8PoJ5VcbE_5lrlp7Ao0-rNQskLHnRUAt2GEgASM-nxACOVfUcGiVjIPqaAmUiX2jKq-wtZrdEUe-axcj70gJR6PgfliZPZUx-dVu-yz8Rsyij_AnP2yiKeTc7nPKER8-k1wg6fX0or-JAjPihJhVNimpDvJwZbBPYkZIfq5Tyn5agtwcYhhoXVG_adMi_pnwWaRxNHMyYdwFo5QOJ0OrM18J_6tpJU_FFxUsTkqwjLHY1B3iskHpkrTvQD6PKtH2AuZUK0R89ON_6jZmMoeA
+    - name: X-Device-Id
+      value: SOME_TEST_VALUE
+    - name: User-Agent
+      value: Testing by bruno
   body:
     type: json
     data: |-

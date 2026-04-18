@@ -4,9 +4,9 @@ import com.backend.dto.auth.LoginRequest;
 import com.backend.dto.auth.LoginResponse;
 import com.backend.entity.User;
 import com.backend.handler.UserSuspendException;
-import com.backend.repository.UserRepository;
 import com.backend.security.jwt.JwtTokenProvider;
 import com.backend.security.userdetails.CustomUserDetails;
+import com.backend.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
@@ -35,13 +35,15 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
+    private final RefreshTokenService refreshTokenService;
+
     /**
      * Authenticates a user based on the provided credentials and generates a JWT.
      *
      * @param loginRequest the DTO containing the username and raw password.
      * @return an {@link LoginResponse} containing the generated JWT.
      */
-    public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest, String ip, String userAgent, String deviceId) {
         log.info("Attempting to authenticate user: {}", loginRequest.username());
 
         Authentication authentication;
@@ -74,9 +76,9 @@ public class AuthService {
         checkUserLocked();
         checkUserSuspend(user);
 
-        log.info("User {} authenticated successfully. Generating JWT.", loginRequest.username());
+        log.info("User {}(id: {}) authenticated successfully. Generating refresh-token...", user.getUsername(), user.getId());
 
-        String token = jwtTokenProvider.generateToken(authentication);
+        String token = refreshTokenService.createRefreshToken(user, ip, userAgent, deviceId);
 
         return LoginResponse.builder()
                 .token(token)
