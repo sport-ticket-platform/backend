@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: phfit-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: taha1111
+      POSTGRES_DB: phfit-app-backend
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d phfit-app-backend"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - phfit-network
+
+  redis:
+    image: redis:7
+    container_name: phfit-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - phfit-network
+
+  backend:
+    build: .
+    container_name: phfit-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/phfit-app-backend
+      SPRING_REDIS_HOST: redis
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - phfit-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  phfit-network:
+    driver: bridge
