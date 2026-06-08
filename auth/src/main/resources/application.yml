@@ -1,20 +1,26 @@
 server:
-  address: localhost
+  address: 0.0.0.0
   port: 8080
 
 spring:
   application:
     name: backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/phfit-app-backend
-    username: postgres
-    password: taha1111
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/phfit-app-backend}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:taha1111}
   jpa:
     hibernate:
       # TODO: Change it in server
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
+
+  # Connect to redis
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:redis}
+      port: ${SPRING_REDIS_PORT:6379}
 
 app:
   security:
