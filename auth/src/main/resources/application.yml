@@ -6,7 +6,8 @@ spring:
   application:
     name: backend
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/phfit-app-backend}
+    # TODO: change this part when it wants to run in container
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/phfit-app-backend}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:taha1111}
   jpa:
@@ -19,7 +20,8 @@ spring:
   # Connect to redis
   data:
     redis:
-      host: ${SPRING_REDIS_HOST:redis}
+      # TODO: change this part when it wants to run in container
+      host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
 
 app:
