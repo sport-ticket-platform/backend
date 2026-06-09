@@ -6,13 +6,19 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(
+        name = "users",
+        indexes = {
+            @Index(name = "idx_user_role", columnList = "role"),
+            @Index(name = "idx_user_is_active", columnList = "isActive")
+        }
+)
 public class User {
     @Id /**/ @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,6 +28,15 @@ public class User {
 
     @Column(unique = true)
     private String email;
+
+    @Column(unique = true)
+    private String number;
+
+    @Column
+    private Boolean numberVerified;
+
+    @Column
+    private Boolean emailVerified;
 
     @Column(nullable = false)
     private String password;
