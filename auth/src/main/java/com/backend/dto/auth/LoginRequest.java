@@ -1,5 +1,7 @@
 package com.backend.dto.auth;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 /**
@@ -14,7 +16,12 @@ import lombok.*;
  */
 @Builder
 public record LoginRequest (
+        @NotBlank(message = "Username can't be empty")
+        @Size(min = 3, max = 65, message = "Username must be between 3-65")
         String username,
+
+        @NotBlank(message = "Username can't be empty")
+        @Size(max = 32, message = "Password length should be less than 32")
         String password
 ){
 
