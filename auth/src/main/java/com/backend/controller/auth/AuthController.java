@@ -1,5 +1,6 @@
 package com.backend.controller.auth;
 
+import com.backend.common.ApiMessage;
 import com.backend.dto.ApiResponse;
 import com.backend.dto.auth.LoginRequest;
 import com.backend.dto.auth.LoginResponse;
@@ -46,14 +47,16 @@ public class AuthController {
 
         LoginResponse response = authService.login(loginRequest, ipAddress, userAgent, deviceId);
 
+
+        ApiMessage msg = ApiMessage.SUCCESS_LOGIN;
         return ResponseEntity.ok(
                 ApiResponse.<LoginResponse>builder()
                         .success(true)
                         .status(200)
-                        .title("Logged in successfully")
-                        .message(null)
-                        .titleFa("با موفقیت وارد شدید")
-                        .messageFa(null)
+                        .title(msg.getTitle())
+                        .message(msg.getMessage())
+                        .titleFa(msg.getTitleFa())
+                        .messageFa(msg.getMessageFa())
                         .data(response)
                         .timestamp(LocalDateTime.now())
                         .build()

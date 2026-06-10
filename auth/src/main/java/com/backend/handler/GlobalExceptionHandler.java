@@ -1,6 +1,8 @@
 package com.backend.handler;
 
+import com.backend.common.ApiMessage;
 import com.backend.dto.ApiResponse;
+import lombok.Builder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
@@ -9,68 +11,62 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiResponse<?>> handleBadCredentials() {
+    // Auth errors
+    private ResponseEntity<ApiResponse<?>> buildAuthErrorResponse(int status, ApiMessage message) {
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
-                .status(401)
-                .title("username or password is wrong")
-                .message("check your entries and try again")
-                .titleFa("نام کاربری یا رمز عبور اشتباه است")
-                .messageFa("ورودی های خود را بررسی و دوباره تلاش کنید")
+                .status(status)
+                .title(message.getTitle())
+                .message(message.getMessage())
+                .titleFa(message.getTitleFa())
+                .messageFa(message.getMessageFa())
                 .data(null)
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        return ResponseEntity.status(401).body(response);
+        return ResponseEntity.status(status).body(response);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<?>> handleBadCredentials() {
+        return buildAuthErrorResponse(
+                401,
+                ApiMessage.BAD_CREDENTIALS
+        );
     }
 
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<ApiResponse<?>> handleLocked() {
-        ApiResponse<?> response = ApiResponse.builder()
-                .success(false)
-                .status(401)
-                .title("Account is locked")
-                .message("Try again later")
-                .titleFa("اکانت قفل شده است")
-                .messageFa("بعدا دوباره تلاش کنید")
-                .data(null)
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.status(401)
-                .body(response);
+        return buildAuthErrorResponse(
+                401,
+                ApiMessage.ACCOUNT_LOCKED
+        );
     }
 
     @ExceptionHandler(CredentialsExpiredException.class)
     public ResponseEntity<ApiResponse<?>> handleCredentialExpired() {
-        ApiResponse<?> response = ApiResponse.builder()
-                .success(false)
-                .status(401)
-                .title("Your password has been expired")
-                .message("use 'password recovery' to reset your password")
-                .titleFa("رمز عبور شما منقضی شده است")
-                .messageFa("از 'بازیابی رمز عبور' برای ریست کردن پسورد خود استفاده کنید")
-                .data(null)
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.status(401)
-                .body(response);
+        return buildAuthErrorResponse(
+                401,
+                ApiMessage.PASSWORD_EXPIRED
+        );
     }
 
     @ExceptionHandler(UserSuspendException.class)
-    public ResponseEntity<ApiResponse<?>> handleDisabled(UserSuspendException e) {
+    public ResponseEntity<ApiResponse<?>> handleDisabled(
+            UserSuspendException e
+    ) {
+
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
                 .status(401)
-                .title("Your account is suspend")
+                .title(ApiMessage.ACCOUNT_SUSPENDED.getTitle())
                 .message(e.getBanReason())
-                .titleFa("اکانت شما مسدود شده است")
+                .titleFa(ApiMessage.ACCOUNT_SUSPENDED.getTitleFa())
                 .messageFa(e.getBanReason())
                 .data(null)
                 .timestamp(LocalDateTime.now())
