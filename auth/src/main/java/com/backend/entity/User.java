@@ -32,11 +32,11 @@ public class User {
     @Column(unique = true)
     private String number;
 
-    @Column
-    private Boolean numberVerified;
+    @Column(nullable = false)
+    private Boolean numberVerified = false;
 
-    @Column
-    private Boolean emailVerified;
+    @Column(nullable = false)
+    private Boolean emailVerified = false;
 
     @Column(nullable = false)
     private String password;
