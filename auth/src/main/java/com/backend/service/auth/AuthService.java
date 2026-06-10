@@ -1,9 +1,11 @@
 package com.backend.service.auth;
 
+import com.backend.dto.auth.CheckUsernameResponse;
 import com.backend.dto.auth.LoginRequest;
 import com.backend.dto.auth.LoginResponse;
 import com.backend.entity.User;
 import com.backend.handler.UserSuspendException;
+import com.backend.repository.UserRepository;
 import com.backend.security.jwt.JwtTokenProvider;
 import com.backend.security.userdetails.CustomUserDetails;
 import com.backend.service.RefreshTokenService;
@@ -33,7 +35,8 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
+
+    private final UserRepository userRepository;
 
     private final RefreshTokenService refreshTokenService;
 
@@ -94,5 +97,18 @@ public class AuthService {
 
     private void checkUserLocked() {
 
+    }
+
+    // Signup
+    public CheckUsernameResponse checkUsernameUnique(String username) {
+        log.info("Checking username uniqueness for: {}", username);
+
+        boolean isUnique = !userRepository.existsByUsername(username);
+
+        log.debug("Username '{}' uniqueness result: {}", username, isUnique);
+
+        return CheckUsernameResponse.builder()
+                .isUnique(isUnique)
+                .build();
     }
 }

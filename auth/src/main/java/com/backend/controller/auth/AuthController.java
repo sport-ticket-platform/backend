@@ -2,10 +2,7 @@ package com.backend.controller.auth;
 
 import com.backend.common.ApiMessage;
 import com.backend.dto.ApiResponse;
-import com.backend.dto.auth.LoginRequest;
-import com.backend.dto.auth.LoginResponse;
-import com.backend.dto.auth.SignupRequest;
-import com.backend.dto.auth.SignupResponse;
+import com.backend.dto.auth.*;
 import com.backend.service.auth.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -61,6 +58,28 @@ public class AuthController {
                         .timestamp(LocalDateTime.now())
                         .build()
         );
+    }
+
+    // Signup
+    @PostMapping("/check-username")
+    public ResponseEntity<ApiResponse<?>> checkUsername(
+            @Valid @RequestBody CheckUsernameRequest checkRequest,
+            HttpServletRequest request
+            ) {
+        CheckUsernameResponse responseData = authService.checkUsernameUnique(checkRequest.username());
+
+        ApiResponse<CheckUsernameResponse> response = ApiResponse.<CheckUsernameResponse>builder()
+                .success(true)
+                .status(200)
+                .title(null)
+                .message(null)
+                .titleFa(null)
+                .messageFa(null)
+                .data(responseData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     private String extractClientIp(HttpServletRequest request) {

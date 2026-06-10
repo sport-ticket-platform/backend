@@ -39,6 +39,12 @@ public class User {
     private Boolean emailVerified = false;
 
     @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false) /* */ @Enumerated(EnumType.STRING)

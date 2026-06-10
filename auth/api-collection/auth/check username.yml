@@ -1,0 +1,21 @@
+info:
+  name: check username
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:8080/api/v1/auth/check-username
+  body:
+    type: json
+    data: |-
+      {
+        "username": "taha"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

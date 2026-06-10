@@ -85,8 +85,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationErrors(MethodArgumentNotValidException ex) {
 
-        Map<String, ValidError> validationDetails = new HashMap<>();
-        // For example, LOGIN_ or SIGNUP_ and ...
+        Map<String, java.util.List<ValidError>> validationDetails = new HashMap<>();
+
         String firstMessageKey = ex.getBindingResult().getFieldErrors().getFirst().getDefaultMessage();
 
         ApiMessage validationType = ApiMessage.VALIDATION_FAILED;
@@ -99,8 +99,8 @@ public class GlobalExceptionHandler {
         if (firstMessageKey != null) {
             if (firstMessageKey.startsWith("LOGIN_"))
                 validationType = ApiMessage.LOGIN_VALIDATION_FAILED;
-            else
-                validationType = ApiMessage.VALIDATION_FAILED;
+            else if (firstMessageKey.startsWith("SIGNUP_"))
+                validationType = ApiMessage.SIGNUP_VALIDATION_FAILED;
         }
 
         ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
 
             ValidError validError = new ValidError(msg.getMessage(), msg.getMessageFa());
 
-            validationDetails.put(fieldName, validError);
+            validationDetails.computeIfAbsent(fieldName, key -> new java.util.ArrayList<>()).add(validError);
         });
 
         ApiResponse<?> response = ApiResponse.builder()

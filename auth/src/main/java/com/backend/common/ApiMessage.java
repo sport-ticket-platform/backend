@@ -83,6 +83,25 @@ public enum ApiMessage {
             "Password must be less than 32 characters",
             "طول رمز عبور نامعتبر",
             "رمز عبور باید کمتر از ۳۲ کاراکتر باشد"
+    ),
+    // Signup Validation Errors
+    SIGNUP_VALIDATION_FAILED(
+            "Signup failed",
+            "Please clear the errors below",
+            "ثبت نام نشدید",
+            "لطفاً خطاهای زیر را برطرف کنید"
+    ),
+    SIGNUP_USERNAME_REQUIRED(
+            "Username is required",
+            "Username cannot be empty",
+            "نام کاربری اجباری است",
+            "نام کاربری نمی‌تواند خالی باشد"
+    ),
+    SIGNUP_USERNAME_SIZE(
+            "Invalid username length",
+            "Username must be between 3 and 65 characters",
+            "طول نام کاربری نامعتبر",
+            "نام کاربری باید بین ۳ تا ۶۵ کاراکتر باشد"
     );
 
     private final String title;
