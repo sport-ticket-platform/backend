@@ -40,6 +40,49 @@ public enum ApiMessage {
             null,
             "اکانت شما مسدود شده است",
             null
+    ),
+
+
+
+    // ======================================
+    //           Validation Errors
+    // ======================================
+    VALIDATION_FAILED(
+            "Validation failed",
+            "Please clear the errors below",
+            "خطای اعتبار سنجی",
+            "لطفاً خطاهای زیر را برطرف کنید"
+    ),
+    // Login Validation Errors
+    LOGIN_VALIDATION_FAILED(
+            "Login failed",
+            "Please clear the errors below",
+            "وارد نشدید",
+            "لطفاً خطاهای زیر را برطرف کنید"
+    ),
+    LOGIN_USERNAME_REQUIRED(
+            "Username is required",
+            "Username cannot be empty",
+            "نام کاربری اجباری است",
+            "نام کاربری نمی‌تواند خالی باشد"
+    ),
+    LOGIN_USERNAME_SIZE(
+            "Invalid username length",
+            "Username must be between 3 and 65 characters",
+            "طول نام کاربری نامعتبر",
+            "نام کاربری باید بین ۳ تا ۶۵ کاراکتر باشد"
+    ),
+    LOGIN_PASSWORD_REQUIRED(
+            "Password is required",
+            "Password cannot be empty",
+            "رمز عبور اجباری است",
+            "رمز عبور نمی‌تواند خالی باشد"
+    ),
+    LOGIN_PASSWORD_SIZE(
+            "Invalid password length",
+            "Password must be less than 32 characters",
+            "طول رمز عبور نامعتبر",
+            "رمز عبور باید کمتر از ۳۲ کاراکتر باشد"
     );
 
     private final String title;
