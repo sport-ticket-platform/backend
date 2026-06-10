@@ -1,11 +1,14 @@
 package com.backend.features.auth;
 
 import com.backend.common.ApiMessage;
+import com.backend.config.ApplicationProperties;
 import com.backend.dto.auth.CheckUsernameRequest;
 import com.backend.entity.User;
 import com.backend.entity.UserRole;
 import com.backend.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +30,9 @@ import static org.hamcrest.Matchers.hasItem;
 @SpringBootTest
 @Transactional
 class SignupFlowTest {
+
+    @Autowired
+    private ApplicationProperties appPrp;
 
     private MockMvc mockMvc;
 
@@ -114,5 +120,38 @@ class SignupFlowTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.isUnique").value(false));
+    }
+
+    @Test
+    @DisplayName("4. Rate limit test: should return error 429 (too many request)")
+    void checkUsername_WhenRateLimitExceeded_ShouldTriggerGlobalExceptionHandler() throws Exception {
+
+        int maxRequests = appPrp.getEndpointLimitsPerMin().getCheckUsername();
+
+        CheckUsernameRequest validRequest = CheckUsernameRequest.builder()
+                .username("rate-limit-tester")
+                .build();
+
+        // fake ip, because in previous tests we use a few time of default ip
+        String testIp = "192.1.1.2";
+
+        for (int i = 0; i < maxRequests; i++) {
+            mockMvc.perform(post("/api/v1/auth/check-username")
+                            .header("X-Forwarded-For", testIp)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(validRequest)))
+                    .andExpect(status().isOk());
+        }
+
+        // This request should be blocked
+        mockMvc.perform(post("/api/v1/auth/check-username")
+                        .header("X-Forwarded-For", testIp)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.status").value(429))
+                .andExpect(jsonPath("$.title").value(ApiMessage.TOO_MANY_REQUESTS.getTitle()))
+                .andExpect(jsonPath("$.message").value(ApiMessage.TOO_MANY_REQUESTS.getMessage()));
     }
 }

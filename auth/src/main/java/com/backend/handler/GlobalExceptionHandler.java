@@ -137,4 +137,20 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(400).body(response);
     }
+
+    // Rate Limit Handler
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ApiResponse<?>> handleRateLimit() {
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(429)
+                .title(ApiMessage.TOO_MANY_REQUESTS.getTitle())
+                .message(ApiMessage.TOO_MANY_REQUESTS.getMessage())
+                .titleFa(ApiMessage.TOO_MANY_REQUESTS.getTitleFa())
+                .messageFa(ApiMessage.TOO_MANY_REQUESTS.getMessageFa())
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(429).body(response);
+    }
 }

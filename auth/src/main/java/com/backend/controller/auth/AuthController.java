@@ -1,9 +1,12 @@
 package com.backend.controller.auth;
 
 import com.backend.common.ApiMessage;
+import com.backend.config.ApplicationProperties;
 import com.backend.dto.ApiResponse;
 import com.backend.dto.auth.*;
+import com.backend.handler.RateLimitException;
 import com.backend.service.auth.AuthService;
+import com.backend.service.system.RateLimitService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +33,10 @@ import java.time.LocalDateTime;
 @Slf4j
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthService authSrv;
+    private final RateLimitService rateLimitSrv;
+
+    private final ApplicationProperties appPrp;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
@@ -42,7 +48,7 @@ public class AuthController {
         String userAgent = request.getHeader("User-Agent");
         String deviceId = request.getHeader("X-Device-Id");
 
-        LoginResponse response = authService.login(loginRequest, ipAddress, userAgent, deviceId);
+        LoginResponse response = authSrv.login(loginRequest, ipAddress, userAgent, deviceId);
 
 
         ApiMessage msg = ApiMessage.SUCCESS_LOGIN;
@@ -65,8 +71,19 @@ public class AuthController {
     public ResponseEntity<ApiResponse<?>> checkUsername(
             @Valid @RequestBody CheckUsernameRequest checkRequest,
             HttpServletRequest request
-            ) {
-        CheckUsernameResponse responseData = authService.checkUsernameUnique(checkRequest.username());
+    ) {
+
+        String ipAddress = extractClientIp(request);
+        if (!rateLimitSrv.isIpAllowed(
+                ipAddress, "check-username",
+                appPrp.getEndpointLimitsPerMin().getCheckUsername(),
+                60)
+        ) {
+            throw new RateLimitException("This IP sent too many requests");
+        }
+
+        log.info("Checking username: [{}] uniqueness for IP: {}", checkRequest.username(), ipAddress);
+        CheckUsernameResponse responseData = authSrv.checkUsernameUnique(checkRequest.username());
 
         ApiResponse<CheckUsernameResponse> response = ApiResponse.<CheckUsernameResponse>builder()
                 .success(true)

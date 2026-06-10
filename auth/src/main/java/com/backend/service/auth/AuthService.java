@@ -101,7 +101,6 @@ public class AuthService {
 
     // Signup
     public CheckUsernameResponse checkUsernameUnique(String username) {
-        log.info("Checking username uniqueness for: {}", username);
 
         boolean isUnique = !userRepository.existsByUsername(username);
 

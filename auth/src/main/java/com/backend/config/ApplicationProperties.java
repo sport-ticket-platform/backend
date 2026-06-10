@@ -13,9 +13,10 @@ import org.springframework.core.io.Resource;
 @Configuration
 @ConfigurationProperties(prefix = "app.security")
 public class ApplicationProperties {
-    private final Jwt jwt = new Jwt();
 
     private String[] publicPaths;
+    private final Jwt jwt = new Jwt();
+    private final EndpointLimitsPerMin endpointLimitsPerMin = new EndpointLimitsPerMin();
 
     /**
      * <h3>Use RSA(RS256) Algorithm</h3>
@@ -30,5 +31,12 @@ public class ApplicationProperties {
         private long refreshTokenExpirationSec;
         private String issuer;
         private String audience;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class EndpointLimitsPerMin {
+        private int checkUsername;
     }
 }

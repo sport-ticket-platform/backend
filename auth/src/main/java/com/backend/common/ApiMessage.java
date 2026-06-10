@@ -4,6 +4,15 @@ import lombok.Getter;
 
 @Getter
 public enum ApiMessage {
+    // ==============================
+    //           General
+    // ==============================
+    TOO_MANY_REQUESTS(
+            "Too many requests",
+            "Please try again later",
+            "درخواست‌های بیش از حد",
+            "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً چند دقیقه دیگر تلاش کنید"
+    ),
 
     // Success messages
     SUCCESS_LOGIN(
