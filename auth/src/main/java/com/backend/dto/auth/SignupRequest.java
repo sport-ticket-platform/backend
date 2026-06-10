@@ -1,0 +1,4 @@
+package com.backend.dto.auth;
+
+public class SignupRequest {
+}

@@ -1,10 +1,14 @@
 package com.backend.controller.auth;
 
+import com.backend.common.ApiMessage;
 import com.backend.dto.ApiResponse;
 import com.backend.dto.auth.LoginRequest;
 import com.backend.dto.auth.LoginResponse;
+import com.backend.dto.auth.SignupRequest;
+import com.backend.dto.auth.SignupResponse;
 import com.backend.service.auth.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -33,24 +37,26 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
-            @RequestBody LoginRequest loginRequest,
-            HttpServletRequest request,
-            @RequestHeader(value = "X-Device-Id", defaultValue = "UNKNOWN_DEVICE") String deviceId
+            @Valid @RequestBody LoginRequest loginRequest,
+            HttpServletRequest request
     ) {
 
         String ipAddress = extractClientIp(request);
         String userAgent = request.getHeader("User-Agent");
+        String deviceId = request.getHeader("X-Device-Id");
 
         LoginResponse response = authService.login(loginRequest, ipAddress, userAgent, deviceId);
 
+
+        ApiMessage msg = ApiMessage.SUCCESS_LOGIN;
         return ResponseEntity.ok(
                 ApiResponse.<LoginResponse>builder()
                         .success(true)
                         .status(200)
-                        .title("Logged in successfully")
-                        .message(null)
-                        .titleFa("با موفقیت وارد شدید")
-                        .messageFa(null)
+                        .title(msg.getTitle())
+                        .message(msg.getMessage())
+                        .titleFa(msg.getTitleFa())
+                        .messageFa(msg.getMessageFa())
                         .data(response)
                         .timestamp(LocalDateTime.now())
                         .build()
