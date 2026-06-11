@@ -1,5 +1,6 @@
 package com.backend.controller.auth;
 
+import com.backend.annotation.docs.SignupApiDocs;
 import com.backend.common.ApiMessage;
 import com.backend.config.ApplicationProperties;
 import com.backend.dto.ApiResponse;
@@ -51,7 +52,7 @@ public class AuthController {
         LoginResponse response = authSrv.login(loginRequest, ipAddress, userAgent, deviceId);
 
 
-        ApiMessage msg = ApiMessage.SUCCESS_LOGIN;
+        ApiMessage msg = ApiMessage.LOGIN_SUCCESS;
         return ResponseEntity.ok(
                 ApiResponse.<LoginResponse>builder()
                         .success(true)
@@ -101,6 +102,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @SignupApiDocs
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(
             @Valid @RequestBody SignupRequest signupRequest,
@@ -121,13 +123,14 @@ public class AuthController {
 
         SignupResponse responseData = authSrv.signup(signupRequest);
 
+        ApiMessage msg = ApiMessage.SIGNUP_SUCCESS;
         ApiResponse<SignupResponse> response = ApiResponse.<SignupResponse>builder()
                 .success(true)
-                .status(200)
-                .title(null)
-                .message(null)
-                .titleFa(null)
-                .messageFa(null)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
                 .data(responseData)
                 .timestamp(LocalDateTime.now())
                 .build();

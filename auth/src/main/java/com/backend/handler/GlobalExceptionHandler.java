@@ -22,10 +22,10 @@ public class GlobalExceptionHandler {
     private record ValidError(String message, String messageFa) {}
 
     // Auth errors
-    private ResponseEntity<ApiResponse<?>> buildAuthErrorResponse(int status, ApiMessage message) {
+    private ResponseEntity<ApiResponse<?>> buildAuthErrorResponse(ApiMessage message) {
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
-                .status(status)
+                .status(message.getStatusCode())
                 .title(message.getTitle())
                 .message(message.getMessage())
                 .titleFa(message.getTitleFa())
@@ -34,31 +34,22 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        return ResponseEntity.status(status).body(response);
+        return ResponseEntity.status(message.getStatusCode()).body(response);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ApiResponse<?>> handleBadCredentials() {
-        return buildAuthErrorResponse(
-                401,
-                ApiMessage.BAD_CREDENTIALS
-        );
+        return buildAuthErrorResponse(ApiMessage.BAD_CREDENTIALS);
     }
 
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<ApiResponse<?>> handleLocked() {
-        return buildAuthErrorResponse(
-                401,
-                ApiMessage.ACCOUNT_LOCKED
-        );
+        return buildAuthErrorResponse(ApiMessage.ACCOUNT_LOCKED);
     }
 
     @ExceptionHandler(CredentialsExpiredException.class)
     public ResponseEntity<ApiResponse<?>> handleCredentialExpired() {
-        return buildAuthErrorResponse(
-                401,
-                ApiMessage.PASSWORD_EXPIRED
-        );
+        return buildAuthErrorResponse(ApiMessage.PASSWORD_EXPIRED);
     }
 
     @ExceptionHandler(UserSuspendException.class)
@@ -66,12 +57,13 @@ public class GlobalExceptionHandler {
             UserSuspendException e
     ) {
 
+        ApiMessage msg = ApiMessage.ACCOUNT_SUSPENDED;
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
-                .status(401)
-                .title(ApiMessage.ACCOUNT_SUSPENDED.getTitle())
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
                 .message(e.getBanReason())
-                .titleFa(ApiMessage.ACCOUNT_SUSPENDED.getTitleFa())
+                .titleFa(msg.getTitleFa())
                 .messageFa(e.getBanReason())
                 .data(null)
                 .timestamp(LocalDateTime.now())
@@ -126,7 +118,7 @@ public class GlobalExceptionHandler {
 
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
-                .status(400)
+                .status(validationType.getStatusCode())
                 .title(validationType.getTitle())
                 .message(validationType.getMessage())
                 .titleFa(validationType.getTitleFa())
@@ -135,23 +127,24 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        return ResponseEntity.status(400).body(response);
+        return ResponseEntity.status(validationType.getStatusCode()).body(response);
     }
 
     // Rate Limit Handler
     @ExceptionHandler(RateLimitException.class)
     public ResponseEntity<ApiResponse<?>> handleRateLimit() {
+        ApiMessage msg = ApiMessage.TOO_MANY_REQUESTS;
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
-                .status(429)
-                .title(ApiMessage.TOO_MANY_REQUESTS.getTitle())
-                .message(ApiMessage.TOO_MANY_REQUESTS.getMessage())
-                .titleFa(ApiMessage.TOO_MANY_REQUESTS.getTitleFa())
-                .messageFa(ApiMessage.TOO_MANY_REQUESTS.getMessageFa())
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
                 .data(null)
                 .timestamp(LocalDateTime.now())
                 .build();
-        return ResponseEntity.status(429).body(response);
+        return ResponseEntity.status(msg.getStatusCode()).body(response);
     }
 
     // Auth error
@@ -161,7 +154,7 @@ public class GlobalExceptionHandler {
 
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
-                .status(400)
+                .status(msg.getStatusCode())
                 .title(msg.getTitle())
                 .message(msg.getMessage())
                 .titleFa(msg.getTitleFa())
@@ -170,6 +163,34 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        return ResponseEntity.status(400).body(response);
+        return ResponseEntity.status(msg.getStatusCode()).body(response);
+    }
+
+
+
+
+
+
+    // ======================================
+    //     Global 500 Internal Server Error
+    // ======================================
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<?>> handleGlobalException(Exception ex) {
+
+        log.error("Unhandled Exception Caught: ", ex);
+
+        ApiMessage msg = ApiMessage.INTERNAL_SERVER_ERROR;
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(msg.getStatusCode()).body(response);
     }
 }

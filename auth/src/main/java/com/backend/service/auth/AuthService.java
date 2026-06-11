@@ -148,9 +148,6 @@ public class AuthService {
         } catch (DataIntegrityViolationException e) {
             log.warn("Database constraint violation for user [{}]", request.username(), e);
             throw new AuthException(ApiMessage.VALIDATION_FAILED);
-        } catch (Exception e) {
-            log.error("Unexpected error saving user: ", e);
-            throw new AuthException(ApiMessage.INTERNAL_SERVER_ERROR);
         }
     }
 
