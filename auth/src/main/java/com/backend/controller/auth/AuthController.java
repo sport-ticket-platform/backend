@@ -79,7 +79,9 @@ public class AuthController {
                 appPrp.getEndpointLimitsPerMin().getCheckUsername(),
                 60)
         ) {
-            throw new RateLimitException("This IP sent too many requests");
+            throw new RateLimitException(
+                    "This IP["+ipAddress+"] sent too many requests for /check-username"
+            );
         }
 
         log.info("Checking username: [{}] uniqueness for IP: {}", checkRequest.username(), ipAddress);
@@ -96,6 +98,39 @@ public class AuthController {
                 .timestamp(LocalDateTime.now())
                 .build();
 
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(
+            @Valid @RequestBody SignupRequest signupRequest,
+            HttpServletRequest request
+    ) {
+
+        String ipAddress = extractClientIp(request);
+        if (!rateLimitSrv.isIpAllowed(
+                ipAddress, "signup",
+                appPrp.getEndpointLimitsPerMin().getSignup(),
+                60)
+        ) {
+            throw new RateLimitException(
+                    "This IP["+ipAddress+"] sent too many requests for /signup"
+            );
+        }
+        log.info("Signing up for username: [{}] and IP: [{}]", signupRequest.username(), ipAddress);
+
+        SignupResponse responseData = authSrv.signup(signupRequest);
+
+        ApiResponse<SignupResponse> response = ApiResponse.<SignupResponse>builder()
+                .success(true)
+                .status(200)
+                .title(null)
+                .message(null)
+                .titleFa(null)
+                .messageFa(null)
+                .data(responseData)
+                .timestamp(LocalDateTime.now())
+                .build();
         return ResponseEntity.ok(response);
     }
 

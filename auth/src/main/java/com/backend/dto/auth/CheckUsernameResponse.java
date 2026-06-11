@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record CheckUsernameResponse (
-        Boolean isUnique
+        Boolean is_unique
 ){
 
 }

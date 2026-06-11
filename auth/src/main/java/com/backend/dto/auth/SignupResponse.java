@@ -1,4 +1,11 @@
 package com.backend.dto.auth;
 
-public class SignupResponse {
+import lombok.Builder;
+
+@Builder
+public record SignupResponse (
+        Long userId
+        // String accessToken,
+        // String refreshToken
+) {
 }

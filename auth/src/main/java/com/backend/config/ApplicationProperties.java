@@ -38,5 +38,6 @@ public class ApplicationProperties {
     @NoArgsConstructor
     public static class EndpointLimitsPerMin {
         private int checkUsername;
+        private int signup;
     }
 }

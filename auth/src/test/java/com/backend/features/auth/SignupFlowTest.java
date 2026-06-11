@@ -82,7 +82,7 @@ class SignupFlowTest {
     }
 
     @Test
-    @DisplayName("2. Database Test: Should return isUnique=true for a fresh username")
+    @DisplayName("2. Database Test: Should return is_unique=true for a fresh username")
     void checkUsername_WhenUsernameIsNew_ShouldReturnUniqueTrue() throws Exception {
         CheckUsernameRequest validRequest = CheckUsernameRequest.builder()
                 .username("unique-user")
@@ -93,11 +93,11 @@ class SignupFlowTest {
                         .content(objectMapper.writeValueAsString(validRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.isUnique").value(true));
+                .andExpect(jsonPath("$.data.is_unique").value(true));
     }
 
     @Test
-    @DisplayName("3. Database Test: Should return isUnique=false if username already exists in DB")
+    @DisplayName("3. Database Test: Should return is_unique=false if username already exists in DB")
     void checkUsername_WhenUsernameExistsInDb_ShouldReturnUniqueFalse() throws Exception {
         User existingUser = new User();
         existingUser.setUsername("user");
@@ -119,7 +119,7 @@ class SignupFlowTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.isUnique").value(false));
+                .andExpect(jsonPath("$.data.is_unique").value(false));
     }
 
     @Test

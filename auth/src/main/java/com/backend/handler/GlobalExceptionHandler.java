@@ -153,4 +153,23 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(429).body(response);
     }
+
+    // Auth error
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ApiResponse<?>> handleAuthException(AuthException ex) {
+        ApiMessage msg = ex.getApiMessage();
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(400)
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(ex.getFieldName() != null ? Map.of("field", ex.getFieldName()) :  null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(400).body(response);
+    }
 }
