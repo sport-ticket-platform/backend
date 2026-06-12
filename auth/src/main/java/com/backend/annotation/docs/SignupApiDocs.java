@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Operation(
         summary = "Register new user",
-        description = "Register new user with basic data like username, password, name and last name"
+        description = "Register new user with basic data like username, password, first name and last name."
 )
 @ApiResponses(value = {
         @ApiResponse(
@@ -35,48 +35,44 @@ import java.lang.annotation.Target;
                           "data": {
                             "userId": 1
                           },
-                          "timestamp": "2026-06-11T16:01:00"
+                          "timestamp": "2026-06-12T16:01:00"
                         }
                         """))
         ),
         @ApiResponse(
                 responseCode = "400",
-                description = "Validation Error, Format Error, or Username Taken",
+                description = "Validation Error, Username Taken, or Database Conflict",
                 content = @Content(mediaType = "application/json", examples = {
-                        @ExampleObject(name = "Validation Error", value = """
+                        @ExampleObject(name = "1. Validation Errors (Multiple)", value = """
                         {
                           "success": false,
                           "status": 400,
                           "title": "Signup failed",
-                          "message": "Please clear the errors below",
-                          "titleFa": "ثبت نام نشدید",
-                          "messageFa": "لطفاً خطاهای زیر را برطرف کنید",
+                          "message": "Please clear the errors below and try again.",
+                          "titleFa": "ثبت نام انجام نشد",
+                          "messageFa": "لطفاً خطاهای زیر را برطرف کرده و دوباره تلاش کنید.",
                           "data": {
                             "password": [
                               {
                                 "message": "Password cannot be empty",
                                 "messageFa": "رمز عبور نمی‌تواند خالی باشد"
+                              },
+                              {
+                                "message": "Password must contain at least one uppercase, one lowercase, and one number",
+                                "messageFa": "رمز عبور باید حداقل شامل یک حرف بزرگ، یک حرف کوچک و یک عدد باشد"
+                              }
+                            ],
+                            "username": [
+                              {
+                                "message": "Username can only contain English letters, numbers, and underscores",
+                                "messageFa": "فرمت نام کاربری نامعتبر"
                               }
                             ]
                           },
-                          "timestamp": "2026-06-11T16:02:00"
+                          "timestamp": "2026-06-12T16:02:00"
                         }
                         """),
-                        @ExampleObject(name = "Format Error", value = """
-                        {
-                          "success": false,
-                          "status": 400,
-                          "title": "Password is too weak",
-                          "message": "Password must contain at least one uppercase, one lowercase, and one number",
-                          "titleFa": "رمز عبور ضعیف است",
-                          "messageFa": "رمز عبور باید حداقل شامل یک حرف بزرگ، یک حرف کوچک و یک عدد باشد",
-                          "data": {
-                            "field": "password"
-                          },
-                          "timestamp": "2026-06-11T16:02:30"
-                        }
-                        """),
-                        @ExampleObject(name = "Username Taken Error", value = """
+                        @ExampleObject(name = "2. Username Taken", value = """
                         {
                           "success": false,
                           "status": 400,
@@ -85,9 +81,33 @@ import java.lang.annotation.Target;
                           "titleFa": "نام کاربری تکراری است",
                           "messageFa": "این نام کاربری قبلاً توسط شخص دیگری انتخاب شده است. یک نام کاربری دیگر را امتحان کنید",
                           "data": {
-                            "field": "username"
+                            "username": [
+                              {
+                                "message": "Please choose another username",
+                                "messageFa": "این نام کاربری قبلاً توسط شخص دیگری انتخاب شده است. یک نام کاربری دیگر را امتحان کنید"
+                              }
+                            ]
                           },
-                          "timestamp": "2026-06-11T16:03:00"
+                          "timestamp": "2026-06-12T16:03:00"
+                        }
+                        """),
+                        @ExampleObject(name = "3. Database Error", value = """
+                        {
+                          "success": false,
+                          "status": 400,
+                          "title": "Signup failed",
+                          "message": "Registration is currently unavailable. Please try again later.",
+                          "titleFa": "ثبت نام انجام نشد",
+                          "messageFa": "امکان ثبت نام شما در حال حاضر وجود ندارد. لطفاً بعدا دوباره امتحان کنید.",
+                          "data": {
+                            "username": [
+                              {
+                                "message": "Registration is currently unavailable. Please try again later.",
+                                "messageFa": "امکان ثبت نام شما در حال حاضر وجود ندارد. لطفاً بعدا دوباره امتحان کنید."
+                              }
+                            ]
+                          },
+                          "timestamp": "2026-06-12T16:04:00"
                         }
                         """)
                 })
@@ -104,7 +124,7 @@ import java.lang.annotation.Target;
                           "titleFa": "درخواست‌های بیش از حد",
                           "messageFa": "تعداد درخواست‌های شما بیش از حد مجاز است. لطفاً چند دقیقه دیگر تلاش کنید",
                           "data": null,
-                          "timestamp": "2026-06-11T16:04:00"
+                          "timestamp": "2026-06-12T16:05:00"
                         }
                         """))
         ),
@@ -120,7 +140,7 @@ import java.lang.annotation.Target;
                           "titleFa": "خطای داخلی سرور",
                           "messageFa": "خطای غیرمنتظره‌ای در سرور رخ داده است. لطفاً دقایقی دیگر تلاش کنید.",
                           "data": null,
-                          "timestamp": "2026-06-11T16:05:00"
+                          "timestamp": "2026-06-12T16:06:00"
                         }
                         """))
         )

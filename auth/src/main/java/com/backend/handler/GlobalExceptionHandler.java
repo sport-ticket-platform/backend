@@ -12,14 +12,22 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     // record for handleValidationErrors
-    private record ValidError(String message, String messageFa) {}
+    private record fieldError(String message, String messageFa) {}
+
+    private static final Map<String, Integer> ERROR_PRIORITY = Map.of(
+            "NotBlank", 1,
+            "Size", 2,
+            "Pattern", 3
+    );
 
     // Auth errors
     private ResponseEntity<ApiResponse<?>> buildAuthErrorResponse(ApiMessage message) {
@@ -73,14 +81,16 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    // Validation errors
+
+    // ============================
+    //      Validation Errors
+    // ============================
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<?>> handleValidationErrors(MethodArgumentNotValidException ex) {
 
-        Map<String, java.util.List<ValidError>> validationDetails = new HashMap<>();
+        Map<String, List<fieldError>> validationDetails = new HashMap<>();
 
         String firstMessageKey = ex.getBindingResult().getFieldErrors().getFirst().getDefaultMessage();
-
         ApiMessage validationType = ApiMessage.VALIDATION_FAILED;
 
         log.warn("Validation failed! Target: {}, Total Errors: {}",
@@ -95,26 +105,35 @@ public class GlobalExceptionHandler {
                 validationType = ApiMessage.SIGNUP_VALIDATION_FAILED;
         }
 
-        ex.getBindingResult().getFieldErrors().forEach(fieldError -> {
-            String fieldName = fieldError.getField();
-            String messageKey = fieldError.getDefaultMessage();
+        ex.getBindingResult().getFieldErrors().stream()
+                .sorted(java.util.Comparator.comparingInt(
+                        fe -> ERROR_PRIORITY.getOrDefault(fe.getCode(), 99))
+                )
+                .forEach(fieldError -> {
+                    String fieldName = fieldError.getField();
+                    String messageKey = fieldError.getDefaultMessage();
 
-            ApiMessage msg;
-            try {
-                msg = ApiMessage.valueOf(messageKey);
-            } catch (IllegalArgumentException | NullPointerException e) {
-                log.error("Missing Enum constant for validation message key: [{}] on field: [{}]", messageKey, fieldName);
-                msg = ApiMessage.VALIDATION_FAILED;
-            }
+                    ApiMessage msg;
+                    try {
+                        msg = ApiMessage.valueOf(messageKey);
+                    } catch (IllegalArgumentException | NullPointerException e) {
+                        log.error(
+                                "Missing Enum constant for validation message key: [{}] on field: [{}]",
+                                messageKey, fieldName
+                        );
+                        msg = ApiMessage.VALIDATION_FAILED;
+                    }
 
-            log.debug("Field [{}] validation failed. Key: [{}], Rejected Value: [{}]",
-                    fieldName, messageKey, fieldError.getRejectedValue()
-            );
+                    log.debug("Field [{}] validation failed. Key: [{}], Code: [{}], Rejected Value: [{}]",
+                            fieldName, messageKey, fieldError.getCode(), fieldError.getRejectedValue()
+                    );
 
-            ValidError validError = new ValidError(msg.getMessage(), msg.getMessageFa());
+                    fieldError validError = new fieldError(msg.getMessage(), msg.getMessageFa());
 
-            validationDetails.computeIfAbsent(fieldName, key -> new java.util.ArrayList<>()).add(validError);
-        });
+                    validationDetails.computeIfAbsent(
+                            fieldName, key -> new java.util.ArrayList<>()).add(validError
+                    );
+                });
 
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
@@ -147,10 +166,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(msg.getStatusCode()).body(response);
     }
 
-    // Auth error
+
+    // =====================
+    //       Auth error
+    // =====================
     @ExceptionHandler(AuthException.class)
     public ResponseEntity<ApiResponse<?>> handleAuthException(AuthException ex) {
         ApiMessage msg = ex.getApiMessage();
+
+        Map<String, List<fieldError>> errorData = null;
+
+        if (ex.getFieldName() != null) {
+            errorData = new HashMap<>();
+            fieldError fieldError = new fieldError(msg.getMessage(), msg.getMessageFa());
+            errorData.computeIfAbsent(ex.getFieldName(), k -> new ArrayList<>()).add(fieldError);
+        }
 
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
@@ -159,17 +189,12 @@ public class GlobalExceptionHandler {
                 .message(msg.getMessage())
                 .titleFa(msg.getTitleFa())
                 .messageFa(msg.getMessageFa())
-                .data(ex.getFieldName() != null ? Map.of("field", ex.getFieldName()) :  null)
+                .data(errorData)
                 .timestamp(LocalDateTime.now())
                 .build();
 
         return ResponseEntity.status(msg.getStatusCode()).body(response);
     }
-
-
-
-
-
 
     // ======================================
     //     Global 500 Internal Server Error

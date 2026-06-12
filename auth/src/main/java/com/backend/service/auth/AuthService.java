@@ -118,8 +118,6 @@ public class AuthService {
     @Transactional
     public SignupResponse signup(SignupRequest request) {
 
-        validateSignupFormats(request);
-
         if (!checkUsernameUnique(request.username()).is_unique()) {
             log.warn("Signup failed. Username [{}] is already taken.", request.username());
             throw new AuthException(ApiMessage.SIGNUP_USERNAME_TAKEN, "username");
@@ -147,23 +145,7 @@ public class AuthService {
 
         } catch (DataIntegrityViolationException e) {
             log.warn("Database constraint violation for user [{}]", request.username(), e);
-            throw new AuthException(ApiMessage.VALIDATION_FAILED);
+            throw new AuthException(ApiMessage.SIGNUP_DATABASE_ERROR, "username");
         }
-    }
-
-    private void validateSignupFormats(SignupRequest request) {
-        // just a-z A-Z 0-9 and _
-        if (!request.username().matches("^[a-zA-Z0-9_]+$"))
-            throw new AuthException(ApiMessage.SIGNUP_USERNAME_FORMAT, "username");
-
-        // at least required one uppercase character, lowercase, character, and a digit
-        if (!request.password().matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{};':\",./<>?]{8,32}$"))
-            throw new AuthException(ApiMessage.SIGNUP_PASSWORD_WEAK, "password");
-
-        // just alphabet Persian English and white space
-        if (!request.first_name().matches("^[\\p{L}\\s]+$"))
-            throw new AuthException(ApiMessage.SIGNUP_NAME_FORMAT, "first_name");
-        if (!request.last_name().matches("^[\\p{L}\\s]+$"))
-            throw new AuthException(ApiMessage.SIGNUP_NAME_FORMAT, "last_name");
     }
 }

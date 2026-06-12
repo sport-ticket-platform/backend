@@ -22,7 +22,9 @@ public enum ApiMessage {
             500 // Internal Server Error
     ),
 
-    // Success messages
+    // =========================
+    //     Success messages
+    // =========================
     LOGIN_SUCCESS(
             "Logged in successfully",
             null,
@@ -72,7 +74,7 @@ public enum ApiMessage {
     ),
 
     // ======================================
-    //           Validation Errors
+    //               Errors
     // ======================================
     VALIDATION_FAILED(
             "Validation failed",
@@ -81,7 +83,8 @@ public enum ApiMessage {
             null,
             400 // Bad Request
     ),
-    // Login Validation Errors
+
+    // Login Errors
     LOGIN_VALIDATION_FAILED(
             "Login failed",
             "Please clear the errors below",
@@ -117,6 +120,7 @@ public enum ApiMessage {
             "رمز عبور باید کمتر از ۳۲ کاراکتر باشد",
             400
     ),
+
     // Signup Validation Errors
     SIGNUP_VALIDATION_FAILED(
             "Signup failed",
@@ -124,6 +128,13 @@ public enum ApiMessage {
             "ثبت نام نشدید",
             "لطفاً خطاهای زیر را برطرف کنید",
             400
+    ),
+    SIGNUP_DATABASE_ERROR(
+            "Signup failed",
+            "Registration is currently unavailable. Please try again later.",
+            "ثبت نام انجام نشد",
+            "امکان ثبت نام شما در حال حاضر وجود ندارد. لطفاً بعدا دوباره امتحان کنید.",
+            400 // Bad Request
     ),
     SIGNUP_USERNAME_REQUIRED(
             "Username is required",
