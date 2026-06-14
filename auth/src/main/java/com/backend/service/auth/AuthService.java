@@ -140,7 +140,7 @@ public class AuthService {
             log.info("User [{}] successfully registered.", savedUser.getUsername());
 
             return SignupResponse.builder()
-                    .userId(savedUser.getId())
+                    .user_id(savedUser.getId())
                     .build();
 
         } catch (DataIntegrityViolationException e) {

@@ -4,7 +4,7 @@ import lombok.Builder;
 
 @Builder
 public record SignupResponse (
-        Long userId
+        Long user_id
         // String accessToken,
         // String refreshToken
 ) {
