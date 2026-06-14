@@ -2,11 +2,9 @@ package com.backend.service;
 
 import com.backend.config.ApplicationPolicies;
 import com.backend.config.ApplicationProperties;
-import com.backend.entity.BlacklistedIp;
 import com.backend.entity.RefreshToken;
 import com.backend.entity.User;
 import com.backend.repository.RefreshTokenRepository;
-import com.backend.service.system.BlacklistedIpService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,11 +21,7 @@ public class RefreshTokenService {
     private final ApplicationProperties appProperties;
     private final ApplicationPolicies appPolicies;
 
-    private final BlacklistedIpService blackIpService;
-
     public String createRefreshToken(User user, String ipAddress, String userAgent, String deviceId) {
-
-        checkEntries(userAgent, deviceId, user.getId());
 
         checkDeviceIdAndPolicies(user.getId(), deviceId);
 
@@ -65,18 +59,6 @@ public class RefreshTokenService {
             if (changed > 0) {
                 log.info("{} refresh-token(s) for device '{}' deactivated.", changed, deviceId);
             }
-        }
-    }
-
-    private void checkEntries(String userAgent, String deviceId, Long userId) {
-        if (userAgent.length() > 512) {
-            log.warn("User {} Trying to insert a longer than 512-char string into userAgent. entry len: {}",
-                    userId, userAgent.length());
-            blackIpService.blockIpForever(
-                    BlacklistedIp.builder().build()
-            );
-        } else if (deviceId.length() > 256) {
-
         }
     }
 }

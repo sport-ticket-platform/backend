@@ -1,10 +1,15 @@
 package com.backend.controller.auth;
 
+import com.backend.annotation.docs.SignupApiDocs;
+import com.backend.common.ApiMessage;
+import com.backend.config.ApplicationProperties;
 import com.backend.dto.ApiResponse;
-import com.backend.dto.auth.LoginRequest;
-import com.backend.dto.auth.LoginResponse;
+import com.backend.dto.auth.*;
+import com.backend.handler.RateLimitException;
 import com.backend.service.auth.AuthService;
+import com.backend.service.system.RateLimitService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -29,32 +34,107 @@ import java.time.LocalDateTime;
 @Slf4j
 public class AuthController {
 
-    private final AuthService authService;
+    private final AuthService authSrv;
+    private final RateLimitService rateLimitSrv;
+
+    private final ApplicationProperties appPrp;
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
-            @RequestBody LoginRequest loginRequest,
-            HttpServletRequest request,
-            @RequestHeader(value = "X-Device-Id", defaultValue = "UNKNOWN_DEVICE") String deviceId
+            @Valid @RequestBody LoginRequest loginRequest,
+            HttpServletRequest request
     ) {
 
         String ipAddress = extractClientIp(request);
         String userAgent = request.getHeader("User-Agent");
+        String deviceId = request.getHeader("X-Device-Id");
 
-        LoginResponse response = authService.login(loginRequest, ipAddress, userAgent, deviceId);
+        LoginResponse response = authSrv.login(loginRequest, ipAddress, userAgent, deviceId);
 
+
+        ApiMessage msg = ApiMessage.LOGIN_SUCCESS;
         return ResponseEntity.ok(
                 ApiResponse.<LoginResponse>builder()
                         .success(true)
                         .status(200)
-                        .title("Logged in successfully")
-                        .message(null)
-                        .titleFa("با موفقیت وارد شدید")
-                        .messageFa(null)
+                        .title(msg.getTitle())
+                        .message(msg.getMessage())
+                        .titleFa(msg.getTitleFa())
+                        .messageFa(msg.getMessageFa())
                         .data(response)
                         .timestamp(LocalDateTime.now())
                         .build()
         );
+    }
+
+    // Signup
+    @PostMapping("/check-username")
+    public ResponseEntity<ApiResponse<?>> checkUsername(
+            @Valid @RequestBody CheckUsernameRequest checkRequest,
+            HttpServletRequest request
+    ) {
+
+        String ipAddress = extractClientIp(request);
+        if (!rateLimitSrv.isIpAllowed(
+                ipAddress, "check-username",
+                appPrp.getEndpointLimitsPerMin().getCheckUsername(),
+                60)
+        ) {
+            throw new RateLimitException(
+                    "This IP["+ipAddress+"] sent too many requests for /check-username"
+            );
+        }
+
+        log.info("Checking username: [{}] uniqueness for IP: {}", checkRequest.username(), ipAddress);
+        CheckUsernameResponse responseData = authSrv.checkUsernameUnique(checkRequest.username());
+
+        ApiResponse<CheckUsernameResponse> response = ApiResponse.<CheckUsernameResponse>builder()
+                .success(true)
+                .status(200)
+                .title(null)
+                .message(null)
+                .titleFa(null)
+                .messageFa(null)
+                .data(responseData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @SignupApiDocs
+    @PostMapping("/signup")
+    public ResponseEntity<ApiResponse<SignupResponse>> signup(
+            @Valid @RequestBody SignupRequest signupRequest,
+            HttpServletRequest request
+    ) {
+
+        String ipAddress = extractClientIp(request);
+        if (!rateLimitSrv.isIpAllowed(
+                ipAddress, "signup",
+                appPrp.getEndpointLimitsPerMin().getSignup(),
+                60)
+        ) {
+            throw new RateLimitException(
+                    "This IP["+ipAddress+"] sent too many requests for /signup"
+            );
+        }
+        log.info("Signing up for username: [{}] and IP: [{}]", signupRequest.username(), ipAddress);
+
+        SignupResponse responseData = authSrv.signup(signupRequest);
+
+        ApiMessage msg = ApiMessage.SIGNUP_SUCCESS;
+        ApiResponse<SignupResponse> response = ApiResponse.<SignupResponse>builder()
+                .success(true)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(responseData)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     private String extractClientIp(HttpServletRequest request) {

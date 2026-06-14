@@ -27,7 +27,7 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
        WHERE t.user.id = :userId
        """)
     int deactivateAllByUserId(
-            @Param("userId") Long userId,
+            @Param("user_id") Long userId,
             @Param("revokedAt")LocalDateTime time,
             @Param("revokedReason") String reason
     );

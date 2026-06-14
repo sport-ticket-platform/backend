@@ -16,6 +16,9 @@ spring:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
+  output:
+    ansi:
+      enabled: always
 
   # Connect to redis
   data:
@@ -26,7 +29,8 @@ spring:
 
 app:
   security:
-    public-paths: /api/v1/auth/**,/error
+    public-paths: /api/v1/auth/**,/error,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html
+
     jwt:
       private-key: classpath:keys/private_key.pem
       public-key: classpath:keys/public_key.pem
@@ -34,3 +38,7 @@ app:
       refresh-token-expiration-sec: 2592000
       issuer: backend-service
       audience: frontend
+
+    endpoint-limits-per-min:
+      check-username: 45
+      signup: 10

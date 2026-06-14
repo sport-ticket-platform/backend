@@ -1,0 +1,24 @@
+info:
+  name: signup
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: http://localhost:8080/api/v1/auth/signup
+  body:
+    type: json
+    data: |-
+      {
+        "username": "taha",
+        "first_name": "taha",
+        "last_name": "taha",
+        "password": "Taha1111"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
