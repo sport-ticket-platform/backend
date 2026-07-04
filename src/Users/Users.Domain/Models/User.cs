@@ -18,7 +18,7 @@ public class User
     public string PasswordHash { get; private set; }
     public decimal Balance { get; private set; } = 0;
     public int CityId { get; private set; }
-    public bool AccountStatus { get; private set; }
+    public bool IsActive { get; private set; } = true;
 
     private static readonly Regex EmailRegex = new(
         @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
