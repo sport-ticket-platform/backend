@@ -44,9 +44,17 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.79, )"
+            },
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[9.0.12, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[10.0.3, )"
             }
           },
           "imports": [
