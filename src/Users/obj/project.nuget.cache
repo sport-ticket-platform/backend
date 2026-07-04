@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "SWC1YnJ4HPo=",
+  "success": true,
+  "projectFilePath": "/home/mmdcj/RiderProjects/backend/src/Users/UserService.csproj",
+  "expectedPackageFiles": [
+    "/home/mmdcj/.nuget/packages/microsoft.aspnetcore.openapi/9.0.12/microsoft.aspnetcore.openapi.9.0.12.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
