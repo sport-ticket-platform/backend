@@ -29,6 +29,8 @@ public class User
     private const int MostChars = 50;
     private const string PhoneNumberPrefix = "09";
     private const int PhoneNumberLength = 11;
+    private const int CurrencyDecimalPlaces = 2;
+    
 
 
     private User(string firstName, string lastName, Role userRole, string email, string phoneNumber,
@@ -68,7 +70,6 @@ public class User
             throw new DomainException("Phone number must contain digits only.");
     }
     
-    
     private static void ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -77,6 +78,18 @@ public class User
         if (!EmailRegex.IsMatch(email))
             throw new DomainException("Email format is invalid.");
     }
+    
+    
+    private static void ValidateMoneyAmount(decimal amount)
+    {
+        if (amount <= 0)
+            throw new DomainException("Amount must be greater than zero.");
+
+        if (amount != Math.Round(amount, CurrencyDecimalPlaces))
+            throw new DomainException($"Amount cannot have more than {CurrencyDecimalPlaces} decimal places.");
+    }
+    
+    
     public static User Create(string firstName, string lastName, Role userRole, string email, string phoneNumber,
         string passwordHash, int cityId, bool emailIsVerified = false, bool phoneNumberIsVerified = false)
     {
@@ -94,4 +107,46 @@ public class User
         return new User(firstName, lastName, userRole, email, phoneNumber, passwordHash, cityId, emailIsVerified,
             phoneNumberIsVerified);
     }
+
+    public void Update(string firstName, string lastName)
+    {
+        ValidateNameLength(firstName,nameof(firstName));
+        ValidateNameLength(lastName,nameof(lastName));
+        FirstName = firstName;
+        LastName = lastName;
+    }
+    
+    public void Update(string firstName, string lastName,string email)
+    {
+        ValidateNameLength(firstName,nameof(firstName));
+        ValidateNameLength(lastName,nameof(lastName));
+        ValidateEmail(email);
+        FirstName = firstName;
+        LastName = lastName;
+        Email = email;
+    }
+    
+    public void Update(string phoneNumber)
+    {
+        ValidatePhoneNumber(phoneNumber);
+        PhoneNumber = phoneNumber;
+    }
+
+    public void IncreaseBalance(decimal amount)
+    {
+        ValidateMoneyAmount(amount);
+        Balance += amount;
+    }
+
+    public void DecreaseBalance(decimal amount)
+    {
+        ValidateMoneyAmount(amount);
+
+        if (amount > Balance)
+            throw new DomainException("Insufficient balance.");
+
+        Balance -= amount;
+    }
+
+    
 }
