@@ -1,4 +1,4 @@
-namespace DefaultNamespace;
+namespace UserService.Users.Domain.Enums;
 
 public enum Role
 {
