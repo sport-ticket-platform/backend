@@ -199,6 +199,14 @@ public class GlobalExceptionHandler {
     // ======================================
     //     Global 500 Internal Server Error
     // ======================================
+    @ExceptionHandler(org.springframework.security.authentication.AuthenticationServiceException.class)
+    public ResponseEntity<ApiResponse<?>> handleAuthenticationServiceException(
+            org.springframework.security.authentication.AuthenticationServiceException ex) {
+
+        log.error("Authentication infrastructure error: {}", ex.getMessage(), ex);
+        return buildAuthErrorResponse(ApiMessage.AUTH_SERVICE_UNAVAILABLE);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleGlobalException(Exception ex) {
 

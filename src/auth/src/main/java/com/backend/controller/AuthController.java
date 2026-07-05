@@ -1,4 +1,4 @@
-package com.backend.controller.auth;
+package com.backend.controller;
 
 import com.backend.annotation.docs.SignupApiDocs;
 import com.backend.common.ApiMessage;
@@ -68,40 +68,6 @@ public class AuthController {
     }
 
     // Signup
-    @PostMapping("/check-username")
-    public ResponseEntity<ApiResponse<?>> checkUsername(
-            @Valid @RequestBody CheckUsernameRequest checkRequest,
-            HttpServletRequest request
-    ) {
-
-        String ipAddress = extractClientIp(request);
-        if (!rateLimitSrv.isIpAllowed(
-                ipAddress, "check-username",
-                appPrp.getEndpointLimitsPerMin().getCheckUsername(),
-                60)
-        ) {
-            throw new RateLimitException(
-                    "This IP["+ipAddress+"] sent too many requests for /check-username"
-            );
-        }
-
-        log.info("Checking username: [{}] uniqueness for IP: {}", checkRequest.username(), ipAddress);
-        CheckUsernameResponse responseData = authSrv.checkUsernameUnique(checkRequest.username());
-
-        ApiResponse<CheckUsernameResponse> response = ApiResponse.<CheckUsernameResponse>builder()
-                .success(true)
-                .status(200)
-                .title(null)
-                .message(null)
-                .titleFa(null)
-                .messageFa(null)
-                .data(responseData)
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
-
     @SignupApiDocs
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(
@@ -119,7 +85,7 @@ public class AuthController {
                     "This IP["+ipAddress+"] sent too many requests for /signup"
             );
         }
-        log.info("Signing up for username: [{}] and IP: [{}]", signupRequest.username(), ipAddress);
+        log.info("Signing up for email: [{}] and IP: [{}]", signupRequest.email(), ipAddress);
 
         SignupResponse responseData = authSrv.signup(signupRequest);
 

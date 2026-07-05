@@ -1,12 +1,12 @@
-package com.backend.entity;
+package com.backend.dto.user;
 
 import lombok.Getter;
 
 @Getter
 public enum UserRole {
     USER(1),
-    ADMIN(2),
-    MODERATOR(3);
+    SUPPORT(2),
+    ADMIN(3);
 
     private final int level;
 

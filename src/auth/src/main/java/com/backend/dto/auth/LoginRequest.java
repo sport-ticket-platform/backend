@@ -11,9 +11,9 @@ import lombok.*;
  */
 @Builder
 public record LoginRequest (
-        @NotBlank(message = "LOGIN_USERNAME_REQUIRED")
-        @Size(min = 3, max = 65, message = "LOGIN_USERNAME_SIZE")
-        String username,
+        @NotBlank(message = "LOGIN_IDENTIFIER_REQUIRED")
+        @Size(min = 3, max = 255, message = "LOGIN_IDENTIFIER_SIZE")
+        String identifier,
 
         @NotBlank(message = "LOGIN_PASSWORD_REQUIRED")
         @Size(max = 32, message = "LOGIN_PASSWORD_SIZE")

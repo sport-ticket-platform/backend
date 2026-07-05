@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.backend.grpc";
+
+service UserService {
+  // Login
+  rpc GetUserByEmail (GetUserLoginInfoByEmailRequest) returns (UserLoginInfoResponse);
+  rpc GetUserByPhone (GetUserLoginInfoByPhoneRequest) returns (UserLoginInfoResponse);
+
+  // Signup Validation
+  rpc CheckEmailExists (CheckEmailExistsRequest) returns (CheckExistsResponse);
+  rpc CheckPhoneExists (CheckPhoneExistsRequest) returns (CheckExistsResponse);
+
+  // Signup
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+}
+
+// =====================================
+//               LOGIN
+// =====================================
+message GetUserLoginInfoByEmailRequest {
+  string email = 1;
+}
+
+message GetUserLoginInfoByPhoneRequest {
+  string phone = 1;
+}
+
+message UserLoginInfoResponse {
+  int64 id = 1;
+  string role = 2;
+  string email = 3;
+  string phone = 4;
+  string password = 5;
+  bool status = 6;
+  bool is_two_factor_enabled = 7;
+}
+
+// =====================================
+//         SIGNUP VALIDATION
+// =====================================
+message CheckEmailExistsRequest {
+  string email = 1;
+}
+
+message CheckPhoneExistsRequest {
+  string phone = 1;
+}
+
+message CheckExistsResponse {
+  bool exists = 1;
+}
+
+// =====================================
+//               SIGNUP
+// =====================================
+message CreateUserRequest {
+  string email = 1;
+  string phone = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string password = 5;
+}
+
+message CreateUserResponse {
+  int64 user_id = 1;
+}
