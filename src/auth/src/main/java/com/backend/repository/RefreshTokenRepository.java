@@ -1,49 +1,109 @@
 package com.backend.repository;
 
-import com.backend.entity.RefreshToken;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
+import com.backend.model.RefreshToken;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
-    Optional<RefreshToken> findByToken(String token);
+@Slf4j
+@Repository
+@RequiredArgsConstructor
+public class RefreshTokenRepository {
 
-    Boolean existsByDeviceIdAndIsActiveTrue(String deviceId);
+    private final JdbcTemplate jdbcTemplate;
 
-    Boolean existsByUserIdAndIsActiveTrue(Long userId);
+    private final RowMapper<RefreshToken> mapper = (rs, rowNum) -> RefreshToken.builder()
+            .id(rs.getLong("id"))
+            .token(rs.getString("token"))
+            .userId(rs.getLong("user_id"))
+            .createdAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null)
+            .expirationDate(rs.getTimestamp("expiration_date") != null ? rs.getTimestamp("expiration_date").toLocalDateTime() : null)
+            .isActive(rs.getBoolean("is_active"))
+            .revokedAt(rs.getTimestamp("revoked_at") != null ? rs.getTimestamp("revoked_at").toLocalDateTime() : null)
+            .revokedReason(rs.getString("revoked_reason"))
+            .ipAddress(rs.getString("ip_address"))
+            .userAgent(rs.getString("user_agent"))
+            .deviceId(rs.getString("device_id"))
+            .build();
 
-    @Modifying
-    @Transactional
-    @Query("""
-       UPDATE RefreshToken t
-       SET t.isActive = false,
-           t.revokedAt = :revokedAt,
-           t.revokedReason = :revokedReason
-       WHERE t.user.id = :userId
-       """)
-    int deactivateAllByUserId(
-            @Param("user_id") Long userId,
-            @Param("revokedAt")LocalDateTime time,
-            @Param("revokedReason") String reason
-    );
+    public RefreshToken save(RefreshToken token) {
+        String sql = """
+            INSERT INTO refresh_token 
+            (token, user_id, created_at, expiration_date, is_active, ip_address, user_agent, device_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """;
 
-    @Modifying
-    @Transactional
-    @Query("""
-       UPDATE RefreshToken t
-       SET t.isActive = false,
-           t.revokedAt = :revokedAt,
-           t.revokedReason = :revokedReason
-       WHERE t.deviceId = :deviceId AND t.isActive = true
-       """)
-    int deactivateAllByDeviceId(
-            @Param("deviceId") String deviceId,
-            @Param("revokedAt")LocalDateTime time,
-            @Param("revokedReason") String reason
-    );
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        LocalDateTime created = token.getCreatedAt() != null ? token.getCreatedAt() : LocalDateTime.now();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, token.getToken());
+            ps.setLong(2, token.getUserId());
+            ps.setTimestamp(3, Timestamp.valueOf(created));
+            ps.setTimestamp(4, Timestamp.valueOf(token.getExpirationDate()));
+            ps.setBoolean(5, token.isActive());
+            ps.setString(6, token.getIpAddress());
+            ps.setString(7, token.getUserAgent());
+            ps.setString(8, token.getDeviceId());
+            return ps;
+        }, keyHolder);
+
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
+            token.setId(((Number) keyHolder.getKeys().get("id")).longValue());
+        }
+        token.setCreatedAt(created);
+        return token;
+    }
+
+    public Optional<RefreshToken> findByToken(String token) {
+        String sql = "SELECT * FROM refresh_token WHERE token = ?";
+        try {
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sql, mapper, token));
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    public boolean hasActiveTokenByDevice(String deviceId) {
+        String sql = "SELECT count(*) FROM refresh_token WHERE device_id = ? AND is_active = true";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, deviceId);
+        return count != null && count > 0;
+    }
+
+    // تغییر نام متد به سبک ساده و نیتیو
+    public boolean hasActiveTokenByUser(Long userId) {
+        String sql = "SELECT count(*) FROM refresh_token WHERE user_id = ? AND is_active = true";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
+        return count != null && count > 0;
+    }
+
+    public int deactivateByUser(Long userId, LocalDateTime time, String reason) {
+        String sql = """
+            UPDATE refresh_token 
+            SET is_active = false, revoked_at = ?, revoked_reason = ? 
+            WHERE user_id = ? AND is_active = true
+            """;
+        return jdbcTemplate.update(sql, Timestamp.valueOf(time), reason, userId);
+    }
+
+    public int deactivateByDevice(String deviceId, LocalDateTime time, String reason) {
+        String sql = """
+            UPDATE refresh_token 
+            SET is_active = false, revoked_at = ?, revoked_reason = ? 
+            WHERE device_id = ? AND is_active = true
+            """;
+        return jdbcTemplate.update(sql, Timestamp.valueOf(time), reason, deviceId);
+    }
 }

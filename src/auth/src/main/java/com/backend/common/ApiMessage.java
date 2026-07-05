@@ -83,6 +83,13 @@ public enum ApiMessage {
             null,
             400 // Bad Request
     ),
+    AUTH_SERVICE_UNAVAILABLE(
+            "Authentication service unavailable",
+            "We are experiencing technical difficulties. Please try again later.",
+            "سرویس احراز هویت در دسترس نیست",
+            "ارتباط با سرور کاربران موقتاً قطع شده است. لطفاً دقایقی دیگر تلاش کنید.",
+            500 // Internal Server Error
+    ),
 
     // Login Errors
     LOGIN_VALIDATION_FAILED(
@@ -92,18 +99,18 @@ public enum ApiMessage {
             "لطفاً خطاهای زیر را برطرف کنید",
             400
     ),
-    LOGIN_USERNAME_REQUIRED(
-            "Username is required",
-            "Username cannot be empty",
-            "نام کاربری اجباری است",
-            "نام کاربری نمی‌تواند خالی باشد",
+    LOGIN_IDENTIFIER_REQUIRED(
+            "email or phone number is required",
+            "it can't be empty",
+            "ایمیل یا شماره اجباری است",
+            "این بخش نمی‌تواند خالی باشد",
             400
     ),
-    LOGIN_USERNAME_SIZE(
-            "Invalid username length",
-            "Username must be between 3 and 65 characters",
-            "طول نام کاربری نامعتبر",
-            "نام کاربری باید بین ۳ تا ۶۵ کاراکتر باشد",
+    LOGIN_IDENTIFIER_SIZE(
+            "Invalid email or phone length",
+            "it must be between 3 and 255 characters",
+            "طول ایمیل یا شماره نامعتبر",
+            "باید بین ۳ تا ۲۵۵ کاراکتر باشد",
             400
     ),
     LOGIN_PASSWORD_REQUIRED(
@@ -129,7 +136,7 @@ public enum ApiMessage {
             "لطفاً خطاهای زیر را برطرف کنید",
             400
     ),
-    SIGNUP_DATABASE_ERROR(
+    SIGNUP_INTERNAL_ERROR(
             "Signup failed",
             "Registration is currently unavailable. Please try again later.",
             "ثبت نام انجام نشد",
@@ -206,21 +213,62 @@ public enum ApiMessage {
             "رمز عبور باید حداقل شامل یک حرف بزرگ، یک حرف کوچک و یک عدد باشد",
             400
     ),
+    SIGNUP_EMAIL_TAKEN(
+            "Email is taken",
+            "This email has been registered before. you can login with this email",
+            "این ایمیل قبلا ثبت شده است",
+            "می‌توانید از بخش ورود با این ایمیل وارد شوید",
+            409
+    ),
+    SIGNUP_PHONE_TAKEN(
+            "Phone number is taken",
+            "This phone number has been registered before. you can login with this email",
+            "این شماره قبلا ثبت شده است",
+            "می‌توانید از بخش ورود با این شماره وارد شوید",
+            409
+    ),
+    SIGNUP_EMAIL_REQUIRED(
+            "Email is required",
+            "Email address cannot be empty",
+            "ایمیل اجباری است",
+            "آدرس ایمیل نمی‌تواند خالی باشد",
+            400
+    ),
+    SIGNUP_EMAIL_FORMAT(
+            "Invalid email format",
+            "Please enter a valid email address",
+            "فرمت ایمیل نامعتبر",
+            "لطفاً یک آدرس ایمیل معتبر وارد کنید",
+            400
+    ),
+    SIGNUP_EMAIL_SIZE(
+            "Invalid email length",
+            "Email must be less than 255 characters",
+            "طول ایمیل نامعتبر",
+            "ایمیل باید کمتر از ۲۵۵ کاراکتر باشد",
+            400
+    ),
+    SIGNUP_PHONE_REQUIRED(
+            "Phone number is required",
+            "Phone number cannot be empty",
+            "شماره موبایل اجباری است",
+            "شماره موبایل نمی‌تواند خالی باشد",
+            400
+    ),
+    SIGNUP_PHONE_FORMAT(
+            "Invalid phone number format",
+            "Phone number must be valid format (e.g. +989120000000 or 09120000000)",
+            "فرمت شماره موبایل نامعتبر",
+            "شماره موبایل باید معتبر باشد (مثلاً 09120000000)",
+            400
+    ),
     SIGNUP_NAME_FORMAT(
             "Invalid name format",
             "Name can only contain letters and spaces",
             "فرمت نام نامعتبر",
             "نام فقط می‌تواند شامل حروف و فاصله باشد",
             400
-    ),
-    SIGNUP_USERNAME_TAKEN(
-            "Username is already taken",
-            "Please choose another username",
-            "نام کاربری تکراری است",
-            "این نام کاربری قبلاً توسط شخص دیگری انتخاب شده است. یک نام کاربری دیگر را امتحان کنید",
-            400 // Conflict
     );
-
     private final String title;
     private final String message;
     private final String titleFa;

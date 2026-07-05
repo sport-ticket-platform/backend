@@ -7,7 +7,7 @@ spring:
     name: backend
   datasource:
     # TODO: change this part when it wants to run in container
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/phfit-app-backend}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sportik-backend}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:taha1111}
   jpa:
@@ -40,5 +40,10 @@ app:
       audience: frontend
 
     endpoint-limits-per-min:
-      check-username: 45
       signup: 10
+
+grpc:
+  client:
+    user-service:
+      address: 'static://localhost:9090'
+      negotiation-type: plaintext
