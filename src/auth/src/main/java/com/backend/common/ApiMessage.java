@@ -141,7 +141,7 @@ public enum ApiMessage {
             "Registration is currently unavailable. Please try again later.",
             "ثبت نام انجام نشد",
             "امکان ثبت نام شما در حال حاضر وجود ندارد. لطفاً بعدا دوباره امتحان کنید.",
-            400 // Bad Request
+            500 // Bad Request
     ),
     SIGNUP_USERNAME_REQUIRED(
             "Username is required",

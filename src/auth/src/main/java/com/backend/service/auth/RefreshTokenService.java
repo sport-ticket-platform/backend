@@ -1,4 +1,4 @@
-package com.backend.service;
+package com.backend.service.auth;
 
 import com.backend.config.ApplicationPolicies;
 import com.backend.config.ApplicationProperties;

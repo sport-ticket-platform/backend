@@ -4,11 +4,12 @@ import com.backend.common.ApiMessage;
 import com.backend.dto.auth.*;
 import com.backend.dto.user.UserDto;
 import com.backend.handler.AuthException;
+import com.backend.handler.CustomLockedException;
 import com.backend.handler.UserSuspendException;
 import com.backend.security.userdetails.CustomUserDetails;
-import com.backend.service.RefreshTokenService;
 import com.backend.grpc.*;
 
+import com.backend.service.system.RateLimitService;
 import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,39 +30,53 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
+    private final RateLimitService rateLimitService;
 
     @GrpcClient("user-service")
     private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
 
     public LoginResponse login(LoginRequest loginRequest, String ip, String userAgent, String deviceId) {
-        log.info("Attempting to authenticate user: {}", loginRequest.identifier());
+        String identifier = loginRequest.identifier();
+
+        log.info("Attempting to authenticate user: {}", identifier);
+
+        // lock checks sooner than other checks
+        // because if a user locked and password is incorrect,
+        // user can still brute force password until it's correct
+        checkUserLocked(identifier);
 
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.identifier(),
+                            identifier,
                             loginRequest.password()
                     )
             );
         } catch (BadCredentialsException | CredentialsExpiredException e) {
-            log.warn("Authentication failed for identifier {}: {}", loginRequest.identifier(), e.getMessage());
+            log.warn("Authentication failed for identifier {}: {}", identifier, e.getMessage());
+
+            // increase failed attempt for this identifier
+            rateLimitService.incrementFailedAttempts(identifier);
+
             throw e;
-        } catch (org.springframework.security.authentication.AuthenticationServiceException e) {
-            log.error("Infrastructure error during auth for {}: {}", loginRequest.identifier(), e.getMessage());
+        } catch (AuthenticationServiceException e) {
+            log.error("Infrastructure error during auth for {}: {}", identifier, e.getMessage());
             throw e;
         } catch (AuthenticationException e) {
-            log.error("Authentication error for identifier {}: {}", loginRequest.identifier(), e.getMessage());
+            log.error("Authentication error for identifier {}: {}", identifier, e.getMessage());
             throw new IllegalStateException("Authentication error occurred", e);
         } catch (Exception e) {
-            log.error("Unexpected error during authentication for identifier {}: {}", loginRequest.identifier(), e.getMessage());
+            log.error("Unexpected error during authentication for identifier {}: {}", identifier, e.getMessage());
             throw new IllegalStateException("Internal server error", e);
         }
 
-        UserDto user = ((CustomUserDetails) authentication.getPrincipal()).getUser();
+        UserDto user = ((CustomUserDetails) Objects.requireNonNull(authentication.getPrincipal())).getUser();
 
-        checkUserLocked();
         checkUserSuspend(user);
+
+        // login is successful, so deleting all previous failed attempts
+        rateLimitService.clearFailedAttempts(identifier);
 
         log.info("User with id: {} authenticated successfully. Generating refresh-token...", user.getId());
 
@@ -77,8 +94,34 @@ public class AuthService {
         }
     }
 
-    private void checkUserLocked() {
-        // TODO
+    private void checkUserLocked(String identifier) {
+        Long lockExpirationTime = rateLimitService.getLockExpirationTime(identifier);
+
+        if (lockExpirationTime == null) {
+            return; // account not locked
+        }
+
+        long now = System.currentTimeMillis();
+
+        if (lockExpirationTime < now) {
+            return; // account not locked
+        }
+
+        long remainingMs = lockExpirationTime - now;
+        long totalSeconds = remainingMs / 1000;
+
+        long hours = totalSeconds / 3600;
+        long minutes = (totalSeconds % 3600) / 60;
+        long seconds = totalSeconds % 60;
+
+        log.warn("Authenticate failed for user: {} | account is locked for {} hours, {} minutes and {} seconds", identifier,  hours, minutes, seconds);
+
+        throw new CustomLockedException(
+                "Account is temporarily locked.",
+                seconds,
+                minutes,
+                hours
+        );
     }
 
     private void checkEmailUnique(String email) {

@@ -54,6 +54,46 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleLocked() {
         return buildAuthErrorResponse(ApiMessage.ACCOUNT_LOCKED);
     }
+    @ExceptionHandler(CustomLockedException.class)
+    public ResponseEntity<ApiResponse<?>> handleCustomLocked(CustomLockedException e) {
+        ApiMessage msg = ApiMessage.ACCOUNT_LOCKED;
+
+        StringBuilder timeEn = new StringBuilder();
+        StringBuilder timeFa = new StringBuilder();
+
+        if (e.getHours() > 0) {
+            timeEn.append(e.getHours()).append(" hours, ");
+            timeFa.append(e.getHours()).append(" ساعت و ");
+        }
+        if (e.getMinutes() > 0 || e.getHours() > 0) {
+            timeEn.append(e.getMinutes()).append(" minutes, ");
+            timeFa.append(e.getMinutes()).append(" دقیقه و ");
+        }
+        timeEn.append(e.getSeconds()).append(" seconds");
+        timeFa.append(e.getSeconds()).append(" ثانیه");
+
+        String customMessageEn = "Account is temporarily locked. Please try again in " + timeEn.toString() + ".";
+        String customMessageFa = "حساب کاربری موقتاً مسدود شده است. لطفاً " + timeFa.toString() + " دیگر تلاش کنید.";
+
+        Map<String, Long> timeData = Map.of(
+                "hours", e.getHours(),
+                "minutes", e.getMinutes(),
+                "seconds", e.getSeconds()
+        );
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(customMessageEn)
+                .titleFa(msg.getTitleFa())
+                .messageFa(customMessageFa)
+                .data(timeData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(msg.getStatusCode()).body(response);
+    }
 
     @ExceptionHandler(CredentialsExpiredException.class)
     public ResponseEntity<ApiResponse<?>> handleCredentialExpired() {
