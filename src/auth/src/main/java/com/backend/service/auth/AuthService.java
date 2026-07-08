@@ -1,7 +1,11 @@
 package com.backend.service.auth;
 
 import com.backend.common.ApiMessage;
-import com.backend.dto.auth.*;
+import com.backend.dto.auth.login.LoginWithPassRequest;
+import com.backend.dto.auth.login.LoginResponse;
+import com.backend.dto.auth.login.VerifyRequest;
+import com.backend.dto.auth.signup.SignupRequest;
+import com.backend.dto.auth.signup.SignupResponse;
 import com.backend.dto.user.UserDto;
 import com.backend.handler.AuthException;
 import com.backend.handler.CustomLockedException;
@@ -31,12 +35,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final RateLimitService rateLimitService;
+    private final TwoFactorService twoFactorSer;
 
     @GrpcClient("user-service")
     private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
 
-    public LoginResponse login(LoginRequest loginRequest, String ip, String userAgent, String deviceId) {
-        String identifier = loginRequest.identifier();
+    public LoginResponse loginWithPassword(LoginWithPassRequest loginWithPassRequest, String ip, String userAgent, String deviceId) {
+        String identifier = loginWithPassRequest.identifier();
 
         log.info("Attempting to authenticate user: {}", identifier);
 
@@ -50,23 +55,27 @@ public class AuthService {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             identifier,
-                            loginRequest.password()
+                            loginWithPassRequest.password()
                     )
             );
-        } catch (BadCredentialsException | CredentialsExpiredException e) {
+        }
+        catch (BadCredentialsException | CredentialsExpiredException e) {
             log.warn("Authentication failed for identifier {}: {}", identifier, e.getMessage());
 
             // increase failed attempt for this identifier
             rateLimitService.incrementFailedAttempts(identifier);
 
             throw e;
-        } catch (AuthenticationServiceException e) {
+        }
+        catch (AuthenticationServiceException e) {
             log.error("Infrastructure error during auth for {}: {}", identifier, e.getMessage());
             throw e;
-        } catch (AuthenticationException e) {
+        }
+        catch (AuthenticationException e) {
             log.error("Authentication error for identifier {}: {}", identifier, e.getMessage());
             throw new IllegalStateException("Authentication error occurred", e);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             log.error("Unexpected error during authentication for identifier {}: {}", identifier, e.getMessage());
             throw new IllegalStateException("Internal server error", e);
         }
@@ -75,15 +84,41 @@ public class AuthService {
 
         checkUserSuspend(user);
 
-        // login is successful, so deleting all previous failed attempts
-        rateLimitService.clearFailedAttempts(identifier);
+
+        // checking for 2fa
+        if (user.isTwoFactorEnabled()) {
+            log.info("User with id: {} authenticated successfully. 2FA is on...", user.getId());
+            // Default is send notif with email
+            String mfa = twoFactorSer.initiate2FA(user.getId(), user.getEmail(), true);
+            return LoginResponse.builder()
+                    .step("2FA-EMAIL")
+                    .mfa_token(mfa)
+                    .build();
+        }
+
 
         log.info("User with id: {} authenticated successfully. Generating refresh-token...", user.getId());
 
-        String token = refreshTokenService.createRefreshToken(user.getId(), ip, userAgent, deviceId);
+        String token = refreshTokenService.create(user.getId(), ip, userAgent, deviceId);
+        // login is completely successful in both state(2fa on or off)
+        // (if it's on it will delete after correct otp) so deleting all previous failed attempts
+        rateLimitService.clearFailedAttempts(identifier);
 
         return LoginResponse.builder()
-                .token(token)
+                .step("SUCCESS")
+                .refresh_token(token)
+                .build();
+    }
+
+    public LoginResponse verifyOTP(VerifyRequest verifyRequest, String ip, String userAgent, String deviceId) {
+
+        Long userId = twoFactorSer.verify2FA(verifyRequest.mfa(), verifyRequest.otp());
+
+        log.info("OTP verified successfully for user ID: {}. Generating refresh-token...", userId);
+        String token = refreshTokenService.create(userId, ip, userAgent, deviceId);
+        return LoginResponse.builder()
+                .step("SUCCESS")
+                .refresh_token(token)
                 .build();
     }
 
@@ -117,6 +152,7 @@ public class AuthService {
         log.warn("Authenticate failed for user: {} | account is locked for {} hours, {} minutes and {} seconds", identifier,  hours, minutes, seconds);
 
         throw new CustomLockedException(
+                ApiMessage.ACCOUNT_LOCKED,
                 "Account is temporarily locked.",
                 seconds,
                 minutes,

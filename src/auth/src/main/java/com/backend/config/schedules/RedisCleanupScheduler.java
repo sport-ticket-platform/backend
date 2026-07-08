@@ -18,6 +18,6 @@ public class RedisCleanupScheduler {
     @Scheduled(fixedRate = 21_600_000)
     public void cleanExpiredLocks() {
         long count =rateLimitService.getTotalLockedUsersCount();
-        log.info("RedisCleanupScheduler.cleanExpiredLocks cleaned expired locked users | current locked users after cleanup: {}", count);
+        log.info("Cleaner cleaned expired locked users | current locked users after cleanup: {}", count);
     }
 }

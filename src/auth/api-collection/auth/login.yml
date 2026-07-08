@@ -1,5 +1,5 @@
 info:
-  name: login
+  name: loginWithPassword
   type: http
   seq: 1
 

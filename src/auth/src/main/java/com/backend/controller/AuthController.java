@@ -4,8 +4,11 @@ import com.backend.annotation.docs.SignupApiDocs;
 import com.backend.common.ApiMessage;
 import com.backend.config.ApplicationProperties;
 import com.backend.dto.ApiResponse;
-import com.backend.dto.auth.*;
-import com.backend.handler.RateLimitException;
+import com.backend.dto.auth.login.LoginWithPassRequest;
+import com.backend.dto.auth.login.LoginResponse;
+import com.backend.dto.auth.login.VerifyRequest;
+import com.backend.dto.auth.signup.SignupRequest;
+import com.backend.dto.auth.signup.SignupResponse;
 import com.backend.service.auth.AuthService;
 import com.backend.service.system.RateLimitService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +24,7 @@ import java.time.LocalDateTime;
  * <h2>Authentication Controller</h2>
  * <p>
  * REST controller responsible for handling authentication flows.
- * Exposes endpoints for user login and token generation.
+ * Exposes endpoints for user loginWithPassword and token generation.
  * </p>
  *
  * @since 1.0.0
@@ -39,9 +42,12 @@ public class AuthController {
 
     private final ApplicationProperties appPrp;
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(
-            @Valid @RequestBody LoginRequest loginRequest,
+    // ===================
+    //       Login
+    // ===================
+    @PostMapping("/login-password")
+    public ResponseEntity<ApiResponse<LoginResponse>> loginWithPassword(
+            @Valid @RequestBody LoginWithPassRequest loginWithPassRequest,
             HttpServletRequest request
     ) {
 
@@ -49,10 +55,15 @@ public class AuthController {
         String userAgent = request.getHeader("User-Agent");
         String deviceId = request.getHeader("X-Device-Id");
 
-        LoginResponse response = authSrv.login(loginRequest, ipAddress, userAgent, deviceId);
+        LoginResponse response = authSrv.loginWithPassword(loginWithPassRequest, ipAddress, userAgent, deviceId);
 
 
-        ApiMessage msg = ApiMessage.LOGIN_SUCCESS;
+        ApiMessage msg = switch (response.step()) {
+            case "2FA-EMAIL" -> ApiMessage.LOGIN_SUCCESS_NEED_2FA_EMAIL;
+            case "2FA-PHONE" -> ApiMessage.LOGIN_SUCCESS_NEED_2FA_PHONE;
+            default -> ApiMessage.LOGIN_SUCCESS;
+        };
+
         return ResponseEntity.ok(
                 ApiResponse.<LoginResponse>builder()
                         .success(true)
@@ -67,7 +78,43 @@ public class AuthController {
         );
     }
 
-    // Signup
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<LoginResponse>> verify(
+            @Valid @RequestBody VerifyRequest verifyRequest,
+            HttpServletRequest request
+    ) {
+        String ipAddress = extractClientIp(request);
+        String userAgent = request.getHeader("User-Agent");
+        String deviceId = request.getHeader("X-Device-Id");
+
+        LoginResponse response = authSrv.verifyOTP(verifyRequest, ipAddress, userAgent, deviceId);
+
+
+        ApiMessage msg = switch (response.step()) {
+            case "2FA-EMAIL" -> ApiMessage.LOGIN_SUCCESS_NEED_2FA_EMAIL;
+            case "2FA-PHONE" -> ApiMessage.LOGIN_SUCCESS_NEED_2FA_PHONE;
+            default -> ApiMessage.LOGIN_SUCCESS;
+        };
+
+        return ResponseEntity.ok(
+                ApiResponse.<LoginResponse>builder()
+                        .success(true)
+                        .status(200)
+                        .title(msg.getTitle())
+                        .message(msg.getMessage())
+                        .titleFa(msg.getTitleFa())
+                        .messageFa(msg.getMessageFa())
+                        .data(response)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+
+
+    // ===================
+    //       Signup
+    // ===================
     @SignupApiDocs
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(
@@ -76,15 +123,7 @@ public class AuthController {
     ) {
 
         String ipAddress = extractClientIp(request);
-        if (!rateLimitSrv.isIpAllowed(
-                ipAddress, "signup",
-                appPrp.getEndpointLimitsPerMin().getSignup(),
-                60)
-        ) {
-            throw new RateLimitException(
-                    "This IP["+ipAddress+"] sent too many requests for /signup"
-            );
-        }
+
         log.info("Signing up for email: [{}] and IP: [{}]", signupRequest.email(), ipAddress);
 
         SignupResponse responseData = authSrv.signup(signupRequest);

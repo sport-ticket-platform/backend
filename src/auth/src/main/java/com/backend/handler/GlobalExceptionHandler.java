@@ -54,9 +54,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<?>> handleLocked() {
         return buildAuthErrorResponse(ApiMessage.ACCOUNT_LOCKED);
     }
+
     @ExceptionHandler(CustomLockedException.class)
     public ResponseEntity<ApiResponse<?>> handleCustomLocked(CustomLockedException e) {
-        ApiMessage msg = ApiMessage.ACCOUNT_LOCKED;
+        ApiMessage apiMessage = e.getApiMessage();
 
         StringBuilder timeEn = new StringBuilder();
         StringBuilder timeFa = new StringBuilder();
@@ -72,8 +73,8 @@ public class GlobalExceptionHandler {
         timeEn.append(e.getSeconds()).append(" seconds");
         timeFa.append(e.getSeconds()).append(" ثانیه");
 
-        String customMessageEn = "Account is temporarily locked. Please try again in " + timeEn.toString() + ".";
-        String customMessageFa = "حساب کاربری موقتاً مسدود شده است. لطفاً " + timeFa.toString() + " دیگر تلاش کنید.";
+        String customMessageEn = apiMessage.getMessage() + " Please try again in " + timeEn.toString() + ".";
+        String customMessageFa = apiMessage.getMessageFa() + " " + timeFa.toString() + " دیگر تلاش کنید.";
 
         Map<String, Long> timeData = Map.of(
                 "hours", e.getHours(),
@@ -83,16 +84,16 @@ public class GlobalExceptionHandler {
 
         ApiResponse<?> response = ApiResponse.builder()
                 .success(false)
-                .status(msg.getStatusCode())
-                .title(msg.getTitle())
+                .status(apiMessage.getStatusCode())
+                .title(apiMessage.getTitle())
                 .message(customMessageEn)
-                .titleFa(msg.getTitleFa())
+                .titleFa(apiMessage.getTitleFa())
                 .messageFa(customMessageFa)
                 .data(timeData)
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        return ResponseEntity.status(msg.getStatusCode()).body(response);
+        return ResponseEntity.status(apiMessage.getStatusCode()).body(response);
     }
 
     @ExceptionHandler(CredentialsExpiredException.class)
@@ -187,23 +188,6 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(validationType.getStatusCode()).body(response);
-    }
-
-    // Rate Limit Handler
-    @ExceptionHandler(RateLimitException.class)
-    public ResponseEntity<ApiResponse<?>> handleRateLimit() {
-        ApiMessage msg = ApiMessage.TOO_MANY_REQUESTS;
-        ApiResponse<?> response = ApiResponse.builder()
-                .success(false)
-                .status(msg.getStatusCode())
-                .title(msg.getTitle())
-                .message(msg.getMessage())
-                .titleFa(msg.getTitleFa())
-                .messageFa(msg.getMessageFa())
-                .data(null)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.status(msg.getStatusCode()).body(response);
     }
 
 

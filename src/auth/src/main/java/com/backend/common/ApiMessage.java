@@ -32,9 +32,23 @@ public enum ApiMessage {
             null,
             200 // OK
     ),
+    LOGIN_SUCCESS_NEED_2FA_EMAIL(
+            "Verification code sent to your email",
+            "Two-factor authentication is enabled for your account. Please check your email and enter the code.",
+            "کد تایید به ایمیل شما ارسال شد",
+            "احراز هویت دومرحله‌ای برای حساب شما فعال است. لطفا ایمیل خود را بررسی کرده و کد تایید را وارد کنید.",
+            200
+    ),
+    LOGIN_SUCCESS_NEED_2FA_PHONE(
+            "Verification code sent to your phone",
+            "Two-factor authentication is enabled for your account. Please check your email and enter the code.",
+            "کد تایید به شماره شما ارسال شد",
+            "احراز هویت دومرحله‌ای برای حساب شما فعال است. لطفا پیامک خود را بررسی کرده و کد تایید را وارد کنید.",
+            200
+    ),
     SIGNUP_SUCCESS(
             "Registered successfully",
-            "now go to the login page and login with your username and password",
+            "now go to the loginWithPassword page and loginWithPassword with your username and password",
             "با موفقیت ثبت نام شدید",
             "حال به صفحه ورود بروید و با یوزرنیم و پسورد خود وارد شوید",
             200
@@ -51,10 +65,18 @@ public enum ApiMessage {
 
     ACCOUNT_LOCKED(
             "Account is locked",
-            "Try again later",
+            "Your account has been locked.",
             "اکانت قفل شده است",
-            "بعدا دوباره تلاش کنید",
-            403 // Forbidden
+            "حساب شما قفل شده است.",
+            429 // Too Many Requests
+    ),
+
+    LOGIN_MFA_COOLDOWN(
+            "Please Wait!",
+            "A verification code was recently sent.",
+            "لطفا صبر کنید!",
+            "کد تایید به تازگی ارسال شده است.",
+            429 // Too Many Requests
     ),
 
     PASSWORD_EXPIRED(
@@ -113,6 +135,34 @@ public enum ApiMessage {
             "باید بین ۳ تا ۲۵۵ کاراکتر باشد",
             400
     ),
+    LOGIN_EMAIL_REQUIRED(
+            "Email is required",
+            "email can't be empty",
+            "ایمیل اجباری است",
+            "ایمیل نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_EMAIL_SIZE(
+            "Invalid email length",
+            "email must be between 3 and 255 characters",
+            "طول ایمیل نامعتبر است",
+            "ایمیل باید بین ۳ تا ۲۵۵ کاراکتر باشد",
+            400
+    ),
+    LOGIN_PHONE_REQUIRED(
+            "Phone is required",
+            "phone number can't be empty",
+            "شماره اجباری است",
+            "شماره نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_PHONE_SIZE(
+            "Invalid phone number length",
+            "phone number must be between 3 and 255 characters",
+            "طول شماره نامعتبر است",
+            "شماره باید ۱۱ رقم باشد",
+            400
+    ),
     LOGIN_PASSWORD_REQUIRED(
             "Password is required",
             "Password cannot be empty",
@@ -128,7 +178,52 @@ public enum ApiMessage {
             400
     ),
 
-    // Signup Validation Errors
+    LOGIN_MFA_REQUIRED(
+            "MFA token is required",
+            "it can't be empty",
+            "توکن MFA اجباری است",
+            "این بخش نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_MFA_SIZE(
+            "Invalid MFA length",
+            "it must be smaller than 255 characters",
+            "طول توکن mfa نامعتبر",
+            "باید کمتر از ۲۵۵ کاراکتر باشد",
+            400
+    ),
+    LOGIN_OTP_REQUIRED(
+            "Validation code is required",
+            "OTP code can't be empty",
+            "کد تایید اجباری است",
+            "کد تایید نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_OTP_SIZE(
+            "Invalid validation code length",
+            "OTP must be smaller than 6 digits",
+            "طول کد تایید نامعتبر",
+            "باید کمتر از ۶ رقم باشد",
+            400
+    ),
+    LOGIN_MFA_EXPIRED(
+            "Session Expired",
+            "Your verification session has expired or is invalid. Please try logging in again.",
+            "پایان مهلت تایید",
+            "زمان تایید کد به پایان رسیده و یا درخواست نامعتبر است. لطفاً مجدداً وارد شوید.",
+            400
+    ),
+    LOGIN_OTP_WRONG(
+            "Invalid Code",
+            "The verification code is incorrect and has been invalidated. Please request a new code.",
+            "کد تایید نامعتبر",
+            "کد وارد شده اشتباه است و باطل شد. لطفاً کد جدیدی درخواست کنید.",
+            400
+    ),
+
+    //========================================================================================
+    //                             Signup Validation Errors
+    //========================================================================================
     SIGNUP_VALIDATION_FAILED(
             "Signup failed",
             "Please clear the errors below",
@@ -215,14 +310,14 @@ public enum ApiMessage {
     ),
     SIGNUP_EMAIL_TAKEN(
             "Email is taken",
-            "This email has been registered before. you can login with this email",
+            "This email has been registered before. you can loginWithPassword with this email",
             "این ایمیل قبلا ثبت شده است",
             "می‌توانید از بخش ورود با این ایمیل وارد شوید",
             409
     ),
     SIGNUP_PHONE_TAKEN(
             "Phone number is taken",
-            "This phone number has been registered before. you can login with this email",
+            "This phone number has been registered before. you can loginWithPassword with this email",
             "این شماره قبلا ثبت شده است",
             "می‌توانید از بخش ورود با این شماره وارد شوید",
             409

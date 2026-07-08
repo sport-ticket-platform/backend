@@ -20,9 +20,9 @@ public class RefreshTokenService {
     private final ApplicationProperties appProperties;
     private final ApplicationPolicies appPolicies;
 
-    public String createRefreshToken(Long userId, String ipAddress, String userAgent, String deviceId) {
+    public String create(Long userId, String ipAddress, String userAgent, String deviceId) {
 
-        checkDeviceIdAndPolicies(userId, deviceId);
+        checkDeviceIdAndPolicies(userId);
 
         RefreshToken token = RefreshToken.builder()
                 .userId(userId)
@@ -44,19 +44,13 @@ public class RefreshTokenService {
         return token.getToken();
     }
 
-    private void checkDeviceIdAndPolicies(Long userId, String deviceId) {
+    private void checkDeviceIdAndPolicies(Long userId) {
         if (!appPolicies.getAllowConcurrentLogins()) {
             int changed = refreshRep.deactivateByUser(userId, LocalDateTime.now(),
                     "Concurrent login while app policies didn't allow it");
             if (changed > 0) {
                 log.info("{} refresh-token(s) of User ID {} deactivated (Concurrent logins).", changed, userId);
             }
-        }
-
-        int changed = refreshRep.deactivateByDevice(deviceId, LocalDateTime.now(),
-                "New login with same device");
-        if (changed > 0) {
-            log.info("{} refresh-token(s) for device '{}' deactivated.", changed, deviceId);
         }
     }
 }
