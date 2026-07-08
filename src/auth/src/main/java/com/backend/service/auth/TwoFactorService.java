@@ -53,7 +53,6 @@ public class TwoFactorService {
         String mfaToken = generateSecureToken();
         String otpCode = generateOtpCode();
         String redisKey = REDIS_MFA_PREFIX + mfaToken;
-        log.info("{}", appPrp.getMfaTokenTtlMin());
         redisTemplate.opsForValue().set(
                 redisKey,
                 userId.toString() + ":" + otpCode,
