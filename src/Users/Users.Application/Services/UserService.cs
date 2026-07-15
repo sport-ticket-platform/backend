@@ -1,5 +1,6 @@
 using UserService.Users.Application.Results;
 using UserService.Users.Domain.Models;
+using UserService.Users.Domain.ReadModels;
 using UserService.Users.Domain.Repositories;
 
 namespace UserService.Users.Application.Services;
@@ -15,15 +16,15 @@ public class UserService : IUserService
         _userRepo = userRepo;
     }
 
-    public GetUserResult? GetUser(long userId, CancellationToken ct)
+    public UserProfile? GetUserById(long userId, CancellationToken ct)
     {
         _logger.LogInformation("Getting user's profile with user ID {userId}", userId);
-        var user = _userRepo.GetUserByIdAsync(userId, ct);
+        var userProfile = _userRepo.GetUserByIdAsync(userId, ct);
         
-        if (user.Result is null)
+        if (userProfile.Result is null)
             return null;
-        
-        return new GetUserResult(user.Result.FirstName, user.Result.LastName, user.Result.Email,
-            user.Result.PhoneNumber);
+        return userProfile.Result;
     }
+    
+    
 }
