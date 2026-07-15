@@ -6,7 +6,7 @@ namespace UserService.Users.Domain.Models;
 
 public class User
 {
-    public Int64 UserId { get; private set; }
+    public long UserId { get; private set; }
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
     public Role UserRole { get; private set; }

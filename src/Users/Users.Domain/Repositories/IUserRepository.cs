@@ -4,6 +4,7 @@ namespace UserService.Users.Domain.Repositories;
 
 public interface IUserRepository
 {
-    public void RegisterUser(User user);
-    public void UpdateProfile(User user);
+    public Task<User> UpdateAsync(User user);
+    public Task<User?> GetUserByIdAsync(long userId, CancellationToken ct);
+
 }

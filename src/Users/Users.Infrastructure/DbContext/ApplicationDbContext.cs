@@ -1,7 +1,7 @@
 using System.Data;
 using Npgsql;
 
-namespace UserService.Users.Infrastructure;
+namespace UserService.Users.Infrastructure.DbContext;
 
 public class ApplicationDbContext : IDisposable
 {
@@ -15,6 +15,6 @@ public class ApplicationDbContext : IDisposable
 
     public void Dispose()
     {
-        DbConnection?.Dispose();
+        DbConnection.Dispose();
     }
 }
