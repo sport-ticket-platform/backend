@@ -36,10 +36,19 @@ public class UserService : IUserService
 
         int? cityId = await _userRepo.GetCityIdByName(updateRequest.City) ??
                       throw new NotFoundException("The city not found");
-        
-        
+
+
         user.Update(updateRequest.FirstName, updateRequest.LastName, updateRequest.Email, updateRequest.PhoneNumber,
             cityId ?? 1);
         await _userRepo.UpdateAsync(user, ct);
+    }
+
+    public async Task DeleteUser(long userId, CancellationToken ct)
+    {
+        _logger.LogInformation("Deleting user with ID {userId}",userId);
+        
+        var isDeleted = await _userRepo.DeleteAsync(userId, ct);
+        if (!isDeleted)
+            throw new NotFoundException("User Not found");
     }
 }
