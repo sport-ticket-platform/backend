@@ -22,10 +22,10 @@ public class UserRepository : IUserRepository
         throw new NotImplementedException();
     }
 
-    public async Task<UserProfile?> GetUserByIdAsync(long userId, CancellationToken ct)
+    public async Task<UserProfile?> GetUserProfileByIdAsync(long userId, CancellationToken ct)
     {
+        _logger.LogInformation("fetching user {userId}",userId);
         
-        //language=PostgreSQL
         const string sql = @"
         SELECT
            u.first_name  AS ""FirstName"",
@@ -38,8 +38,8 @@ public class UserRepository : IUserRepository
         JOIN city c ON c.city_id = u.city_id
         WHERE u.user_id = @UserId;
        ";
-
-        var user = await _dbContext.DbConnection.QueryFirstAsync<User>(sql, new { UserId = userId });
-        return user;
+        var userProfile = await _dbContext.DbConnection.QueryFirstAsync<UserProfile>(sql, new { UserId = userId });
+        return userProfile;
     }
+    
 }

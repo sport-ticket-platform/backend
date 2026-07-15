@@ -108,13 +108,26 @@ public class User
             phoneNumberIsVerified);
     }
 
-    public void Update(string firstName, string lastName)
+    
+    
+
+    public void Update(string firstName, string lastName,string email,string phoneNumber,int cityId)
     {
+        if (cityId <= 0)
+            throw new DomainException("The city Id cannot be negative.");
+
         ValidateNameLength(firstName,nameof(firstName));
         ValidateNameLength(lastName,nameof(lastName));
+        ValidateEmail(email);
+        ValidatePhoneNumber(phoneNumber);
+        
         FirstName = firstName;
         LastName = lastName;
+        Email = email;
+        PhoneNumber = phoneNumber;
+        CityId = cityId;
     }
+
     
     public void Update(string firstName, string lastName,string email)
     {
@@ -125,7 +138,14 @@ public class User
         LastName = lastName;
         Email = email;
     }
-    
+
+    public void Update(string firstName, string lastName)
+    {
+        ValidateNameLength(firstName,nameof(firstName));
+        ValidateNameLength(lastName,nameof(lastName));
+        FirstName = firstName;
+        LastName = lastName;
+    }
     public void Update(string phoneNumber)
     {
         ValidatePhoneNumber(phoneNumber);
