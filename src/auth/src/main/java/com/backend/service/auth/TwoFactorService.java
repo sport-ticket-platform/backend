@@ -83,8 +83,10 @@ public class TwoFactorService {
 
         // MFA token is not valid (wrong or expired)
         if (value == null) {
-            log.warn("MFA verification failed: Token expired or not found.");
-            throw new AuthException(ApiMessage.LOGIN_MFA_EXPIRED, "mfa");
+            log.warn("MFA verification failed: Token {} expired or not found. Returning generic OTP wrong error.", mfaToken);
+
+            // if mfa is wrong, just say: otp wrong. for more security
+            throw new AuthException(ApiMessage.LOGIN_OTP_WRONG, "otp");
         }
 
         // Save in redis like = 32:22144 means user id=32 & otp=22144
@@ -104,6 +106,7 @@ public class TwoFactorService {
 
         if (!savedOtpCode.equals(enteredCode.trim())) {
             log.warn("MFA verification failed for user ID: {}. Incorrect OTP code.", userId);
+
             throw new AuthException(ApiMessage.LOGIN_OTP_WRONG, "otp");
         }
 
