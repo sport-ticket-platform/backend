@@ -97,12 +97,13 @@ public class TwoFactorService {
         Long userId = Long.parseLong(parts[0]);
         String savedOtpCode = parts[1];
 
-        // deleting mfa token from redis. it's one use
+        String cooldownKey = REDIS_MFA_COOLDOWN_PREFIX + userId;
+
         redisTemplate.delete(redisKey);
+        redisTemplate.delete(cooldownKey);
 
         if (!savedOtpCode.equals(enteredCode.trim())) {
             log.warn("MFA verification failed for user ID: {}. Incorrect OTP code.", userId);
-            // deleting mfa token from redis. it's one use
             throw new AuthException(ApiMessage.LOGIN_OTP_WRONG, "otp");
         }
 

@@ -9,6 +9,6 @@ grpc:
   methodType: unary
   message: |-
     {
-      "email": "taha1@gmail.com"
+      "email": "taha2@gmail.com"
     }
   auth: inherit
