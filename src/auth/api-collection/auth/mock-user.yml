@@ -1,0 +1,14 @@
+info:
+  name: mock-user
+  type: grpc
+  seq: 5
+
+grpc:
+  url: localhost:9090
+  method: /UserService/GetUserByEmail
+  methodType: unary
+  message: |-
+    {
+      "email": "taha1@gmail.com"
+    }
+  auth: inherit
