@@ -32,6 +32,13 @@ public enum ApiMessage {
             null,
             200 // OK
     ),
+    LOGIN_EMAIL_OTP_SENT(
+            "If the email exists, a verification code has been sent.",
+            "Please check your inbox and spam folder. If you haven't received it, your account may be locked or suspended. You can try logging in with a password or contact support.",
+            "اگر این ایمیل وجود داشته باشد، یک کد تأیید برای آن ارسال شده است.",
+            "لطفاً صندوق ورودی و پوشه Spam خود را بررسی کنید. اگر ایمیلی دریافت نکردید، ممکن است حساب شما قفل یا مسدود شده باشد. می‌توانید ورود با رمز عبور را امتحان کرده یا با پشتیبانی تماس بگیرید.",
+            200
+    ),
     LOGIN_SUCCESS_NEED_2FA_EMAIL(
             "Verification code sent to your email",
             "Two-factor authentication is enabled for your account. Please check your email and enter the code.",
@@ -98,6 +105,13 @@ public enum ApiMessage {
     // ======================================
     //               Errors
     // ======================================
+    EMAIL_NOT_FOUND(
+            "Email not found",
+            "this email is not exist.",
+            "ایمیل وجود ندارد",
+            "این ایمیل موجود نیست",
+            400
+    ),
     VALIDATION_FAILED(
             "Validation failed",
             null,

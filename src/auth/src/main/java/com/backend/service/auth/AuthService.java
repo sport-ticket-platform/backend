@@ -1,6 +1,7 @@
 package com.backend.service.auth;
 
 import com.backend.common.ApiMessage;
+import com.backend.dto.auth.login.LoginOTPEmailRequest;
 import com.backend.dto.auth.login.LoginWithPassRequest;
 import com.backend.dto.auth.login.LoginResponse;
 import com.backend.dto.auth.login.VerifyRequest;
@@ -21,6 +22,9 @@ import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +40,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final RateLimitService rateLimitService;
     private final TwoFactorService twoFactorSer;
+    private final UserDetailsService userDetailsService;
 
     @GrpcClient("user-service")
     private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
@@ -107,6 +112,80 @@ public class AuthService {
         return LoginResponse.builder()
                 .step("SUCCESS")
                 .refresh_token(token)
+                .build();
+    }
+
+    public LoginResponse loginWithOTP(LoginOTPEmailRequest otpEmailRequest) {
+
+        String identifier = otpEmailRequest.email();
+        log.info("Attempting OTP(email) login initiation for user: {}", identifier);
+
+        // check user mfa locked
+        long cooldownSeconds = twoFactorSer.getMfaCooldown(identifier);
+        if (cooldownSeconds > 0) {
+            long hours = cooldownSeconds / 3600;
+            long minutes = (cooldownSeconds % 3600) / 60;
+            long seconds = cooldownSeconds % 60;
+
+            log.warn("Identifier: {} is on cooldown. Rejecting request.", identifier);
+            throw new CustomLockedException(
+                    ApiMessage.LOGIN_MFA_COOLDOWN,
+                    "request MFA token too early",
+                    seconds, minutes, hours
+            );
+        }
+
+        // ==============================================================================
+
+        boolean shouldSilentDrop = false;
+        String silentDropReason = "";
+        UserDto user = null;
+
+        // user exist?
+        UserDetails userDetails;
+        try {
+            userDetails = userDetailsService.loadUserByUsername(identifier);
+            user = ((CustomUserDetails) userDetails).getUser();
+        } catch (UsernameNotFoundException e) {
+            shouldSilentDrop = true;
+            silentDropReason = "User not found";
+        }
+
+        // user locked?
+        if (!shouldSilentDrop) {
+            Long lockExpirationTime = rateLimitService.getLockExpirationTime(identifier);
+            if (lockExpirationTime != null && lockExpirationTime > System.currentTimeMillis()) {
+                shouldSilentDrop = true;
+                silentDropReason = "User is temporarily locked due to failed attempts";
+            }
+        }
+
+        // user Suspend?
+        if (!shouldSilentDrop && !user.isActive()) {
+            shouldSilentDrop = true;
+            silentDropReason = "User account is suspended";
+        }
+
+        String mfaToken;
+
+        if (shouldSilentDrop) {
+            log.warn("OTP login silent drop for identifier [{}]. Reason: {}", identifier, silentDropReason);
+
+            // fake token
+            mfaToken = java.util.UUID.randomUUID().toString().replace("-", "") + java.util.UUID.randomUUID().toString().substring(0, 10);
+
+            // apply mfa lock
+            twoFactorSer.applyMfaCooldown(identifier);
+
+        } else {
+            // everything is fine
+            log.info("User {} is valid. Initiating real OTP flow...", user.getId());
+            mfaToken = twoFactorSer.initiate2FA(user.getId(), identifier, true);
+        }
+
+        return LoginResponse.builder()
+                .step("2FA-EMAIL")
+                .mfa_token(mfaToken)
                 .build();
     }
 

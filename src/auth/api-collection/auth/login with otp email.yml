@@ -1,17 +1,16 @@
 info:
-  name: verify
+  name: login with otp email
   type: http
-  seq: 6
+  seq: 7
 
 http:
   method: POST
-  url: http://localhost:8080/api/v1/auth/verify
+  url: http://localhost:8080/api/v1/auth/login-otp-email
   body:
     type: json
     data: |-
       {
-        "mfa": "2l4fZ22lE_lFTPCW2djkSHgZHArXdXI9soCKSQi4K5s",
-        "otp": "77704"
+        "email": "taha1@gmail.com"
       }
   auth: inherit
 

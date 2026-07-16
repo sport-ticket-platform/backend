@@ -4,6 +4,7 @@ import com.backend.annotation.docs.SignupApiDocs;
 import com.backend.common.ApiMessage;
 import com.backend.config.ApplicationProperties;
 import com.backend.dto.ApiResponse;
+import com.backend.dto.auth.login.LoginOTPEmailRequest;
 import com.backend.dto.auth.login.LoginWithPassRequest;
 import com.backend.dto.auth.login.LoginResponse;
 import com.backend.dto.auth.login.VerifyRequest;
@@ -57,12 +58,36 @@ public class AuthController {
 
         LoginResponse response = authSrv.loginWithPassword(loginWithPassRequest, ipAddress, userAgent, deviceId);
 
-
+        // Default is send notif with email
         ApiMessage msg = switch (response.step()) {
             case "2FA-EMAIL" -> ApiMessage.LOGIN_SUCCESS_NEED_2FA_EMAIL;
             case "2FA-PHONE" -> ApiMessage.LOGIN_SUCCESS_NEED_2FA_PHONE;
             default -> ApiMessage.LOGIN_SUCCESS;
         };
+
+        return ResponseEntity.ok(
+                ApiResponse.<LoginResponse>builder()
+                        .success(true)
+                        .status(200)
+                        .title(msg.getTitle())
+                        .message(msg.getMessage())
+                        .titleFa(msg.getTitleFa())
+                        .messageFa(msg.getMessageFa())
+                        .data(response)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @PostMapping("/login-otp-email")
+    public ResponseEntity<ApiResponse<LoginResponse>> loginWithOTPEmail(
+            @Valid @RequestBody LoginOTPEmailRequest loginOTPEmailRequest
+    ) {
+
+        LoginResponse response = authSrv.loginWithOTP(loginOTPEmailRequest);
+
+
+        ApiMessage msg = ApiMessage.LOGIN_EMAIL_OTP_SENT;
 
         return ResponseEntity.ok(
                 ApiResponse.<LoginResponse>builder()
