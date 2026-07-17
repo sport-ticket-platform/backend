@@ -15,7 +15,6 @@ import lombok.*;
 @Builder
 public record LoginResponse(
         String step,             // "SUCCESS" or "2FA-EMAIL" or "2FA-PHONE"
-        String access_token,      // Null in 2fa
         String refresh_token,     // Null in 2fa
         String mfa_token          // Null in success
 ) {}

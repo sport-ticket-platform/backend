@@ -1,10 +1,7 @@
 package com.backend.service.auth;
 
 import com.backend.common.ApiMessage;
-import com.backend.dto.auth.login.LoginOTPEmailRequest;
-import com.backend.dto.auth.login.LoginWithPassRequest;
-import com.backend.dto.auth.login.LoginResponse;
-import com.backend.dto.auth.login.VerifyRequest;
+import com.backend.dto.auth.login.*;
 import com.backend.dto.auth.signup.SignupRequest;
 import com.backend.dto.auth.signup.SignupResponse;
 import com.backend.dto.user.UserDto;
@@ -115,25 +112,22 @@ public class AuthService {
                 .build();
     }
 
-    public LoginResponse loginWithOTP(LoginOTPEmailRequest otpEmailRequest) {
+    public LoginResponse loginWithOTPEmail(LoginOTPEmailRequest otpEmailRequest) {
+        return processOtpLogin(otpEmailRequest.email(), "2FA-EMAIL", "email");
+    }
 
-        String identifier = otpEmailRequest.email();
-        log.info("Attempting OTP(email) login initiation for user: {}", identifier);
+    public LoginResponse loginWithOTPPhone(LoginOTPPhoneRequest otpPhoneRequest) {
+
+        String rawPhone = "0" + otpPhoneRequest.phone().replaceFirst("^(?:\\+98|0098|0)?", "");
+
+        return processOtpLogin(rawPhone, "2FA-PHONE", "phone");
+    }
+
+    private LoginResponse processOtpLogin(String identifier, String step, String type) {
+        log.info("Attempting OTP({}) login initiation for user: {}", type, identifier);
 
         // check user mfa locked
-        long cooldownSeconds = twoFactorSer.getMfaCooldown(identifier);
-        if (cooldownSeconds > 0) {
-            long hours = cooldownSeconds / 3600;
-            long minutes = (cooldownSeconds % 3600) / 60;
-            long seconds = cooldownSeconds % 60;
-
-            log.warn("Identifier: {} is on cooldown. Rejecting request.", identifier);
-            throw new CustomLockedException(
-                    ApiMessage.LOGIN_MFA_COOLDOWN,
-                    "request MFA token too early",
-                    seconds, minutes, hours
-            );
-        }
+        checkUserMFALocked(identifier);
 
         // ==============================================================================
 
@@ -184,9 +178,25 @@ public class AuthService {
         }
 
         return LoginResponse.builder()
-                .step("2FA-EMAIL")
+                .step(step)
                 .mfa_token(mfaToken)
                 .build();
+    }
+
+    private void checkUserMFALocked(String identifier) {
+        long cooldownSeconds = twoFactorSer.getMfaCooldown(identifier);
+        if (cooldownSeconds > 0) {
+            long hours = cooldownSeconds / 3600;
+            long minutes = (cooldownSeconds % 3600) / 60;
+            long seconds = cooldownSeconds % 60;
+
+            log.warn("Identifier: {} is on cooldown. Rejecting request.", identifier);
+            throw new CustomLockedException(
+                    ApiMessage.LOGIN_MFA_COOLDOWN,
+                    "request MFA token too early",
+                    seconds, minutes, hours
+            );
+        }
     }
 
     public LoginResponse verifyOTP(VerifyRequest verifyRequest, String ip, String userAgent, String deviceId) {

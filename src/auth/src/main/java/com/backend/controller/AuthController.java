@@ -4,10 +4,7 @@ import com.backend.annotation.docs.SignupApiDocs;
 import com.backend.common.ApiMessage;
 import com.backend.config.ApplicationProperties;
 import com.backend.dto.ApiResponse;
-import com.backend.dto.auth.login.LoginOTPEmailRequest;
-import com.backend.dto.auth.login.LoginWithPassRequest;
-import com.backend.dto.auth.login.LoginResponse;
-import com.backend.dto.auth.login.VerifyRequest;
+import com.backend.dto.auth.login.*;
 import com.backend.dto.auth.signup.SignupRequest;
 import com.backend.dto.auth.signup.SignupResponse;
 import com.backend.service.auth.AuthService;
@@ -84,10 +81,34 @@ public class AuthController {
             @Valid @RequestBody LoginOTPEmailRequest loginOTPEmailRequest
     ) {
 
-        LoginResponse response = authSrv.loginWithOTP(loginOTPEmailRequest);
+        LoginResponse response = authSrv.loginWithOTPEmail(loginOTPEmailRequest);
 
 
         ApiMessage msg = ApiMessage.LOGIN_EMAIL_OTP_SENT;
+
+        return ResponseEntity.ok(
+                ApiResponse.<LoginResponse>builder()
+                        .success(true)
+                        .status(200)
+                        .title(msg.getTitle())
+                        .message(msg.getMessage())
+                        .titleFa(msg.getTitleFa())
+                        .messageFa(msg.getMessageFa())
+                        .data(response)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+    @PostMapping("/login-otp-phone")
+    public ResponseEntity<ApiResponse<LoginResponse>> loginWithOTPPhone(
+            @Valid @RequestBody LoginOTPPhoneRequest loginOTPPhoneRequest
+            ) {
+
+        LoginResponse response = authSrv.loginWithOTPPhone(loginOTPPhoneRequest);
+
+
+        ApiMessage msg = ApiMessage.LOGIN_PHONE_OTP_SENT;
 
         return ResponseEntity.ok(
                 ApiResponse.<LoginResponse>builder()

@@ -39,6 +39,13 @@ public enum ApiMessage {
             "لطفاً صندوق ورودی و پوشه Spam خود را بررسی کنید. اگر ایمیلی دریافت نکردید، ممکن است حساب شما قفل یا مسدود شده باشد. می‌توانید ورود با رمز عبور را امتحان کرده یا با پشتیبانی تماس بگیرید.",
             200
     ),
+    LOGIN_PHONE_OTP_SENT(
+            "If the phone number exists, a verification code has been sent.",
+            "If you haven't received it, your account may be locked or suspended. You can try logging in with a password or contact support.",
+            "اگر این شماره وجود داشته باشد، یک کد تأیید برای آن ارسال شده است.",
+            "اگر پیامکی دریافت نکردید، ممکن است حساب شما قفل یا مسدود شده باشد. می‌توانید ورود با رمز عبور را امتحان کرده یا با پشتیبانی تماس بگیرید.",
+            200
+    ),
     LOGIN_SUCCESS_NEED_2FA_EMAIL(
             "Verification code sent to your email",
             "Two-factor authentication is enabled for your account. Please check your email and enter the code.",
@@ -171,10 +178,10 @@ public enum ApiMessage {
             400
     ),
     LOGIN_PHONE_SIZE(
-            "Invalid phone number length",
-            "phone number must be between 3 and 255 characters",
-            "طول شماره نامعتبر است",
-            "شماره باید ۱۱ رقم باشد",
+            "Invalid phone number",
+            "Invalid phone number",
+            "شماره نامعتبر است",
+            "شماره نامعتبر است",
             400
     ),
     LOGIN_PASSWORD_REQUIRED(

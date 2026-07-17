@@ -1,17 +1,16 @@
 info:
-  name: verify
+  name: login with otp phone
   type: http
-  seq: 6
+  seq: 8
 
 http:
   method: POST
-  url: http://localhost:8080/api/v1/auth/verify
+  url: http://localhost:8080/api/v1/auth/login-otp-phone
   body:
     type: json
     data: |-
       {
-        "mfa": "vpOD2KCBwxk9OxbHg39zAZr7EfXkg3estJpF_UvlgnI",
-        "otp": "23850"
+        "phone": "9123456789"
       }
   auth: inherit
 
