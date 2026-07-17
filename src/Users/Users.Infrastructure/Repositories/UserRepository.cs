@@ -2,6 +2,7 @@ using System.Net.Sockets;
 using Dapper;
 using Npgsql;
 using UserService.Users.Domain.Models;
+using UserService.Users.Domain.ReadModels;
 using UserService.Users.Domain.Repositories;
 using UserService.Users.Infrastructure.DbContext;
 using UserService.Users.Infrastructure.Exceptions;
@@ -23,19 +24,46 @@ public class UserRepository : IUserRepository
         throw new NotImplementedException();
     }
 
-    public async Task<User?> GetUserByIdAsync(long userId, CancellationToken ct)
+    public Task UpdateAsync(User user, CancellationToken ct)
     {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteAsync(long userId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<User?> GetUserByIdAsync(long usedId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<int?> GetCityIdByName(string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<UserProfile?> GetUserProfileByIdAsync(long userId, CancellationToken ct)
+    {
+        _logger.LogInformation("fetching user {userId}",userId);
+        
         try
         {
-            string sql = "SELECT " +
-                         "\"first_name\" as \"FirstName\"," +
-                         "\"last_name as \"LastName\"" +
-                         "\"email\" as Email" +
-                         "\"phone_number\" as PhoneNumber " +
-                         "FROM \"users\"" +
-                         "WHERE user_id = @userId";
-            var user = await _dbContext.DbConnection.QueryFirstAsync<User>(sql, new { userId = userId });
-            return user;
+            const string sql = @"
+           SELECT
+              u.first_name  AS ""FirstName"",
+              u.last_name   AS ""LastName"",
+              u.email       AS ""Email"",
+              u.phone_number AS ""PhoneNumber"",
+              u.balance     AS ""Balance"",
+              c.name        AS ""City""
+              FROM users u
+              JOIN city c ON c.city_id = u.city_id
+              WHERE u.user_id = @UserId;
+              "; 
+            var userProfile = await _dbContext.DbConnection.QueryFirstAsync<UserProfile>(sql, new { UserId = userId });
+            return userProfile;
         }
         catch (NpgsqlException ex) when (ex.InnerException is SocketException)
         {

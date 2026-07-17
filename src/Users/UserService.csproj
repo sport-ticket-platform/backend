@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Users.Application\Exceptions\" />
+    <Folder Include="Users.Application\Results\" />
   </ItemGroup>
 
 </Project>
