@@ -85,4 +85,49 @@ public class RefreshTokenRepository {
             """;
         return jdbcTemplate.update(sql, Timestamp.valueOf(time), reason, userId);
     }
+
+    public int revokeAllTokensForUser(Long userId, String banReason) {
+        String sql = """
+            UPDATE refresh_token 
+            SET is_active = false, revoked_at = ?, revoked_reason = ? 
+            WHERE user_id = ? AND is_active = true
+            """;
+
+        return jdbcTemplate.update(
+                sql,
+                Timestamp.valueOf(LocalDateTime.now()),
+                banReason,
+                userId
+        );
+    }
+
+    public int revokeToken(String token, String banReason) {
+        String sql = """
+            UPDATE refresh_token 
+            SET is_active = false, revoked_at = ?, revoked_reason = ? 
+            WHERE token = ? AND is_active = true
+            """;
+
+        return jdbcTemplate.update(
+                sql,
+                Timestamp.valueOf(LocalDateTime.now()),
+                banReason,
+                token
+        );
+    }
+
+    public int revokeAllExpiredTokens(LocalDateTime time) {
+        String sql = """
+            UPDATE refresh_token 
+            SET is_active = false, revoked_at = ?, revoked_reason = ? 
+            WHERE expiration_date < ? AND is_active = true
+            """;
+
+        return jdbcTemplate.update(
+                sql,
+                Timestamp.valueOf(time),
+                "System Scheduled Cleanup | Expired Token",
+                Timestamp.valueOf(time)
+        );
+    }
 }

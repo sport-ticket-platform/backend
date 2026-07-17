@@ -14,6 +14,7 @@ import com.backend.security.userdetails.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -63,29 +64,70 @@ public class RefreshTokenService {
         }
     }
 
+    @Transactional(
+            noRollbackFor = {
+                    AuthException.class,
+                    UserSuspendException.class
+            }
+    )
     public RefreshResponse refresh(String requestRefreshToken) {
-        log.info("Attempting to refresh token...");
+        log.info("Attempting to rotate refresh token and generate new access token...");
 
         RefreshToken refreshToken = refreshRep.findByToken(requestRefreshToken)
                 .orElseThrow(() -> new AuthException(ApiMessage.REFRESH_TOKEN_NOT_EXIST));
 
+        // Reuse Detection
+        if (!refreshToken.isActive()) {
+            log.warn("SECURITY BREACH DETECTED: Attempted to reuse a REVOKED refresh token for user {}. Revoking all sessions...", refreshToken.getUserId());
+            refreshRep.revokeAllTokensForUser(refreshToken.getUserId(), "Security Breach | Attempt to reuse a revoked token");
+            throw new AuthException(ApiMessage.REFRESH_TOKEN_NOT_EXIST);
+        }
+
+        // Check Expiration
         if (refreshToken.getExpirationDate().isBefore(LocalDateTime.now())) {
+            refreshRep.revokeToken(refreshToken.getToken(), "Refresh-token expired before rotation");
             log.warn("Refresh token for user {} has expired. Token revoked.", refreshToken.getUserId());
             throw new AuthException(ApiMessage.REFRESH_TOKEN_EXPIRED);
         }
 
+        // User Suspend Status
         CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserById(refreshToken.getUserId());
-
         if (!userDetails.isEnabled()) {
+            refreshRep.revokeAllTokensForUser(userDetails.getId(), "User Banned | try to refresh access token");
+            log.warn("Banned user {} try to refresh access token. All user tokens revoked.", refreshToken.getUserId());
             throw new UserSuspendException("You are banned", "banned");
         }
 
+        // ====================================
+        //              ROTATION
+        // ====================================
+
+        refreshRep.revokeToken(refreshToken.getToken(), "Consumed normally for token rotation");
+        log.debug("Old refresh token for user {} consumed successfully.", refreshToken.getUserId());
+
+        RefreshToken newRefreshToken = RefreshToken.builder()
+                .userId(refreshToken.getUserId())
+                .ipAddress(refreshToken.getIpAddress())
+                .userAgent(refreshToken.getUserAgent())
+                .deviceId(refreshToken.getDeviceId())
+                .token(UUID.randomUUID().toString())
+                .expirationDate(
+                        LocalDateTime.now().plusSeconds(
+                                appProperties.getJwt().getRefreshTokenExpirationSec()
+                        )
+                )
+                .build();
+
+        newRefreshToken = refreshRep.save(newRefreshToken);
+
+
         String newAccessToken = jwtTokenProvider.generateToken(userDetails);
 
-        log.info("New access token generated successfully for user {}", refreshToken.getUserId());
+        log.info("Token rotation successful for user {}. New access and refresh tokens generated.", refreshToken.getUserId());
 
         return RefreshResponse.builder()
                 .access_token(newAccessToken)
+                .refresh_token(newRefreshToken.getToken()) // new one
                 .build();
     }
 }
