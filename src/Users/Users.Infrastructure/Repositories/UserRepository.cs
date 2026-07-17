@@ -51,7 +51,7 @@ public class UserRepository : IUserRepository
         try
         {
             const string sql = @"
-           SELECT
+            SELECT
               u.first_name  AS ""FirstName"",
               u.last_name   AS ""LastName"",
               u.email       AS ""Email"",
