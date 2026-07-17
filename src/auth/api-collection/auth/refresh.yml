@@ -1,17 +1,16 @@
 info:
-  name: verify
+  name: refresh
   type: http
-  seq: 6
+  seq: 9
 
 http:
   method: POST
-  url: http://localhost:8080/api/v1/auth/verify
+  url: http://localhost:8080/api/v1/auth/refresh
   body:
     type: json
     data: |-
       {
-        "mfa": "a-1zfKbOzXqYvZumF60aEp8dTTjvHfi2yTjPqieJrcc",
-        "otp": "85108"
+        "refresh_token": "1c5b7084-2599-4e75-bc32-b377ee92616e"
       }
   auth: inherit
 

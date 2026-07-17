@@ -7,6 +7,13 @@ public enum ApiMessage {
     // ==============================
     //           General
     // ==============================
+    RESOURCE_NOT_FOUND(
+            "Not Found",
+            "The requested endpoint or resource does not exist",
+            "یافت نشد",
+            "مسیر یا منبع درخواستی یافت نشد",
+            404
+    ),
     TOO_MANY_REQUESTS(
             "Too many requests",
             "Please try again later",
@@ -235,10 +242,10 @@ public enum ApiMessage {
             400
     ),
     LOGIN_OTP_WRONG(
-            "Invalid Code",
-            "The verification code is incorrect and has been invalidated. Please request a new code.",
-            "کد تایید نامعتبر",
-            "کد وارد شده اشتباه است و باطل شد. لطفاً کد جدیدی درخواست کنید.",
+            "Invalid or Expired Verification Code",
+            "The verification code is invalid or has expired. Please request a new code.",
+            "کد تأیید نامعتبر یا پایان‌یافته",
+            "کد وارد شده نادرست است یا دیگر اعتبار ندارد. لطفاً کد جدیدی درخواست کنید.",
             400
     ),
 
@@ -384,7 +391,46 @@ public enum ApiMessage {
             "فرمت نام نامعتبر",
             "نام فقط می‌تواند شامل حروف و فاصله باشد",
             400
+    ),
+
+    // ================================================
+    REFRESH_SUCCESS(
+            "Successful Refresh",
+            null,
+            "رفرش موفق",
+            null,
+            200
+    ),
+    REFRESH_TOKEN_NOT_EXIST(
+            "Refresh Token is not exist or revoked",
+            "Refresh Token is not exist or revoked",
+            "رفرش توکن وجود ندارد یا باطل شده است",
+            "رفرش توکن وجود ندارد یا باطل شده است",
+            400
+    ),
+    REFRESH_TOKEN_EXPIRED(
+            "Refresh Token is expired",
+            "login again",
+            "رفرش توکن منقضی شده است",
+            "دوباره وارد شوید",
+            400
+    ),
+    REFRESH_TOKEN_INVALID_SIZE(
+            "Refresh Token length should be 36",
+            "Refresh Token length should be 36",
+            "طول رفرش توکن باید ۳۶ باشد",
+            "طول رفرش توکن باید ۳۶ باشد",
+            400
+    ),
+    REFRESH_TOKEN_REQUIRED(
+            "Refresh Token is required",
+            "Refresh Token is required",
+            "رفرش توکن اجباری است",
+            "رفرش توکن اجباری است",
+            400
     );
+    // ================================================
+
     private final String title;
     private final String message;
     private final String titleFa;

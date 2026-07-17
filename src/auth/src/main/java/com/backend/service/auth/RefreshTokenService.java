@@ -1,9 +1,16 @@
 package com.backend.service.auth;
 
+import com.backend.common.ApiMessage;
 import com.backend.config.ApplicationPolicies;
 import com.backend.config.ApplicationProperties;
+import com.backend.dto.auth.refresh.RefreshResponse;
+import com.backend.handler.AuthException;
+import com.backend.handler.UserSuspendException;
 import com.backend.model.RefreshToken;
 import com.backend.repository.RefreshTokenRepository;
+import com.backend.security.jwt.JwtTokenProvider;
+import com.backend.security.userdetails.CustomUserDetails;
+import com.backend.security.userdetails.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +26,8 @@ public class RefreshTokenService {
     private final RefreshTokenRepository refreshRep;
     private final ApplicationProperties appProperties;
     private final ApplicationPolicies appPolicies;
+    private final CustomUserDetailsService userDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public String create(Long userId, String ipAddress, String userAgent, String deviceId) {
 
@@ -52,5 +61,31 @@ public class RefreshTokenService {
                 log.info("{} refresh-token(s) of User ID {} deactivated (Concurrent logins).", changed, userId);
             }
         }
+    }
+
+    public RefreshResponse refresh(String requestRefreshToken) {
+        log.info("Attempting to refresh token...");
+
+        RefreshToken refreshToken = refreshRep.findByToken(requestRefreshToken)
+                .orElseThrow(() -> new AuthException(ApiMessage.REFRESH_TOKEN_NOT_EXIST));
+
+        if (refreshToken.getExpirationDate().isBefore(LocalDateTime.now())) {
+            log.warn("Refresh token for user {} has expired. Token revoked.", refreshToken.getUserId());
+            throw new AuthException(ApiMessage.REFRESH_TOKEN_EXPIRED);
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserById(refreshToken.getUserId());
+
+        if (!userDetails.isEnabled()) {
+            throw new UserSuspendException("You are banned", "banned");
+        }
+
+        String newAccessToken = jwtTokenProvider.generateToken(userDetails);
+
+        log.info("New access token generated successfully for user {}", refreshToken.getUserId());
+
+        return RefreshResponse.builder()
+                .access_token(newAccessToken)
+                .build();
     }
 }

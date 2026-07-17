@@ -5,9 +5,12 @@ import com.backend.common.ApiMessage;
 import com.backend.config.ApplicationProperties;
 import com.backend.dto.ApiResponse;
 import com.backend.dto.auth.login.*;
+import com.backend.dto.auth.refresh.RefreshRequest;
+import com.backend.dto.auth.refresh.RefreshResponse;
 import com.backend.dto.auth.signup.SignupRequest;
 import com.backend.dto.auth.signup.SignupResponse;
 import com.backend.service.auth.AuthService;
+import com.backend.service.auth.RefreshTokenService;
 import com.backend.service.system.RateLimitService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -36,6 +39,7 @@ import java.time.LocalDateTime;
 public class AuthController {
 
     private final AuthService authSrv;
+    private final RefreshTokenService refreshTokenSrv;
     private final RateLimitService rateLimitSrv;
 
     private final ApplicationProperties appPrp;
@@ -157,7 +161,6 @@ public class AuthController {
     }
 
 
-
     // ===================
     //       Signup
     // ===================
@@ -196,5 +199,27 @@ public class AuthController {
             ip = ip.split(",")[0].trim();
         }
         return ip;
+    }
+
+    // ===================================
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<RefreshResponse>> refresh(
+            @Valid @RequestBody RefreshRequest refreshRequest
+    ) {
+
+        RefreshResponse response = refreshTokenSrv.refresh(refreshRequest.refresh_token());
+        ApiMessage msg = ApiMessage.REFRESH_SUCCESS;
+        return ResponseEntity.ok(
+                ApiResponse.<RefreshResponse>builder()
+                        .success(true)
+                        .status(200)
+                        .title(msg.getTitle())
+                        .message(msg.getMessage())
+                        .titleFa(msg.getTitleFa())
+                        .messageFa(msg.getMessageFa())
+                        .data(response)
+                        .timestamp(LocalDateTime.now())
+                        .build()
+        );
     }
 }

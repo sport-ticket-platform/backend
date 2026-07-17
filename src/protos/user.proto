@@ -7,6 +7,7 @@ service UserService {
   // Login
   rpc GetUserByEmail (GetUserLoginInfoByEmailRequest) returns (UserLoginInfoResponse);
   rpc GetUserByPhone (GetUserLoginInfoByPhoneRequest) returns (UserLoginInfoResponse);
+  rpc GetUserById (GetUserLoginInfoByIdRequest) returns (UserLoginInfoResponse);
 
   // Signup Validation
   rpc CheckEmailExists (CheckEmailExistsRequest) returns (CheckExistsResponse);
@@ -17,7 +18,7 @@ service UserService {
 }
 
 // =====================================
-//               LOGIN
+//                LOGIN
 // =====================================
 message GetUserLoginInfoByEmailRequest {
   string email = 1;
@@ -25,6 +26,10 @@ message GetUserLoginInfoByEmailRequest {
 
 message GetUserLoginInfoByPhoneRequest {
   string phone = 1;
+}
+
+message GetUserLoginInfoByIdRequest {
+  int64 id = 1;
 }
 
 message UserLoginInfoResponse {
@@ -38,7 +43,7 @@ message UserLoginInfoResponse {
 }
 
 // =====================================
-//         SIGNUP VALIDATION
+//          SIGNUP VALIDATION
 // =====================================
 message CheckEmailExistsRequest {
   string email = 1;
@@ -53,7 +58,7 @@ message CheckExistsResponse {
 }
 
 // =====================================
-//               SIGNUP
+//                SIGNUP
 // =====================================
 message CreateUserRequest {
   string email = 1;

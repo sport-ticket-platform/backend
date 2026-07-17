@@ -10,6 +10,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -214,6 +215,30 @@ public class GlobalExceptionHandler {
                 .titleFa(msg.getTitleFa())
                 .messageFa(msg.getMessageFa())
                 .data(errorData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(msg.getStatusCode()).body(response);
+    }
+
+    // ======================================
+    //          404 Not Found Error
+    // ======================================
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleNoResourceFoundException(NoResourceFoundException ex) {
+
+        log.warn("Resource not found: /{}", ex.getResourcePath());
+
+        ApiMessage msg = ApiMessage.RESOURCE_NOT_FOUND;
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage() + ": /" + ex.getResourcePath())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa() + ": /" + ex.getResourcePath())
+                .data(null)
                 .timestamp(LocalDateTime.now())
                 .build();
 

@@ -5,10 +5,10 @@ info:
 
 grpc:
   url: localhost:9090
-  method: /UserService/GetUserByEmail
+  method: /UserService/GetUserById
   methodType: unary
   message: |-
     {
-      "email": "taha2@gmail.com"
+      "id": 3
     }
   auth: inherit
