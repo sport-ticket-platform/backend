@@ -1,16 +1,17 @@
 info:
-  name: check username
+  name: verify
   type: http
-  seq: 3
+  seq: 6
 
 http:
   method: POST
-  url: http://localhost:8080/api/v1/auth/check-username
+  url: http://localhost:8080/api/v1/auth/verify
   body:
     type: json
     data: |-
       {
-        "username": "taha2"
+        "mfa": "a-1zfKbOzXqYvZumF60aEp8dTTjvHfi2yTjPqieJrcc",
+        "otp": "85108"
       }
   auth: inherit
 

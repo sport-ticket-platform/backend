@@ -24,7 +24,7 @@ public class RefreshTokenRepository {
     private final JdbcTemplate jdbcTemplate;
 
     private final RowMapper<RefreshToken> mapper = (rs, rowNum) -> RefreshToken.builder()
-            .id(rs.getLong("id"))
+            .id(rs.getLong("token_id"))
             .token(rs.getString("token"))
             .userId(rs.getLong("user_id"))
             .createdAt(rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null)
@@ -60,8 +60,8 @@ public class RefreshTokenRepository {
             return ps;
         }, keyHolder);
 
-        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
-            token.setId(((Number) keyHolder.getKeys().get("id")).longValue());
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("token_id")) {
+            token.setId(((Number) keyHolder.getKeys().get("token_id")).longValue());
         }
         token.setCreatedAt(created);
         return token;
@@ -76,18 +76,6 @@ public class RefreshTokenRepository {
         }
     }
 
-    public boolean hasActiveTokenByDevice(String deviceId) {
-        String sql = "SELECT count(*) FROM refresh_token WHERE device_id = ? AND is_active = true";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, deviceId);
-        return count != null && count > 0;
-    }
-
-    // تغییر نام متد به سبک ساده و نیتیو
-    public boolean hasActiveTokenByUser(Long userId) {
-        String sql = "SELECT count(*) FROM refresh_token WHERE user_id = ? AND is_active = true";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId);
-        return count != null && count > 0;
-    }
 
     public int deactivateByUser(Long userId, LocalDateTime time, String reason) {
         String sql = """
@@ -98,12 +86,48 @@ public class RefreshTokenRepository {
         return jdbcTemplate.update(sql, Timestamp.valueOf(time), reason, userId);
     }
 
-    public int deactivateByDevice(String deviceId, LocalDateTime time, String reason) {
+    public int revokeAllTokensForUser(Long userId, String banReason) {
         String sql = """
             UPDATE refresh_token 
             SET is_active = false, revoked_at = ?, revoked_reason = ? 
-            WHERE device_id = ? AND is_active = true
+            WHERE user_id = ? AND is_active = true
             """;
-        return jdbcTemplate.update(sql, Timestamp.valueOf(time), reason, deviceId);
+
+        return jdbcTemplate.update(
+                sql,
+                Timestamp.valueOf(LocalDateTime.now()),
+                banReason,
+                userId
+        );
+    }
+
+    public int revokeToken(String token, String banReason) {
+        String sql = """
+            UPDATE refresh_token 
+            SET is_active = false, revoked_at = ?, revoked_reason = ? 
+            WHERE token = ? AND is_active = true
+            """;
+
+        return jdbcTemplate.update(
+                sql,
+                Timestamp.valueOf(LocalDateTime.now()),
+                banReason,
+                token
+        );
+    }
+
+    public int revokeAllExpiredTokens(LocalDateTime time) {
+        String sql = """
+            UPDATE refresh_token 
+            SET is_active = false, revoked_at = ?, revoked_reason = ? 
+            WHERE expiration_date < ? AND is_active = true
+            """;
+
+        return jdbcTemplate.update(
+                sql,
+                Timestamp.valueOf(time),
+                "System Scheduled Cleanup | Expired Token",
+                Timestamp.valueOf(time)
+        );
     }
 }

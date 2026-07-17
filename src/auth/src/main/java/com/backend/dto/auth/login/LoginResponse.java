@@ -1,4 +1,4 @@
-package com.backend.dto.auth;
+package com.backend.dto.auth.login;
 
 import lombok.*;
 
@@ -13,7 +13,8 @@ import lombok.*;
  * @author logTAHA
  */
 @Builder
-public record LoginResponse (
-        String token
-){
-}
+public record LoginResponse(
+        String step,             // "SUCCESS" or "2FA-EMAIL" or "2FA-PHONE"
+        String refresh_token,     // Null in 2fa
+        String mfa_token          // Null in success
+) {}

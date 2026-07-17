@@ -70,7 +70,10 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return generateToken(userDetails);
+    }
 
+    public String generateToken(CustomUserDetails userDetails) {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
@@ -85,7 +88,6 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("roles", roles)
-                .claim("username", userDetails.getUsername())
                 .issuer(appPrp.getJwt().getIssuer())
                 .audience().add(appPrp.getJwt().getAudience()).and()
                 .issuedAt(now)

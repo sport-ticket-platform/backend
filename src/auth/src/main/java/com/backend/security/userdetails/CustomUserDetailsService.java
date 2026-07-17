@@ -3,6 +3,7 @@ package com.backend.security.userdetails;
 import com.backend.dto.user.UserDto;
 import com.backend.dto.user.UserRole;
 import com.backend.grpc.GetUserLoginInfoByEmailRequest;
+import com.backend.grpc.GetUserLoginInfoByIdRequest; // باید در proto اضافه شده باشد
 import com.backend.grpc.GetUserLoginInfoByPhoneRequest;
 import com.backend.grpc.UserLoginInfoResponse;
 import com.backend.grpc.UserServiceGrpc;
@@ -25,7 +26,7 @@ import java.util.Collections;
 /**
  * <h2>Service to adapt {@link UserDto} to {@link CustomUserDetails} via gRPC</h2>
  *
- * <p>Loads user by email or phone number</p>
+ * <p>Loads user by ID, email, or phone number</p>
  *
  * @since 1.0.0
  * @version 2.0.0
@@ -63,7 +64,31 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new AuthenticationServiceException("Error connecting to user service", e);
         }
 
-        // map gRPC to user dto
+        return mapToUserDetails(grpcResponse, identifier);
+    }
+
+    public UserDetails loadUserById(@NotNull Long id) throws UsernameNotFoundException {
+        UserLoginInfoResponse grpcResponse;
+
+        try {
+            grpcResponse = userServiceStub.getUserById(
+                    GetUserLoginInfoByIdRequest.newBuilder().setId(id).build()
+            );
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
+                log.warn("User not found with id: {}", id);
+                throw new UsernameNotFoundException("User not found");
+            }
+            log.error("gRPC error while fetching user by id: {}", id, e);
+            throw new AuthenticationServiceException("Error connecting to user service", e);
+        }
+
+        String username = grpcResponse.getEmail();
+
+        return mapToUserDetails(grpcResponse, username);
+    }
+
+    private CustomUserDetails mapToUserDetails(UserLoginInfoResponse grpcResponse, String username) {
         UserDto userDto = UserDto.builder()
                 .id(grpcResponse.getId())
                 .email(grpcResponse.getEmail())
@@ -77,7 +102,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return CustomUserDetails.builder()
                 .user(userDto)
                 .id(userDto.getId())
-                .username(identifier)
+                .username(username)
                 .password(userDto.getPassword())
                 .authorities(Collections.singletonList(
                         new SimpleGrantedAuthority("ROLE_" + userDto.getRole().name())

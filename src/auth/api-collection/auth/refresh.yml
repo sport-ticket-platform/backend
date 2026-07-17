@@ -1,16 +1,16 @@
 info:
-  name: check username
+  name: refresh
   type: http
-  seq: 3
+  seq: 9
 
 http:
   method: POST
-  url: http://localhost:8080/api/v1/auth/check-username
+  url: http://localhost:8080/api/v1/auth/refresh
   body:
     type: json
     data: |-
       {
-        "username": "taha2"
+        "refresh_token": "d91dc0c9-4473-482c-a122-7dd61512ab28"
       }
   auth: inherit
 

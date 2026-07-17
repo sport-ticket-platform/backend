@@ -39,8 +39,7 @@ app:
       issuer: backend-service
       audience: frontend
 
-    endpoint-limits-per-min:
-      signup: 10
+    mfa_token_ttl_min: 2
 
 grpc:
   client:

@@ -10,6 +10,7 @@ import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,6 +54,47 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LockedException.class)
     public ResponseEntity<ApiResponse<?>> handleLocked() {
         return buildAuthErrorResponse(ApiMessage.ACCOUNT_LOCKED);
+    }
+
+    @ExceptionHandler(CustomLockedException.class)
+    public ResponseEntity<ApiResponse<?>> handleCustomLocked(CustomLockedException e) {
+        ApiMessage apiMessage = e.getApiMessage();
+
+        StringBuilder timeEn = new StringBuilder();
+        StringBuilder timeFa = new StringBuilder();
+
+        if (e.getHours() > 0) {
+            timeEn.append(e.getHours()).append(" hours, ");
+            timeFa.append(e.getHours()).append(" ساعت و ");
+        }
+        if (e.getMinutes() > 0 || e.getHours() > 0) {
+            timeEn.append(e.getMinutes()).append(" minutes, ");
+            timeFa.append(e.getMinutes()).append(" دقیقه و ");
+        }
+        timeEn.append(e.getSeconds()).append(" seconds");
+        timeFa.append(e.getSeconds()).append(" ثانیه");
+
+        String customMessageEn = apiMessage.getMessage() + " Please try again in " + timeEn.toString() + ".";
+        String customMessageFa = apiMessage.getMessageFa() + " " + timeFa.toString() + " دیگر تلاش کنید.";
+
+        Map<String, Long> timeData = Map.of(
+                "hours", e.getHours(),
+                "minutes", e.getMinutes(),
+                "seconds", e.getSeconds()
+        );
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(apiMessage.getStatusCode())
+                .title(apiMessage.getTitle())
+                .message(customMessageEn)
+                .titleFa(apiMessage.getTitleFa())
+                .messageFa(customMessageFa)
+                .data(timeData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(apiMessage.getStatusCode()).body(response);
     }
 
     @ExceptionHandler(CredentialsExpiredException.class)
@@ -149,23 +191,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(validationType.getStatusCode()).body(response);
     }
 
-    // Rate Limit Handler
-    @ExceptionHandler(RateLimitException.class)
-    public ResponseEntity<ApiResponse<?>> handleRateLimit() {
-        ApiMessage msg = ApiMessage.TOO_MANY_REQUESTS;
-        ApiResponse<?> response = ApiResponse.builder()
-                .success(false)
-                .status(msg.getStatusCode())
-                .title(msg.getTitle())
-                .message(msg.getMessage())
-                .titleFa(msg.getTitleFa())
-                .messageFa(msg.getMessageFa())
-                .data(null)
-                .timestamp(LocalDateTime.now())
-                .build();
-        return ResponseEntity.status(msg.getStatusCode()).body(response);
-    }
-
 
     // =====================
     //       Auth error
@@ -190,6 +215,30 @@ public class GlobalExceptionHandler {
                 .titleFa(msg.getTitleFa())
                 .messageFa(msg.getMessageFa())
                 .data(errorData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(msg.getStatusCode()).body(response);
+    }
+
+    // ======================================
+    //          404 Not Found Error
+    // ======================================
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleNoResourceFoundException(NoResourceFoundException ex) {
+
+        log.warn("Resource not found: /{}", ex.getResourcePath());
+
+        ApiMessage msg = ApiMessage.RESOURCE_NOT_FOUND;
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage() + ": /" + ex.getResourcePath())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa() + ": /" + ex.getResourcePath())
+                .data(null)
                 .timestamp(LocalDateTime.now())
                 .build();
 

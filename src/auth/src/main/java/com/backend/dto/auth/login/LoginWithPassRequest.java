@@ -1,4 +1,4 @@
-package com.backend.dto.auth;
+package com.backend.dto.auth.login;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -10,7 +10,7 @@ import lombok.*;
  * @author logTAHA
  */
 @Builder
-public record LoginRequest (
+public record LoginWithPassRequest(
         @NotBlank(message = "LOGIN_IDENTIFIER_REQUIRED")
         @Size(min = 3, max = 255, message = "LOGIN_IDENTIFIER_SIZE")
         String identifier,

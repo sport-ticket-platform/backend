@@ -16,7 +16,6 @@ public class ApplicationProperties {
 
     private String[] publicPaths;
     private final Jwt jwt = new Jwt();
-    private final EndpointLimitsPerMin endpointLimitsPerMin = new EndpointLimitsPerMin();
 
     /**
      * <h3>Use RSA(RS256) Algorithm</h3>
@@ -33,10 +32,5 @@ public class ApplicationProperties {
         private String audience;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class EndpointLimitsPerMin {
-        private int signup;
-    }
+    private int mfaTokenTtlMin;
 }

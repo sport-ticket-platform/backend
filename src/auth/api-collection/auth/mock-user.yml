@@ -1,0 +1,14 @@
+info:
+  name: mock-user
+  type: grpc
+  seq: 5
+
+grpc:
+  url: localhost:9090
+  method: /UserService/GetUserById
+  methodType: unary
+  message: |-
+    {
+      "id": 3
+    }
+  auth: inherit

@@ -1,4 +1,4 @@
-package com.backend.dto.auth;
+package com.backend.dto.auth.signup;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
