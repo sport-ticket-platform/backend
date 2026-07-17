@@ -22,6 +22,26 @@ public class UserRepository : IUserRepository
         throw new NotImplementedException();
     }
 
+    public Task UpdateAsync(User user, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> DeleteAsync(long userId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<User?> GetUserByIdAsync(long usedId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<int?> GetCityIdByName(string name)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task<UserProfile?> GetUserProfileByIdAsync(long userId, CancellationToken ct)
     {
         _logger.LogInformation("fetching user {userId}",userId);

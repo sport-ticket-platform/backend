@@ -109,8 +109,6 @@ public class User
     }
 
     
-    
-
     public void Update(string firstName, string lastName,string email,string phoneNumber,int cityId)
     {
         if (cityId <= 0)

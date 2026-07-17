@@ -51,4 +51,5 @@ public class UserService : IUserService
         if (!isDeleted)
             throw new NotFoundException("User Not found");
     }
+    
 }
