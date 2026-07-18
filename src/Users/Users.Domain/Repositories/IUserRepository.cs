@@ -10,7 +10,7 @@ public interface IUserRepository
     public Task<bool> DeleteAsync(long userId, CancellationToken ct);
     public Task<User?> GetUserByIdAsync(long usedId,CancellationToken ct);
 
-    public Task<int?> GetCityIdByName(string name);
+    public Task<int?> GetCityIdByName(string name,CancellationToken ct);
     public Task<UserProfile?> GetUserProfileByIdAsync(long userId, CancellationToken ct);
     
 }

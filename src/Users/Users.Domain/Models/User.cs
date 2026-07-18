@@ -9,11 +9,12 @@ public class User
     public long UserId { get; private set; }
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
-    public Role UserRole { get; private set; }
+    public Role Role { get; private set; }
     public string Email { get; private set; }
-    public bool EmailIsVerified { get; private set; } = false;
+    public bool IsEmailVerified { get; private set; } = false;
     public string PhoneNumber { get; private set; }
-    public bool PhoneNumberIsVerified { get; private set; } = false;
+    public bool IsPhoneNumberVerified { get; private set; } = false;
+   
     public DateTimeOffset RegistrationDate { get; private set; } = DateTimeOffset.Now;
     public string PasswordHash { get; private set; }
     public decimal Balance { get; private set; } = 0;
@@ -35,18 +36,18 @@ public class User
     
 
 
-    private User(string firstName, string lastName, Role userRole, string email, string phoneNumber,
-        string passwordHash, int cityId, bool emailIsVerified = false, bool phoneNumberIsVerified = false)
+    private User(string firstName, string lastName, Role role, string email, string phoneNumber,
+        string passwordHash, int cityId, bool isEmailVerified = false, bool isPhoneNumberVerified = false)
     {
         FirstName = firstName;
         LastName = lastName;
-        UserRole = userRole;
+        Role = role;
         Email = email;
         PhoneNumber = phoneNumber;
         PasswordHash = passwordHash;
         CityId = cityId;
-        EmailIsVerified = emailIsVerified;
-        PhoneNumberIsVerified = phoneNumberIsVerified;
+        IsEmailVerified = isEmailVerified;
+        IsPhoneNumberVerified = isPhoneNumberVerified;
     }
 
     
