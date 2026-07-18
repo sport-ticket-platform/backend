@@ -67,12 +67,7 @@ public class UserRepository : IUserRepository
             throw new InfrastructureException("DataBase operation failed", ex);
         }
     }
-
-    public Task<bool> DeleteAsync(long userId, CancellationToken ct)
-    {
-        throw new NotImplementedException();
-    }
-
+    
     public async Task<User?> GetUserByIdAsync(long userId, CancellationToken ct)
     {
         try

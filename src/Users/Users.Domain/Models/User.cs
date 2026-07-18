@@ -169,6 +169,8 @@ public class User
         Balance -= amount;
     }
 
+    public bool IsInRole(Role role) => Role == role;
+
     public void DeactivateAccount() => IsActive = false;
     
     public void ActivateAccount() => IsActive = true;

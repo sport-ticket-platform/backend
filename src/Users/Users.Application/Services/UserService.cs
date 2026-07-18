@@ -34,7 +34,7 @@ public class UserService : IUserService
         if (user is null)
             throw new NotFoundException("User not found");
 
-        int? cityId = await _userRepo.GetCityIdByName(updateRequest.City,ct) ??
+        int? cityId = await _userRepo.GetCityIdByName(updateRequest.City, ct) ??
                       throw new NotFoundException("The city not found");
 
 
@@ -43,25 +43,21 @@ public class UserService : IUserService
         await _userRepo.UpdateAsync(user, ct);
     }
 
-    public async Task DeleteUser(long userId, CancellationToken ct)
+    public async Task ChangeAccountStatus(long userId, bool active, CancellationToken ct)
     {
-        _logger.LogInformation("Deleting user with ID {userId}",userId);
-        
-        var isDeleted = await _userRepo.DeleteAsync(userId, ct);
-        if (!isDeleted)
-            throw new NotFoundException("User Not found");
-    }
-
-    public async Task DeactivateUserAccount(long userId,CancellationToken ct)
-    {
-        _logger.LogInformation("Deactivating user account with ID {userId}",userId);
+        _logger.LogInformation("changing user's account status to {active} user account with ID {userId}", active,
+            userId);
         var user = await _userRepo.GetUserByIdAsync(userId, ct);
-        
+
         if (user is null)
             throw new NotFoundException("User not found");
+
+        if (active)
+            user.ActivateAccount();
+        else
+            user.DeactivateAccount();
+
         
-        user.DeactivateAccount();
-        await _userRepo.UpdateAsync(user,ct);
+        await _userRepo.UpdateAsync(user, ct);
     }
-    
 }
