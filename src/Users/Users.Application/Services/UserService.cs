@@ -51,5 +51,17 @@ public class UserService : IUserService
         if (!isDeleted)
             throw new NotFoundException("User Not found");
     }
+
+    public async Task DeactivateUserAccount(long userId,CancellationToken ct)
+    {
+        _logger.LogInformation("Deactivating user account with ID {userId}",userId);
+        var user = await _userRepo.GetUserByIdAsync(userId, ct);
+        
+        if (user is null)
+            throw new NotFoundException("User not found");
+        
+        user.DeactivateAccount();
+        await _userRepo.UpdateAsync(user,ct);
+    }
     
 }

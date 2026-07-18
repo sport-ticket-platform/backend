@@ -19,11 +19,6 @@ public class UserRepository : IUserRepository
         _logger = logger;
     }
     
-    public Task<User> UpdateAsync(User user)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task UpdateAsync(User user, CancellationToken ct)
     {
         throw new NotImplementedException();
@@ -65,7 +60,7 @@ public class UserRepository : IUserRepository
             var userProfile = await _dbContext.DbConnection.QueryFirstAsync<UserProfile>(sql, new { UserId = userId });
             return userProfile;
         }
-        catch (NpgsqlException ex) when (ex.InnerException is SocketException)
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
             _logger.LogCritical(ex, "Database connection failed while fetching the user {userId}.",
                 userId);
@@ -79,7 +74,7 @@ public class UserRepository : IUserRepository
         }
         catch (PostgresException ex)
         {
-            _logger.LogError(ex,"Database rejected the query while fetching the user {userId}.",userId);
+            _logger.LogError(ex,"Database rejected the query while fetching the user {userId}.{state}",userId,ex.SqlState);
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }

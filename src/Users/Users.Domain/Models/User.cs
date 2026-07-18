@@ -20,6 +20,8 @@ public class User
     public int CityId { get; private set; }
     public bool IsActive { get; private set; } = true;
 
+    public bool IsTwoFactorEnabled { get; private set; } = false;
+
     private static readonly Regex EmailRegex = new(
         @"^[^@\s]+@[^@\s]+\.[^@\s]+$",
         RegexOptions.Compiled);
@@ -166,5 +168,13 @@ public class User
         Balance -= amount;
     }
 
+    public void DeactivateAccount() => IsActive = false;
     
+    public void ActivateAccount() => IsActive = true;
+
+    public void EnableTwoFactor() => IsTwoFactorEnabled = true;
+
+    public void DisableTwoFactor() => IsTwoFactorEnabled = false;
+
+
 }
