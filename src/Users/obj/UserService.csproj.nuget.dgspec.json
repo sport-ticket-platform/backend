@@ -48,6 +48,16 @@
               "target": "Package",
               "version": "[2.1.79, )"
             },
+            "Grpc.AspNetCore": {
+              "target": "Package",
+              "version": "[2.71.0, )"
+            },
+            "Grpc.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.71.0, )"
+            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
               "version": "[9.0.18, )"

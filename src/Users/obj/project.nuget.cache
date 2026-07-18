@@ -1,15 +1,29 @@
 {
   "version": 2,
-  "dgSpecHash": "JvOFpmzneGA=",
+  "dgSpecHash": "7s35gKqq214=",
   "success": true,
   "projectFilePath": "/home/mmdcj/RiderProjects/backend/src/Users/UserService.csproj",
   "expectedPackageFiles": [
     "/home/mmdcj/.nuget/packages/dapper/2.1.79/dapper.2.1.79.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/google.protobuf/3.30.2/google.protobuf.3.30.2.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.aspnetcore/2.71.0/grpc.aspnetcore.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.aspnetcore.server/2.71.0/grpc.aspnetcore.server.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.aspnetcore.server.clientfactory/2.71.0/grpc.aspnetcore.server.clientfactory.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.core.api/2.71.0/grpc.core.api.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.net.client/2.71.0/grpc.net.client.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.net.clientfactory/2.71.0/grpc.net.clientfactory.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.net.common/2.71.0/grpc.net.common.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.tools/2.71.0/grpc.tools.2.71.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/9.0.18/microsoft.aspnetcore.authentication.jwtbearer.9.0.18.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.aspnetcore.openapi/9.0.12/microsoft.aspnetcore.openapi.9.0.12.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.bcl.cryptography/10.0.2/microsoft.bcl.cryptography.10.0.2.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/microsoft.extensions.dependencyinjection/6.0.0/microsoft.extensions.dependencyinjection.6.0.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/9.0.0/microsoft.extensions.dependencyinjection.abstractions.9.0.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/microsoft.extensions.http/6.0.0/microsoft.extensions.http.6.0.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/microsoft.extensions.logging/6.0.0/microsoft.extensions.logging.6.0.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.extensions.logging.abstractions/9.0.0/microsoft.extensions.logging.abstractions.9.0.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/microsoft.extensions.options/6.0.0/microsoft.extensions.options.6.0.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/microsoft.extensions.primitives/6.0.0/microsoft.extensions.primitives.6.0.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.identitymodel.abstractions/8.19.2/microsoft.identitymodel.abstractions.8.19.2.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.identitymodel.jsonwebtokens/8.19.2/microsoft.identitymodel.jsonwebtokens.8.19.2.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.identitymodel.logging/8.19.2/microsoft.identitymodel.logging.8.19.2.nupkg.sha512",
@@ -18,7 +32,9 @@
     "/home/mmdcj/.nuget/packages/microsoft.identitymodel.tokens/8.19.2/microsoft.identitymodel.tokens.8.19.2.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.openapi/1.6.17/microsoft.openapi.1.6.17.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/npgsql/10.0.3/npgsql.10.0.3.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/system.identitymodel.tokens.jwt/8.19.2/system.identitymodel.tokens.jwt.8.19.2.nupkg.sha512"
+    "/home/mmdcj/.nuget/packages/system.diagnostics.diagnosticsource/6.0.0/system.diagnostics.diagnosticsource.6.0.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/system.identitymodel.tokens.jwt/8.19.2/system.identitymodel.tokens.jwt.8.19.2.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512"
   ],
   "logs": []
 }
