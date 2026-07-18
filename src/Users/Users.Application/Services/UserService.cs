@@ -34,7 +34,7 @@ public class UserService : IUserService
         if (user is null)
             throw new NotFoundException("User not found");
 
-        int? cityId = await _userRepo.GetCityIdByName(updateRequest.City) ??
+        int? cityId = await _userRepo.GetCityIdByName(updateRequest.City,ct) ??
                       throw new NotFoundException("The city not found");
 
 
