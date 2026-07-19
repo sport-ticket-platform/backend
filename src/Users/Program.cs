@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using UserService.Users.API.Middlewares;
 using UserService.Users.Application.Services;
 using UserService.Users.Domain.Repositories;
 using UserService.Users.Infrastructure.DbContext;
@@ -12,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<ApplicationDbContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.UserService>();
+builder.Services.AddTransient<ExceptionHandlingMiddleware>(); 
+
 
 var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];
@@ -44,6 +47,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.Run();
