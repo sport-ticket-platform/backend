@@ -48,6 +48,14 @@
               "target": "Package",
               "version": "[2.1.79, )"
             },
+            "FluentValidation": {
+              "target": "Package",
+              "version": "[12.1.1, )"
+            },
+            "FluentValidation.DependencyInjectionExtensions": {
+              "target": "Package",
+              "version": "[12.1.1, )"
+            },
             "Grpc.AspNetCore": {
               "target": "Package",
               "version": "[2.71.0, )"

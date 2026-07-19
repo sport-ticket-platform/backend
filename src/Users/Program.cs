@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using UserService.Users.API.Middlewares;
@@ -15,6 +16,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.UserService>();
 builder.Services.AddTransient<ExceptionHandlingMiddleware>(); 
 
+builder.Services.AddValidatorsFromAssemblyContaining<Program>(); 
 
 var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];
