@@ -3,7 +3,9 @@ using System.Text;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using UserService.Users.API.ActionFilters;
 using UserService.Users.API.Middlewares;
+using UserService.Users.API.Validators;
 using UserService.Users.Application.Services;
 using UserService.Users.Domain.Repositories;
 using UserService.Users.Infrastructure.DbContext;
@@ -16,7 +18,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.UserService>();
 builder.Services.AddTransient<ExceptionHandlingMiddleware>(); 
 
-builder.Services.AddValidatorsFromAssemblyContaining<Program>(); 
+builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>(); 
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationFilter>();
+});
 
 var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];
