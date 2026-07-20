@@ -27,7 +27,7 @@ builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>(); 
 builder.Services.AddControllers(options =>
 {
-    options.Filters.Add<ValidationFilter>();
+    options.Filters.Add<GlobalValidationFilter>();
 });
 
 var publicKey = builder.Configuration["Jwt:PublicKey"];

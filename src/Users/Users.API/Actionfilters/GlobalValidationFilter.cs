@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace UserService.Users.API.ActionFilters;
 
-public class ValidationFilter : IAsyncActionFilter
+public class GlobalValidationFilter : IAsyncActionFilter
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public ValidationFilter(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
+    public GlobalValidationFilter(IServiceProvider serviceProvider) => _serviceProvider = serviceProvider;
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {

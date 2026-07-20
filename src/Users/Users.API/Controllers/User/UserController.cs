@@ -5,11 +5,11 @@ using UserService.Users.Application.Requests;
 using UserService.Users.Application.Services;
 using UserService.Users.Domain.ReadModels;
 
-namespace UserService.Users.API.Controllers;
+namespace UserService.Users.API.Controllers.User;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(policy:"RequireUser")]
 public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
@@ -52,6 +52,7 @@ public class UserController : ControllerBase
         await _userService.UpdateUserProfile(updateProfileRequest, ct);
         return Ok(); 
     }
+    
     
     
     
