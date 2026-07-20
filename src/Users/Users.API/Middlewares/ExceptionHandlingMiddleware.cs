@@ -50,7 +50,7 @@ public class ExceptionHandlingMiddleware
             Status = statusCode,
             Title = title,
             Detail = statusCode == StatusCodes.Status500InternalServerError
-                ? "An unexpected error occurred." // never leak internal exception details for 500s
+                ? "An unexpected error occurred." 
                 : ex.Message,
             Instance = context.Request.Path
         };
