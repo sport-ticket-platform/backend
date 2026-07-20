@@ -254,7 +254,7 @@ public class AuthService {
     }
 
     private void checkEmailUnique(String email) {
-        CheckExistsResponse response = userServiceStub.checkEmailExists(
+        EmailExistsResponse response = userServiceStub.checkEmailExists(
                 CheckEmailExistsRequest.newBuilder().setEmail(email).build()
         );
         if (response.getExists()) {
@@ -263,27 +263,15 @@ public class AuthService {
         }
     }
 
-    private void checkPhoneUnique(String phone) {
-        CheckExistsResponse response = userServiceStub.checkPhoneExists(
-                CheckPhoneExistsRequest.newBuilder().setPhone(phone).build()
-        );
-        if (response.getExists()) {
-            log.warn("Signup failed. Phone [{}] is already registered.", phone);
-            throw new AuthException(ApiMessage.SIGNUP_PHONE_TAKEN, "phone");
-        }
-    }
-
     public SignupResponse signup(SignupRequest request) {
         String email = request.email() != null ? request.email().toLowerCase().trim() : "";
         String phone = request.phone() != null ? request.phone().trim() : "";
 
         checkEmailUnique(email);
-        checkPhoneUnique(phone);
 
         try {
             CreateUserRequest grpcRequest = CreateUserRequest.newBuilder()
                     .setEmail(email)
-                    .setPhone(phone)
                     .setFirstName(request.first_name().trim())
                     .setLastName(request.last_name().trim())
                     .setPassword(passwordEncoder.encode(request.password().trim()))
