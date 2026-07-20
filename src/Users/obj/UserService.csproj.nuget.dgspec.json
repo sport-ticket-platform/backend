@@ -78,6 +78,10 @@
               "target": "Package",
               "version": "[10.0.3, )"
             },
+            "Npgsql.OpenTelemetry": {
+              "target": "Package",
+              "version": "[10.0.3, )"
+            },
             "OpenTelemetry.Exporter.Console": {
               "target": "Package",
               "version": "[1.17.0, )"
@@ -91,6 +95,14 @@
               "version": "[1.17.0, )"
             },
             "OpenTelemetry.Instrumentation.AspNetCore": {
+              "target": "Package",
+              "version": "[1.17.0, )"
+            },
+            "OpenTelemetry.Instrumentation.Http": {
+              "target": "Package",
+              "version": "[1.17.0, )"
+            },
+            "OpenTelemetry.Instrumentation.Runtime": {
               "target": "Package",
               "version": "[1.17.0, )"
             }

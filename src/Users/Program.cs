@@ -4,6 +4,11 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using UserService.Users.API.ActionFilters;
 using UserService.Users.API.AuthorizationPolicies.Requirements;
 using UserService.Users.API.AuthorizationPolicies.RequirementsHandlers;
@@ -70,6 +75,63 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("RequireSupportOrAdmin", policy =>
         policy.Requirements.Add(new RoleRequirement(Role.SUPPORT, Role.ADMIN)));
+});
+
+
+
+const string serviceName = "UserService";
+const string serviceVersion = "1.0.0";
+var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"] ?? "http://localhost:4317";
+
+var resourceBuilder = ResourceBuilder.CreateDefault()
+    .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
+    .AddAttributes(new Dictionary<string, object>
+    {
+        ["deployment.environment"] = builder.Environment.EnvironmentName
+    });
+
+// ---------- Traces ----------
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracing => tracing
+        .SetResourceBuilder(resourceBuilder)
+        .AddAspNetCoreInstrumentation(options =>
+        {
+            options.RecordException = true;
+        })
+        .AddHttpClientInstrumentation() // traces outbound calls (e.g., Auth → User service)
+        .AddNpgsql()                    // traces Postgres queries via Npgsql
+        .AddOtlpExporter(otlp =>
+        {
+            otlp.Endpoint = new Uri(otlpEndpoint);
+            otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+        }))
+
+    // ---------- Metrics ----------
+    .WithMetrics(metrics => metrics
+        .SetResourceBuilder(resourceBuilder)
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation()   // GC, thread pool, memory
+        .AddOtlpExporter(otlp =>
+        {
+            otlp.Endpoint = new Uri(otlpEndpoint);
+            otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+        }));
+
+// ---------- Logging ----------
+builder.Logging.ClearProviders();
+builder.Logging.AddOpenTelemetry(logging =>
+{
+    logging.SetResourceBuilder(resourceBuilder);
+    logging.IncludeFormattedMessage = true;
+    logging.IncludeScopes = true;
+    logging.ParseStateValues = true;
+
+    logging.AddOtlpExporter(otlp =>
+    {
+        otlp.Endpoint = new Uri(otlpEndpoint);
+        otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+    });
 });
 
 
