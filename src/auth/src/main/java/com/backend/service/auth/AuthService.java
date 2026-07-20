@@ -45,6 +45,11 @@ public class AuthService {
     public LoginResponse loginWithPassword(LoginWithPassRequest loginWithPassRequest, String ip, String userAgent, String deviceId) {
         String identifier = loginWithPassRequest.identifier();
 
+        // Phone Normalizing
+        if (identifier != null && identifier.matches("^(?:\\+98|0098|0)?9\\d{9}$")) {
+            identifier = "0" + identifier.replaceFirst("^(?:\\+98|0098|0)?", "");
+        }
+
         log.info("Attempting to authenticate user: {}", identifier);
 
         // lock checks sooner than other checks
@@ -86,7 +91,6 @@ public class AuthService {
 
         checkUserSuspend(user);
 
-
         // checking for 2fa
         if (user.isTwoFactorEnabled()) {
             log.info("User with id: {} authenticated successfully. 2FA is on...", user.getId());
@@ -98,10 +102,10 @@ public class AuthService {
                     .build();
         }
 
-
         log.info("User with id: {} authenticated successfully. Generating refresh-token...", user.getId());
 
         String token = refreshTokenService.create(user.getId(), ip, userAgent, deviceId);
+
         // login is completely successful in both state(2fa on or off)
         // (if it's on it will delete after correct otp) so deleting all previous failed attempts
         rateLimitService.clearFailedAttempts(identifier);

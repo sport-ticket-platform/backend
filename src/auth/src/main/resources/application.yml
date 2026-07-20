@@ -4,7 +4,7 @@ server:
 
 spring:
   application:
-    name: backend
+    name: auth-service
   datasource:
     # TODO: change this part when it wants to run in container
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sportik-backend}
@@ -27,6 +27,16 @@ spring:
       host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
 
+#  OpenTelemetry
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4317
+      transport: grpc
+
 app:
   security:
     public-paths: /api/v1/auth/**,/error,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html
@@ -36,7 +46,7 @@ app:
       public-key: classpath:keys/public_key.pem
       access-token-expiration-sec: 900
       refresh-token-expiration-sec: 2592000
-      issuer: backend-service
+      issuer: auth-service
       audience: frontend
 
     mfa_token_ttl_min: 2

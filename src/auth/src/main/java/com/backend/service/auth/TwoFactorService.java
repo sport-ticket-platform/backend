@@ -31,7 +31,7 @@ public class TwoFactorService {
     public long getMfaCooldown(String identifier) {
         String cooldownKey = REDIS_MFA_COOLDOWN_PREFIX + identifier;
         Long ttl = redisTemplate.getExpire(cooldownKey, TimeUnit.SECONDS);
-        return (ttl != null && ttl > 0) ? ttl : 0;
+        return ttl > 0 ? ttl : 0;
     }
 
     public void applyMfaCooldown(String identifier) {

@@ -74,7 +74,10 @@ public class RefreshTokenService {
         log.info("Attempting to rotate refresh token and generate new access token...");
 
         RefreshToken refreshToken = refreshRep.findByToken(requestRefreshToken)
-                .orElseThrow(() -> new AuthException(ApiMessage.REFRESH_TOKEN_NOT_EXIST));
+                .orElseThrow(() -> {
+                    log.warn("Failed refresh attempt: Refresh token not found in the database.");
+                    return new AuthException(ApiMessage.REFRESH_TOKEN_NOT_EXIST);
+                });
 
         // Reuse Detection
         if (!refreshToken.isActive()) {
