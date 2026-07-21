@@ -12,6 +12,7 @@ using OpenTelemetry.Trace;
 using UserService.Users.API.ActionFilters;
 using UserService.Users.API.AuthorizationPolicies.Requirements;
 using UserService.Users.API.AuthorizationPolicies.RequirementsHandlers;
+using UserService.Users.API.GrpcServices;
 using UserService.Users.API.Middlewares;
 using UserService.Users.API.Validators;
 using UserService.Users.Application.Services;
@@ -142,6 +143,7 @@ var app = builder.Build();
 
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.MapGrpcService<UserGrpcService>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.Run();

@@ -201,4 +201,9 @@ public class UserRepository : IUserRepository
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }
+
+    public Task<User?> GetUserByEmail(string email, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
 }

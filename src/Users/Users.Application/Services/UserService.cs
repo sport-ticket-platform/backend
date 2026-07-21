@@ -17,7 +17,7 @@ public class UserService : IUserService
         _userRepo = userRepo;
     }
 
-    public async Task<UserProfile?> GetUserProfileById(long userId, CancellationToken ct)
+    public async Task<UserProfile> GetUserProfileById(long userId, CancellationToken ct)
     {
         _logger.LogInformation("Fetching user's profile with user ID {userId}", userId);
         var userProfile = await _userRepo.GetUserProfileByIdAsync(userId, ct) ??
@@ -41,6 +41,11 @@ public class UserService : IUserService
         user.Update(updateRequest.FirstName, updateRequest.LastName, updateRequest.Email, updateRequest.PhoneNumber,
             cityId ?? 1);
         await _userRepo.UpdateAsync(user, ct);
+    }
+
+    public Task<User> GetUserByEmail(string email, CancellationToken ct)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task ChangeAccountStatus(long userId, bool active, CancellationToken ct)
