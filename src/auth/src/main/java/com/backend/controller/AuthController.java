@@ -33,7 +33,7 @@ import java.time.LocalDateTime;
  * @author logTAHA
  */
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
