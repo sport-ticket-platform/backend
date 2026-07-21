@@ -20,7 +20,7 @@ public class UserRepository : IUserRepository
         _logger = logger;
     }
 
-    public async Task UpdateAsync(User user, CancellationToken ct)
+    public async Task UpdateUser(User user, CancellationToken ct)
     {
         try
         {
@@ -68,7 +68,7 @@ public class UserRepository : IUserRepository
         }
     }
     
-    public async Task<User?> GetUserByIdAsync(long userId, CancellationToken ct)
+    public async Task<User?> GetUserById(long userId, CancellationToken ct)
     {
         try
         {
@@ -157,7 +157,7 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public async Task<UserProfile?> GetUserProfileByIdAsync(long userId, CancellationToken ct)
+    public async Task<UserProfile?> GetUserProfileById(long userId, CancellationToken ct)
     {
         _logger.LogInformation("fetching user {userId}", userId);
 
@@ -203,6 +203,21 @@ public class UserRepository : IUserRepository
     }
 
     public Task<User?> GetUserByEmail(string email, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<User?> GetUserByPhone(string email, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> CheckEmailExists(string email, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task CreateUser(User user, CancellationToken ct)
     {
         throw new NotImplementedException();
     }

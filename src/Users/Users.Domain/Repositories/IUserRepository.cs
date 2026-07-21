@@ -5,11 +5,16 @@ namespace UserService.Users.Domain.Repositories;
 
 public interface IUserRepository
 {
-    public Task UpdateAsync(User user,CancellationToken ct);
-    public Task<User?> GetUserByIdAsync(long usedId,CancellationToken ct);
+    public Task UpdateUser(User user,CancellationToken ct);
+    public Task<User?> GetUserById(long usedId,CancellationToken ct);
     public Task<int?> GetCityIdByName(string name,CancellationToken ct);
-    public Task<UserProfile?> GetUserProfileByIdAsync(long userId, CancellationToken ct);
+    public Task<UserProfile?> GetUserProfileById(long userId, CancellationToken ct);
 
     public Task<User?> GetUserByEmail(string email, CancellationToken ct);
+    
+    public Task<User?> GetUserByPhone(string email, CancellationToken ct);
 
+    public Task<bool> CheckEmailExists(string email, CancellationToken ct);
+
+    public Task CreateUser(User user,CancellationToken ct);
 }

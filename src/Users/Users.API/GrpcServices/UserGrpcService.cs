@@ -15,49 +15,78 @@ public class UserGrpcService : Grpc.UserService.UserServiceBase
         _logger = logger;
         _userService = userService;
     }
-    public override async Task<UserLoginInfoResponse> GetUserByEmail(GetUserLoginInfoByEmailRequest request, ServerCallContext context)
+
+    public override async Task<UserLoginInfoResponse> GetUserByEmail(GetUserLoginInfoByEmailRequest request,
+        ServerCallContext context)
     {
         _logger.LogInformation("fetching user by email");
-        
+
         if (string.IsNullOrWhiteSpace(request.Email))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Email is required."));
-        
+
         var ct = context.CancellationToken;
 
-        try
+        var user = await _userService.GetUserByEmail(request.Email, ct);
+        return new UserLoginInfoResponse()
         {
-            var user = await _userService.GetUserByEmail(request.Email,ct);
-            return new UserLoginInfoResponse()
-            {
-                Id = user.UserId,
-                Email = user.Email,
-                Phone = user.PhoneNumber,
-                Password = user.PasswordHash,
-                Role = user.Role.ToString(),
-                IsTwoFactorEnabled = user.IsTwoFactorEnabled,
-                Status = user.IsActive
-            };
-        }
-        catch(DomainException ex)
+            Id = user.UserId,
+            Email = user.Email,
+            Phone = user.PhoneNumber,
+            Password = user.PasswordHash,
+            Role = user.Role.ToString(),
+            IsTwoFactorEnabled = user.IsTwoFactorEnabled,
+            Status = user.IsActive
+        };
+    }
+
+    public override async Task<UserLoginInfoResponse> GetUserByPhone(GetUserLoginInfoByPhoneRequest request,
+        ServerCallContext context)
+    {
+        _logger.LogInformation("fetching user by phone number");
+        
+        if (string.IsNullOrWhiteSpace(request.Phone))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "phone number is required."));
+
+        var ct = context.CancellationToken;
+        var user = await _userService.GetUserByPhone(request.Phone, ct);
+        
+        return new UserLoginInfoResponse()
         {
-            
-        }
-        
-        
-        throw new NotImplementedException();
+            Id = user.UserId,
+            Email = user.Email,
+            Phone = user.PhoneNumber,
+            Password = user.PasswordHash,
+            Role = user.Role.ToString(),
+            IsTwoFactorEnabled = user.IsTwoFactorEnabled,
+            Status = user.IsActive
+        };
     }
 
-    public override Task<UserLoginInfoResponse> GetUserByPhone(GetUserLoginInfoByPhoneRequest request, ServerCallContext context)
+    public override async Task<UserLoginInfoResponse> GetUserById(GetUserLoginInfoByIdRequest request,
+        ServerCallContext context)
     {
-        return base.GetUserByPhone(request, context);
+        _logger.LogInformation("fetching user by ID");
+        
+        if (long.IsNegative(request.Id))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "user ID must be a positive number."));
+
+        var ct = context.CancellationToken;
+        var user = await _userService.GetUserById(request.Id, ct);
+        
+        return new UserLoginInfoResponse()
+        {
+            Id = user.UserId,
+            Email = user.Email,
+            Phone = user.PhoneNumber,
+            Password = user.PasswordHash,
+            Role = user.Role.ToString(),
+            IsTwoFactorEnabled = user.IsTwoFactorEnabled,
+            Status = user.IsActive
+        };
     }
 
-    public override Task<UserLoginInfoResponse> GetUserById(GetUserLoginInfoByIdRequest request, ServerCallContext context)
-    {
-        return base.GetUserById(request, context);
-    }
-
-    public override Task<EmailExistsResponse> CheckEmailExists(CheckEmailExistsRequest request, ServerCallContext context)
+    public override Task<EmailExistsResponse> CheckEmailExists(CheckEmailExistsRequest request,
+        ServerCallContext context)
     {
         return base.CheckEmailExists(request, context);
     }
@@ -67,7 +96,8 @@ public class UserGrpcService : Grpc.UserService.UserServiceBase
         return base.CreateUser(request, context);
     }
 
-    public override Task<ResetPasswordResponse> ChangeUserPassword(ResetPasswordRequest request, ServerCallContext context)
+    public override Task<ResetPasswordResponse> ChangeUserPassword(ResetPasswordRequest request,
+        ServerCallContext context)
     {
         return base.ChangeUserPassword(request, context);
     }

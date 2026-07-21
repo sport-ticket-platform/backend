@@ -20,7 +20,7 @@ public class UserService : IUserService
     public async Task<UserProfile> GetUserProfileById(long userId, CancellationToken ct)
     {
         _logger.LogInformation("Fetching user's profile with user ID {userId}", userId);
-        var userProfile = await _userRepo.GetUserProfileByIdAsync(userId, ct) ??
+        var userProfile = await _userRepo.GetUserProfileById(userId, ct) ??
                           throw new NotFoundException("The User not found");
 
         return userProfile;
@@ -30,7 +30,7 @@ public class UserService : IUserService
     {
         _logger.LogInformation("Updating user's profile with user ID {userId}", updateRequest.UserId);
 
-        var user = await _userRepo.GetUserByIdAsync(updateRequest.UserId, ct);
+        var user = await _userRepo.GetUserById(updateRequest.UserId, ct);
         if (user is null)
             throw new NotFoundException("User not found");
 
@@ -40,10 +40,30 @@ public class UserService : IUserService
 
         user.Update(updateRequest.FirstName, updateRequest.LastName, updateRequest.Email, updateRequest.PhoneNumber,
             cityId ?? 1);
-        await _userRepo.UpdateAsync(user, ct);
+        await _userRepo.UpdateUser(user, ct);
+    }
+
+    public Task<User> GetUserById(long userId, CancellationToken ct)
+    {
+        throw new NotImplementedException();
     }
 
     public Task<User> GetUserByEmail(string email, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<User> GetUserByPhone(string phone, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> CheckEmailExists(string email, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task CreateUser(User user, CancellationToken ct)
     {
         throw new NotImplementedException();
     }
@@ -52,7 +72,7 @@ public class UserService : IUserService
     {
         _logger.LogInformation("changing user's account status to {active} user account with ID {userId}", active,
             userId);
-        var user = await _userRepo.GetUserByIdAsync(userId, ct);
+        var user = await _userRepo.GetUserById(userId, ct);
 
         if (user is null)
             throw new NotFoundException("User not found");
@@ -63,7 +83,7 @@ public class UserService : IUserService
             user.DeactivateAccount();
 
         
-        await _userRepo.UpdateAsync(user, ct);
+        await _userRepo.UpdateUser(user, ct);
     }
     
     
