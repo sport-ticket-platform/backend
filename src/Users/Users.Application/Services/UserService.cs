@@ -26,6 +26,11 @@ public class UserService : IUserService
         return userProfile;
     }
 
+    public Task ChangePassword(long userId, string newPasswordHash, CancellationToken ct)
+    {
+        throw new NotImplementedException();
+    }
+
     public async Task UpdateUserProfile(UpdateProfileRequest updateRequest, CancellationToken ct)
     {
         _logger.LogInformation("Updating user's profile with user ID {userId}", updateRequest.UserId);
@@ -63,7 +68,7 @@ public class UserService : IUserService
         throw new NotImplementedException();
     }
 
-    public Task CreateUser(User user, CancellationToken ct)
+    public Task<User> CreateUser(User user, CancellationToken ct)
     {
         throw new NotImplementedException();
     }
