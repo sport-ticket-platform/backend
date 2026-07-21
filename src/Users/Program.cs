@@ -28,6 +28,7 @@ builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.
 builder.Services.AddTransient<ExceptionHandlingMiddleware>(); 
 builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
 
+builder.Services.AddGrpc();
 
 builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>(); 
 builder.Services.AddControllers(options =>
@@ -38,6 +39,11 @@ builder.Services.AddControllers(options =>
 var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];
 var issuer = builder.Configuration["Jwt:Issuer"];
+
+const string serviceName = "UserService";
+const string serviceVersion = "1.0.0";
+var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"] ?? "http://localhost:4317";
+
 
 var rsa = RSA.Create();
 rsa.ImportFromPem(publicKey);
@@ -79,9 +85,6 @@ builder.Services.AddAuthorization(options =>
 
 
 
-const string serviceName = "UserService";
-const string serviceVersion = "1.0.0";
-var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"] ?? "http://localhost:4317";
 
 var resourceBuilder = ResourceBuilder.CreateDefault()
     .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
@@ -136,6 +139,7 @@ builder.Logging.AddOpenTelemetry(logging =>
 
 
 var app = builder.Build();
+
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();

@@ -7,6 +7,8 @@
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/UserService.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/UserService.pdb
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Dapper.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/FluentValidation.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/FluentValidation.DependencyInjectionExtensions.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Google.Protobuf.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.AspNetCore.Server.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.AspNetCore.Server.ClientFactory.dll
@@ -25,6 +27,17 @@
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Microsoft.IdentityModel.Tokens.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Microsoft.OpenApi.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Npgsql.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Npgsql.OpenTelemetry.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.Api.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.Api.ProviderBuilderExtensions.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.Exporter.Console.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.Exporter.OpenTelemetryProtocol.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.Extensions.Hosting.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.Instrumentation.AspNetCore.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.Instrumentation.Http.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/OpenTelemetry.Instrumentation.Runtime.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/System.Diagnostics.DiagnosticSource.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/System.IdentityModel.Tokens.Jwt.dll
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.csproj.AssemblyReference.cache
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/rpswa.dswa.cache.json
@@ -34,7 +47,6 @@
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.csproj.CoreCompileInputs.cache
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.MvcApplicationPartsAssemblyInfo.cs
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.MvcApplicationPartsAssemblyInfo.cache
-/home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.sourcelink.json
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/rjimswa.dswa.cache.json
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/rjsmrazor.dswa.cache.json
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/rjsmcshtml.dswa.cache.json

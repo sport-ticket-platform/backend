@@ -5,18 +5,18 @@ package user;
 
 option csharp_namespace = "UserService.Grpc";
 
-service UserGrpcService {
+service UserService {
   // Login
   rpc GetUserByEmail (GetUserLoginInfoByEmailRequest) returns (UserLoginInfoResponse);
   rpc GetUserByPhone (GetUserLoginInfoByPhoneRequest) returns (UserLoginInfoResponse);
   rpc GetUserById (GetUserLoginInfoByIdRequest) returns (UserLoginInfoResponse);
 
-  // Signup Validation
-  rpc CheckEmailExists (CheckEmailExistsRequest) returns (CheckExistsResponse);
-  rpc CheckPhoneExists (CheckPhoneExistsRequest) returns (CheckExistsResponse);
-
-  // Signup
+  // Signup And Validations
+  rpc CheckEmailExists (CheckEmailExistsRequest) returns (EmailExistsResponse);
   rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+
+  // reset password
+  rpc ChangeUserPassword (ResetPasswordRequest) returns (ResetPasswordResponse);
 }
 
 // =====================================
@@ -44,32 +44,39 @@ message UserLoginInfoResponse {
   bool is_two_factor_enabled = 7;
 }
 
-// =====================================
-//          SIGNUP VALIDATION
-// =====================================
+
+// ====================================
+//        SIGNUP AND VALIDATIONS
+// ====================================
 message CheckEmailExistsRequest {
   string email = 1;
 }
 
-message CheckPhoneExistsRequest {
-  string phone = 1;
-}
-
-message CheckExistsResponse {
+message EmailExistsResponse {
   bool exists = 1;
 }
 
-// =====================================
-//                SIGNUP
-// =====================================
 message CreateUserRequest {
   string email = 1;
-  string phone = 2;
-  string first_name = 3;
-  string last_name = 4;
-  string password = 5;
+  string first_name = 2;
+  string last_name = 3;
+  string password = 4;
 }
 
 message CreateUserResponse {
-  int64 user_id = 1;
+  bool success = 1;
+  int64 user_id = 2;
+}
+
+
+// =====================================
+//           RESET PASSWORD
+// =====================================
+message ResetPasswordRequest {
+  int64 id = 1;
+  string new_password = 2;
+}
+
+message ResetPasswordResponse {
+  bool success = 1;
 }

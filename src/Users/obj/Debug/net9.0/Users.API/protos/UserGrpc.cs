@@ -8,9 +8,9 @@
 using grpc = global::Grpc.Core;
 
 namespace UserService.Grpc {
-  public static partial class UserGrpcService
+  public static partial class UserService
   {
-    static readonly string __ServiceName = "user.UserGrpcService";
+    static readonly string __ServiceName = "user.UserService";
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static void __Helper_SerializeMessage(global::Google.Protobuf.IMessage message, grpc::SerializationContext context)
@@ -56,13 +56,15 @@ namespace UserService.Grpc {
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::UserService.Grpc.CheckEmailExistsRequest> __Marshaller_user_CheckEmailExistsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::UserService.Grpc.CheckEmailExistsRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-    static readonly grpc::Marshaller<global::UserService.Grpc.CheckExistsResponse> __Marshaller_user_CheckExistsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::UserService.Grpc.CheckExistsResponse.Parser));
-    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-    static readonly grpc::Marshaller<global::UserService.Grpc.CheckPhoneExistsRequest> __Marshaller_user_CheckPhoneExistsRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::UserService.Grpc.CheckPhoneExistsRequest.Parser));
+    static readonly grpc::Marshaller<global::UserService.Grpc.EmailExistsResponse> __Marshaller_user_EmailExistsResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::UserService.Grpc.EmailExistsResponse.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::UserService.Grpc.CreateUserRequest> __Marshaller_user_CreateUserRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::UserService.Grpc.CreateUserRequest.Parser));
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Marshaller<global::UserService.Grpc.CreateUserResponse> __Marshaller_user_CreateUserResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::UserService.Grpc.CreateUserResponse.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::UserService.Grpc.ResetPasswordRequest> __Marshaller_user_ResetPasswordRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::UserService.Grpc.ResetPasswordRequest.Parser));
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Marshaller<global::UserService.Grpc.ResetPasswordResponse> __Marshaller_user_ResetPasswordResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::UserService.Grpc.ResetPasswordResponse.Parser));
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::UserService.Grpc.GetUserLoginInfoByEmailRequest, global::UserService.Grpc.UserLoginInfoResponse> __Method_GetUserByEmail = new grpc::Method<global::UserService.Grpc.GetUserLoginInfoByEmailRequest, global::UserService.Grpc.UserLoginInfoResponse>(
@@ -89,20 +91,12 @@ namespace UserService.Grpc {
         __Marshaller_user_UserLoginInfoResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-    static readonly grpc::Method<global::UserService.Grpc.CheckEmailExistsRequest, global::UserService.Grpc.CheckExistsResponse> __Method_CheckEmailExists = new grpc::Method<global::UserService.Grpc.CheckEmailExistsRequest, global::UserService.Grpc.CheckExistsResponse>(
+    static readonly grpc::Method<global::UserService.Grpc.CheckEmailExistsRequest, global::UserService.Grpc.EmailExistsResponse> __Method_CheckEmailExists = new grpc::Method<global::UserService.Grpc.CheckEmailExistsRequest, global::UserService.Grpc.EmailExistsResponse>(
         grpc::MethodType.Unary,
         __ServiceName,
         "CheckEmailExists",
         __Marshaller_user_CheckEmailExistsRequest,
-        __Marshaller_user_CheckExistsResponse);
-
-    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-    static readonly grpc::Method<global::UserService.Grpc.CheckPhoneExistsRequest, global::UserService.Grpc.CheckExistsResponse> __Method_CheckPhoneExists = new grpc::Method<global::UserService.Grpc.CheckPhoneExistsRequest, global::UserService.Grpc.CheckExistsResponse>(
-        grpc::MethodType.Unary,
-        __ServiceName,
-        "CheckPhoneExists",
-        __Marshaller_user_CheckPhoneExistsRequest,
-        __Marshaller_user_CheckExistsResponse);
+        __Marshaller_user_EmailExistsResponse);
 
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
     static readonly grpc::Method<global::UserService.Grpc.CreateUserRequest, global::UserService.Grpc.CreateUserResponse> __Method_CreateUser = new grpc::Method<global::UserService.Grpc.CreateUserRequest, global::UserService.Grpc.CreateUserResponse>(
@@ -112,15 +106,23 @@ namespace UserService.Grpc {
         __Marshaller_user_CreateUserRequest,
         __Marshaller_user_CreateUserResponse);
 
+    [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
+    static readonly grpc::Method<global::UserService.Grpc.ResetPasswordRequest, global::UserService.Grpc.ResetPasswordResponse> __Method_ChangeUserPassword = new grpc::Method<global::UserService.Grpc.ResetPasswordRequest, global::UserService.Grpc.ResetPasswordResponse>(
+        grpc::MethodType.Unary,
+        __ServiceName,
+        "ChangeUserPassword",
+        __Marshaller_user_ResetPasswordRequest,
+        __Marshaller_user_ResetPasswordResponse);
+
     /// <summary>Service descriptor</summary>
     public static global::Google.Protobuf.Reflection.ServiceDescriptor Descriptor
     {
       get { return global::UserService.Grpc.UserReflection.Descriptor.Services[0]; }
     }
 
-    /// <summary>Base class for server-side implementations of UserGrpcService</summary>
-    [grpc::BindServiceMethod(typeof(UserGrpcService), "BindService")]
-    public abstract partial class UserGrpcServiceBase
+    /// <summary>Base class for server-side implementations of UserService</summary>
+    [grpc::BindServiceMethod(typeof(UserService), "BindService")]
+    public abstract partial class UserServiceBase
     {
       /// <summary>
       /// Login
@@ -147,31 +149,31 @@ namespace UserService.Grpc {
       }
 
       /// <summary>
-      /// Signup Validation
+      /// Signup And Validations
       /// </summary>
       /// <param name="request">The request received from the client.</param>
       /// <param name="context">The context of the server-side call handler being invoked.</param>
       /// <returns>The response to send back to the client (wrapped by a task).</returns>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-      public virtual global::System.Threading.Tasks.Task<global::UserService.Grpc.CheckExistsResponse> CheckEmailExists(global::UserService.Grpc.CheckEmailExistsRequest request, grpc::ServerCallContext context)
+      public virtual global::System.Threading.Tasks.Task<global::UserService.Grpc.EmailExistsResponse> CheckEmailExists(global::UserService.Grpc.CheckEmailExistsRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
 
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-      public virtual global::System.Threading.Tasks.Task<global::UserService.Grpc.CheckExistsResponse> CheckPhoneExists(global::UserService.Grpc.CheckPhoneExistsRequest request, grpc::ServerCallContext context)
+      public virtual global::System.Threading.Tasks.Task<global::UserService.Grpc.CreateUserResponse> CreateUser(global::UserService.Grpc.CreateUserRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
 
       /// <summary>
-      /// Signup
+      /// reset password
       /// </summary>
       /// <param name="request">The request received from the client.</param>
       /// <param name="context">The context of the server-side call handler being invoked.</param>
       /// <returns>The response to send back to the client (wrapped by a task).</returns>
       [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-      public virtual global::System.Threading.Tasks.Task<global::UserService.Grpc.CreateUserResponse> CreateUser(global::UserService.Grpc.CreateUserRequest request, grpc::ServerCallContext context)
+      public virtual global::System.Threading.Tasks.Task<global::UserService.Grpc.ResetPasswordResponse> ChangeUserPassword(global::UserService.Grpc.ResetPasswordRequest request, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -181,15 +183,15 @@ namespace UserService.Grpc {
     /// <summary>Creates service definition that can be registered with a server</summary>
     /// <param name="serviceImpl">An object implementing the server-side handling logic.</param>
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-    public static grpc::ServerServiceDefinition BindService(UserGrpcServiceBase serviceImpl)
+    public static grpc::ServerServiceDefinition BindService(UserServiceBase serviceImpl)
     {
       return grpc::ServerServiceDefinition.CreateBuilder()
           .AddMethod(__Method_GetUserByEmail, serviceImpl.GetUserByEmail)
           .AddMethod(__Method_GetUserByPhone, serviceImpl.GetUserByPhone)
           .AddMethod(__Method_GetUserById, serviceImpl.GetUserById)
           .AddMethod(__Method_CheckEmailExists, serviceImpl.CheckEmailExists)
-          .AddMethod(__Method_CheckPhoneExists, serviceImpl.CheckPhoneExists)
-          .AddMethod(__Method_CreateUser, serviceImpl.CreateUser).Build();
+          .AddMethod(__Method_CreateUser, serviceImpl.CreateUser)
+          .AddMethod(__Method_ChangeUserPassword, serviceImpl.ChangeUserPassword).Build();
     }
 
     /// <summary>Register service method with a service binder with or without implementation. Useful when customizing the service binding logic.
@@ -197,14 +199,14 @@ namespace UserService.Grpc {
     /// <param name="serviceBinder">Service methods will be bound by calling <c>AddMethod</c> on this object.</param>
     /// <param name="serviceImpl">An object implementing the server-side handling logic.</param>
     [global::System.CodeDom.Compiler.GeneratedCode("grpc_csharp_plugin", null)]
-    public static void BindService(grpc::ServiceBinderBase serviceBinder, UserGrpcServiceBase serviceImpl)
+    public static void BindService(grpc::ServiceBinderBase serviceBinder, UserServiceBase serviceImpl)
     {
       serviceBinder.AddMethod(__Method_GetUserByEmail, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::UserService.Grpc.GetUserLoginInfoByEmailRequest, global::UserService.Grpc.UserLoginInfoResponse>(serviceImpl.GetUserByEmail));
       serviceBinder.AddMethod(__Method_GetUserByPhone, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::UserService.Grpc.GetUserLoginInfoByPhoneRequest, global::UserService.Grpc.UserLoginInfoResponse>(serviceImpl.GetUserByPhone));
       serviceBinder.AddMethod(__Method_GetUserById, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::UserService.Grpc.GetUserLoginInfoByIdRequest, global::UserService.Grpc.UserLoginInfoResponse>(serviceImpl.GetUserById));
-      serviceBinder.AddMethod(__Method_CheckEmailExists, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::UserService.Grpc.CheckEmailExistsRequest, global::UserService.Grpc.CheckExistsResponse>(serviceImpl.CheckEmailExists));
-      serviceBinder.AddMethod(__Method_CheckPhoneExists, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::UserService.Grpc.CheckPhoneExistsRequest, global::UserService.Grpc.CheckExistsResponse>(serviceImpl.CheckPhoneExists));
+      serviceBinder.AddMethod(__Method_CheckEmailExists, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::UserService.Grpc.CheckEmailExistsRequest, global::UserService.Grpc.EmailExistsResponse>(serviceImpl.CheckEmailExists));
       serviceBinder.AddMethod(__Method_CreateUser, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::UserService.Grpc.CreateUserRequest, global::UserService.Grpc.CreateUserResponse>(serviceImpl.CreateUser));
+      serviceBinder.AddMethod(__Method_ChangeUserPassword, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::UserService.Grpc.ResetPasswordRequest, global::UserService.Grpc.ResetPasswordResponse>(serviceImpl.ChangeUserPassword));
     }
 
   }
