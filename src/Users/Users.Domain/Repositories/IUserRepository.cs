@@ -13,9 +13,12 @@ public interface IUserRepository
 
     public Task<User?> GetUserByEmail(string email, CancellationToken ct);
     
-    public Task<User?> GetUserByPhone(string email, CancellationToken ct);
+    public Task<User?> GetUserByPhone(string phone, CancellationToken ct);
 
     public Task<bool> CheckEmailExists(string email, CancellationToken ct);
 
     public Task<User> CreateUser(User user,CancellationToken ct);
+
+    public Task<bool> CheckPhoneExists(string phone, CancellationToken ct);
+
 }

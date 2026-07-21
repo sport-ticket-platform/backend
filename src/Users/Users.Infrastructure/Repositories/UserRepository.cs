@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using Dapper;
 using Npgsql;
+using UserService.Users.Domain.Exceptions;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
 using UserService.Users.Domain.Repositories;
@@ -125,9 +126,8 @@ public class UserRepository : IUserRepository
 
     public async Task<int?> GetCityIdByName(string name, CancellationToken ct)
     {
-        
         _logger.LogInformation("fetching city {name}", name);
-        
+
         try
         {
             const string sql = @"
@@ -207,23 +207,223 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public Task<User?> GetUserByEmail(string email, CancellationToken ct)
+    public async Task<User?> GetUserByEmail(string email, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("fetching user by email {email}", email);
+
+        try
+        {
+            const string sql = @"
+        SELECT
+            user_id            AS ""UserId"",
+            first_name         AS ""FirstName"",
+            last_name          AS ""LastName"",
+            role               AS ""Role"",
+            email              AS ""Email"",
+            email_verified     AS ""IsEmailVerified"",
+            phone_number       AS ""PhoneNumber"",
+            phone_verified     AS ""IsPhoneNumberVerified"",
+            registration_date  AS ""RegistrationDate"",
+            password           AS ""PasswordHash"",
+            balance            AS ""Balance"",
+            city_id            AS ""CityId"",
+            status             AS ""Status"",
+            two_factor_enabled AS ""IsTwoFactorEnabled""
+        FROM users
+        WHERE email = @email;
+        ";
+            var command = new CommandDefinition(
+                sql,
+                email,
+                cancellationToken: ct
+            );
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<User>(command);
+            return user;
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while fetching the user by email {email}.", email);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while fetching user by email {email}", email);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while fetching the user by email {email}.{state}", email,
+                ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
     }
 
-    public Task<User?> GetUserByPhone(string email, CancellationToken ct)
+    public async Task<User?> GetUserByPhone(string phone, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("fetching user by phone {phone}", phone);
+
+        try
+        {
+            const string sql = @"
+        SELECT
+            user_id            AS ""UserId"",
+            first_name         AS ""FirstName"",
+            last_name          AS ""LastName"",
+            role               AS ""Role"",
+            email              AS ""Email"",
+            email_verified     AS ""IsEmailVerified"",
+            phone_number       AS ""PhoneNumber"",
+            phone_verified     AS ""IsPhoneNumberVerified"",
+            registration_date  AS ""RegistrationDate"",
+            password           AS ""PasswordHash"",
+            balance            AS ""Balance"",
+            city_id            AS ""CityId"",
+            status             AS ""Status"",
+            two_factor_enabled AS ""IsTwoFactorEnabled""
+        FROM users
+        WHERE phone_number = @phone;
+        ";
+            var command = new CommandDefinition(
+                sql,
+                phone,
+                cancellationToken: ct
+            );
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<User>(command);
+            return user;
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while fetching the user by phone {phone}.", phone);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while fetching user by phone {phone}", phone);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while fetching the user by phone {phone}.{state}", phone,
+                ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
     }
 
-    public Task<bool> CheckEmailExists(string email, CancellationToken ct)
+    public async Task<bool> CheckEmailExists(string email, CancellationToken ct)
     {
-        throw new NotImplementedException();
+        _logger.LogInformation("checking whether email {email} exists", email);
+
+        try
+        {
+            const string sql = @"SELECT EXISTS(SELECT 1 FROM users WHERE email = @email);";
+            var command = new CommandDefinition(
+                sql,
+                email,
+                cancellationToken: ct
+            );
+            return await _dbContext.DbConnection.QuerySingleAsync<bool>(command);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while checking email {email}.", email);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while checking email {email}", email);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while checking email {email}.{state}", email,
+                ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
+    }
+    
+    public async Task<bool> CheckPhoneExists(string phone, CancellationToken ct)
+    {
+        _logger.LogInformation("checking whether phone {phone} exists", phone);
+
+        try
+        {
+            const string sql = @"SELECT EXISTS(SELECT 1 FROM users WHERE phone_number = @phone);";
+            var command = new CommandDefinition(sql, phone, cancellationToken: ct);
+            return await _dbContext.DbConnection.QuerySingleAsync<bool>(command);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while checking phone {phone}.", phone);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while checking phone {phone}", phone);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while checking phone {phone}.{state}", phone, ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
     }
 
-    public Task<User> CreateUser(User user, CancellationToken ct)
+    public async Task<User> CreateUser(User user, CancellationToken ct)
+{
+    _logger.LogInformation("creating user with email {email}", user.Email);
+
+    try
     {
-        throw new NotImplementedException();
+        const string sql = @"
+        INSERT INTO users
+            (first_name, last_name, role, email, email_verified, phone_number,
+             phone_verified, registration_date, password, balance, city_id, status, two_factor_enabled)
+        VALUES
+            (@FirstName, @LastName, @Role::user_role, @Email, @IsEmailVerified, @PhoneNumber,
+             @IsPhoneNumberVerified, @RegistrationDate, @PasswordHash, @Balance, @CityId, @Status, @IsTwoFactorEnabled)
+        RETURNING
+            user_id            AS ""UserId"",
+            first_name         AS ""FirstName"",
+            last_name          AS ""LastName"",
+            role               AS ""Role"",
+            email              AS ""Email"",
+            email_verified     AS ""IsEmailVerified"",
+            phone_number       AS ""PhoneNumber"",
+            phone_verified     AS ""IsPhoneNumberVerified"",
+            registration_date  AS ""RegistrationDate"",
+            password           AS ""PasswordHash"",
+            balance            AS ""Balance"",
+            city_id            AS ""CityId"",
+            status             AS ""Status"",
+            two_factor_enabled AS ""IsTwoFactorEnabled"";
+        ";
+        var command = new CommandDefinition(
+            sql,
+            user,
+            cancellationToken: ct
+        );
+        return await _dbContext.DbConnection.QuerySingleAsync<User>(command);
     }
+    catch (NpgsqlException ex) when (ex.InnerException is IOException)
+    {
+        _logger.LogCritical(ex, "Database connection failed while creating user with email {email}.", user.Email);
+        throw new InfrastructureException("Unable to reach the database", ex);
+    }
+    catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+    {
+        _logger.LogError(ex, "Database operation timed out while creating user with email {email}", user.Email);
+        throw new InfrastructureException("Database operation timed out.", ex);
+    }
+    catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UniqueViolation)
+    {
+        _logger.LogWarning(ex, "Unique constraint violated while creating user with email {email}.", user.Email);
+        throw new DomainException("A user with this email already exists");
+    }
+    catch (PostgresException ex)
+    {
+        _logger.LogError(ex, "Database rejected the query while creating user with email {email}.{state}",
+            user.Email, ex.SqlState);
+        throw new InfrastructureException("DataBase operation failed", ex);
+    }
+}
 }
