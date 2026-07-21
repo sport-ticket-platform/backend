@@ -195,6 +195,13 @@ public class User
         Balance -= amount;
     }
 
+    public void ChangePassword(string newPasswordHash)
+    {
+        if (string.IsNullOrEmpty(newPasswordHash))
+            throw new DomainException("The password is required.");
+        PasswordHash = newPasswordHash;
+    }
+
     public bool IsInRole(Role role) => Role == role;
 
     public void DeactivateAccount() => IsActive = false;
