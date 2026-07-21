@@ -26,7 +26,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<ApplicationDbContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.UserService>();
-builder.Services.AddTransient<ExceptionHandlingMiddleware>(); 
 builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
 
 builder.Services.AddGrpc();
@@ -87,56 +86,56 @@ builder.Services.AddAuthorization(options =>
 
 
 
-var resourceBuilder = ResourceBuilder.CreateDefault()
-    .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
-    .AddAttributes(new Dictionary<string, object>
-    {
-        ["deployment.environment"] = builder.Environment.EnvironmentName
-    });
-
-// ---------- Traces ----------
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing
-        .SetResourceBuilder(resourceBuilder)
-        .AddAspNetCoreInstrumentation(options =>
-        {
-            options.RecordException = true;
-        })
-        .AddHttpClientInstrumentation() // traces outbound calls (e.g., Auth → User service)
-        .AddNpgsql()                    // traces Postgres queries via Npgsql
-        .AddOtlpExporter(otlp =>
-        {
-            otlp.Endpoint = new Uri(otlpEndpoint);
-            otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-        }))
-
-    // ---------- Metrics ----------
-    .WithMetrics(metrics => metrics
-        .SetResourceBuilder(resourceBuilder)
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
-        .AddRuntimeInstrumentation()   // GC, thread pool, memory
-        .AddOtlpExporter(otlp =>
-        {
-            otlp.Endpoint = new Uri(otlpEndpoint);
-            otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-        }));
-
-// ---------- Logging ----------
-builder.Logging.ClearProviders();
-builder.Logging.AddOpenTelemetry(logging =>
-{
-    logging.SetResourceBuilder(resourceBuilder);
-    logging.IncludeFormattedMessage = true;
-    logging.IncludeScopes = true;
-    logging.ParseStateValues = true;
-
-    logging.AddOtlpExporter(otlp =>
-    {
-        otlp.Endpoint = new Uri(otlpEndpoint);
-        otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-    });
-});
+// var resourceBuilder = ResourceBuilder.CreateDefault()
+//     .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
+//     .AddAttributes(new Dictionary<string, object>
+//     {
+//         ["deployment.environment"] = builder.Environment.EnvironmentName
+//     });
+//
+// // ---------- Traces ----------
+// builder.Services.AddOpenTelemetry()
+//     .WithTracing(tracing => tracing
+//         .SetResourceBuilder(resourceBuilder)
+//         .AddAspNetCoreInstrumentation(options =>
+//         {
+//             options.RecordException = true;
+//         })
+//         .AddHttpClientInstrumentation() // traces outbound calls (e.g., Auth → User service)
+//         .AddNpgsql()                    // traces Postgres queries via Npgsql
+//         .AddOtlpExporter(otlp =>
+//         {
+//             otlp.Endpoint = new Uri(otlpEndpoint);
+//             otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+//         }))
+//
+//     // ---------- Metrics ----------
+//     .WithMetrics(metrics => metrics
+//         .SetResourceBuilder(resourceBuilder)
+//         .AddAspNetCoreInstrumentation()
+//         .AddHttpClientInstrumentation()
+//         .AddRuntimeInstrumentation()   // GC, thread pool, memory
+//         .AddOtlpExporter(otlp =>
+//         {
+//             otlp.Endpoint = new Uri(otlpEndpoint);
+//             otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+//         }));
+//
+// // ---------- Logging ----------
+// builder.Logging.ClearProviders();
+// builder.Logging.AddOpenTelemetry(logging =>
+// {
+//     logging.SetResourceBuilder(resourceBuilder);
+//     logging.IncludeFormattedMessage = true;
+//     logging.IncludeScopes = true;
+//     logging.ParseStateValues = true;
+//
+//     logging.AddOtlpExporter(otlp =>
+//     {
+//         otlp.Endpoint = new Uri(otlpEndpoint);
+//         otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+//     });
+// });
 
 
 var app = builder.Build();
