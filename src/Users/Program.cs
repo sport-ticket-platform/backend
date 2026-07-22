@@ -140,9 +140,9 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
-
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.MapGrpcService<UserGrpcService>();
+app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
 app.Run();

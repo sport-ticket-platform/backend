@@ -8,7 +8,7 @@ using UserService.Users.Domain.ReadModels;
 namespace UserService.Users.API.Controllers.User;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("/api/user")]
 [Authorize(policy:"RequireUser")]
 public class UserController : ControllerBase
 {
@@ -22,7 +22,7 @@ public class UserController : ControllerBase
     }
 
 
-    [HttpGet("/profile")]
+    [HttpGet("profile")]
     public async Task<ActionResult<UserProfile>> GetUserProfile(CancellationToken ct)
     {
         _logger.LogInformation("fetching user profile");
@@ -36,7 +36,7 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    [HttpPut("/profile")]
+    [HttpPut("profile")]
     public async Task<ActionResult> UpdateUserProfile([FromBody] UserProfileDto userProfileDto, CancellationToken ct)
     {
         _logger.LogInformation("updating user profile");
