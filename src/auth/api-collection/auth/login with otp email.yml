@@ -1,11 +1,11 @@
 info:
   name: login with otp email
   type: http
-  seq: 7
+  seq: 6
 
 http:
   method: POST
-  url: http://localhost:8080/api/v1/auth/login-otp-email
+  url: http://localhost:8080/api/auth/login-otp-email
   body:
     type: json
     data: |-
