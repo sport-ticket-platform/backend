@@ -6,7 +6,8 @@ target/
 
 .DS_Store
 **/.DS_Store
-
+/src/Users/compose.yaml
+/src/Users/init.sql
 
 ### STS ###
 .apt_generated

@@ -1,0 +1,2 @@
+obj/Debug/net9.0/Users.API/protos/User.cs \
+obj/Debug/net9.0/Users.API/protos/UserGrpc.cs: Users.API/protos/user.proto
