@@ -5,14 +5,14 @@ namespace EventService.Events.Domain.Models;
 public class Team
 {
     public int TeamId { get; private set; }
-    public string TeamName { get; private set; }
+    public string Name { get; private set; }
     public int SportId { get; private set; }
     public int CityId { get; private set; }
 
-    private Team(int teamId, string teamName, int sportId, int cityId)
+    private Team(int teamId, string name, int sportId, int cityId)
     {
         TeamId = teamId;
-        TeamName = teamName;
+        Name = name;
         SportId = sportId;
         CityId = cityId;
     }
