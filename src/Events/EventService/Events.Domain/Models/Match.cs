@@ -27,21 +27,21 @@ public class Match
     public Match Create(int matchId, int leagueId, int sportId, int venueId, int hostTeamId, int guestTeamId,
         DateTimeOffset matchTime)
     {
-        ValidateTheIds(matchId, nameof(matchId));
-        ValidateTheIds(leagueId, nameof(leagueId));
-        ValidateTheIds(sportId, nameof(sportId));
-        ValidateTheIds(venueId, nameof(venueId));
-        ValidateTheIds(hostTeamId, nameof(hostTeamId));
-        ValidateTheIds(guestTeamId, nameof(guestTeamId));
+        ValidateTheId(matchId, nameof(matchId));
+        ValidateTheId(leagueId, nameof(leagueId));
+        ValidateTheId(sportId, nameof(sportId));
+        ValidateTheId(venueId, nameof(venueId));
+        ValidateTheId(hostTeamId, nameof(hostTeamId));
+        ValidateTheId(guestTeamId, nameof(guestTeamId));
 
         int rs = matchTime.CompareTo(DateTimeOffset.Now);
         if (rs < 0)
-            throw new DomainException("The match time is not a valid time");
+            throw new DomainException("The match's time supplied is not a valid time");
 
         return new Match(matchId, leagueId, sportId, venueId, hostTeamId, guestTeamId, matchTime);
     }
 
-    private void ValidateTheIds(int id, string name)
+    private void ValidateTheId(int id, string name)
     {
         if (int.IsNegative(id))
             throw new DomainException($"The {name} ID must be positive");

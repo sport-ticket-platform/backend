@@ -23,7 +23,7 @@ public class Venue
             throw new DomainException("The venue ID must be positive");
 
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("The venue name must be a valid name");
+            throw new DomainException("The venue's name supplied must be a valid name");
 
         ArgumentNullException.ThrowIfNull(address);
 

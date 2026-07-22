@@ -19,7 +19,7 @@ public class Sport
             throw new DomainException("The sport ID must be positive");
 
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("The sport name is not a valid name");
+            throw new DomainException("The sport's name supplied is not a valid name");
 
         return new Sport(sportId, name);
     }

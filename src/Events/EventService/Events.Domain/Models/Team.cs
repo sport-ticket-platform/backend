@@ -29,7 +29,7 @@ public class Team
             throw new DomainException("The city ID must be positive");
 
         if (string.IsNullOrWhiteSpace(teamName))
-            throw new DomainException("The team name is not a valid name");
+            throw new DomainException("The team's name supplied is not a valid name");
 
         return new Team(teamId, teamName, sportId, cityId);
 
