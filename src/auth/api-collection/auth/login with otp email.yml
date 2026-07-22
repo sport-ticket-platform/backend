@@ -1,16 +1,16 @@
 info:
-  name: check username
+  name: login with otp email
   type: http
-  seq: 3
+  seq: 7
 
 http:
   method: POST
-  url: http://localhost:8080/api/v1/auth/check-username
+  url: http://localhost:8080/api/v1/auth/login-otp-email
   body:
     type: json
     data: |-
       {
-        "username": "taha2"
+        "email": "taha1@gmail.com"
       }
   auth: inherit
 

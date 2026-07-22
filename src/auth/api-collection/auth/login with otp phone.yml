@@ -1,16 +1,16 @@
 info:
-  name: check username
+  name: login with otp phone
   type: http
-  seq: 3
+  seq: 8
 
 http:
   method: POST
-  url: http://localhost:8080/api/v1/auth/check-username
+  url: http://localhost:8080/api/v1/auth/login-otp-phone
   body:
     type: json
     data: |-
       {
-        "username": "taha2"
+        "phone": "9123456789"
       }
   auth: inherit
 

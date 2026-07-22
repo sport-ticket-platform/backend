@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApplicationPolicies {
     /** Dynamic Security Settings */
-    private volatile Boolean captchaEnabled;
     private volatile Integer maxFailedLoginAttempts;
     private volatile Integer accountLockoutDurationSecond;
     private volatile Boolean allowConcurrentLogins;

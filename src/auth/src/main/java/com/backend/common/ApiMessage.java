@@ -7,6 +7,13 @@ public enum ApiMessage {
     // ==============================
     //           General
     // ==============================
+    RESOURCE_NOT_FOUND(
+            "Not Found",
+            "The requested endpoint or resource does not exist",
+            "یافت نشد",
+            "مسیر یا منبع درخواستی یافت نشد",
+            404
+    ),
     TOO_MANY_REQUESTS(
             "Too many requests",
             "Please try again later",
@@ -32,9 +39,37 @@ public enum ApiMessage {
             null,
             200 // OK
     ),
+    LOGIN_EMAIL_OTP_SENT(
+            "If the email exists, a verification code has been sent.",
+            "Please check your inbox and spam folder. If you haven't received it, your account may be locked or suspended. You can try logging in with a password or contact support.",
+            "اگر این ایمیل وجود داشته باشد، یک کد تأیید برای آن ارسال شده است.",
+            "لطفاً صندوق ورودی و پوشه Spam خود را بررسی کنید. اگر ایمیلی دریافت نکردید، ممکن است حساب شما قفل یا مسدود شده باشد. می‌توانید ورود با رمز عبور را امتحان کرده یا با پشتیبانی تماس بگیرید.",
+            200
+    ),
+    LOGIN_PHONE_OTP_SENT(
+            "If the phone number exists, a verification code has been sent.",
+            "If you haven't received it, your account may be locked or suspended. You can try logging in with a password or contact support.",
+            "اگر این شماره وجود داشته باشد، یک کد تأیید برای آن ارسال شده است.",
+            "اگر پیامکی دریافت نکردید، ممکن است حساب شما قفل یا مسدود شده باشد. می‌توانید ورود با رمز عبور را امتحان کرده یا با پشتیبانی تماس بگیرید.",
+            200
+    ),
+    LOGIN_SUCCESS_NEED_2FA_EMAIL(
+            "Verification code sent to your email",
+            "Two-factor authentication is enabled for your account. Please check your email and enter the code.",
+            "کد تایید به ایمیل شما ارسال شد",
+            "احراز هویت دومرحله‌ای برای حساب شما فعال است. لطفا ایمیل خود را بررسی کرده و کد تایید را وارد کنید.",
+            200
+    ),
+    LOGIN_SUCCESS_NEED_2FA_PHONE(
+            "Verification code sent to your phone",
+            "Two-factor authentication is enabled for your account. Please check your email and enter the code.",
+            "کد تایید به شماره شما ارسال شد",
+            "احراز هویت دومرحله‌ای برای حساب شما فعال است. لطفا پیامک خود را بررسی کرده و کد تایید را وارد کنید.",
+            200
+    ),
     SIGNUP_SUCCESS(
             "Registered successfully",
-            "now go to the login page and login with your username and password",
+            "now go to the loginWithPassword page and loginWithPassword with your username and password",
             "با موفقیت ثبت نام شدید",
             "حال به صفحه ورود بروید و با یوزرنیم و پسورد خود وارد شوید",
             200
@@ -51,10 +86,18 @@ public enum ApiMessage {
 
     ACCOUNT_LOCKED(
             "Account is locked",
-            "Try again later",
+            "Your account has been locked.",
             "اکانت قفل شده است",
-            "بعدا دوباره تلاش کنید",
-            403 // Forbidden
+            "حساب شما قفل شده است.",
+            429 // Too Many Requests
+    ),
+
+    LOGIN_MFA_COOLDOWN(
+            "Please Wait!",
+            "A verification code was recently sent.",
+            "لطفا صبر کنید!",
+            "کد تایید به تازگی ارسال شده است.",
+            429 // Too Many Requests
     ),
 
     PASSWORD_EXPIRED(
@@ -76,12 +119,26 @@ public enum ApiMessage {
     // ======================================
     //               Errors
     // ======================================
+    EMAIL_NOT_FOUND(
+            "Email not found",
+            "this email is not exist.",
+            "ایمیل وجود ندارد",
+            "این ایمیل موجود نیست",
+            400
+    ),
     VALIDATION_FAILED(
             "Validation failed",
             null,
             "خطای اعتبار سنجی",
             null,
             400 // Bad Request
+    ),
+    AUTH_SERVICE_UNAVAILABLE(
+            "Authentication service unavailable",
+            "We are experiencing technical difficulties. Please try again later.",
+            "سرویس احراز هویت در دسترس نیست",
+            "ارتباط با سرور کاربران موقتاً قطع شده است. لطفاً دقایقی دیگر تلاش کنید.",
+            500 // Internal Server Error
     ),
 
     // Login Errors
@@ -92,18 +149,46 @@ public enum ApiMessage {
             "لطفاً خطاهای زیر را برطرف کنید",
             400
     ),
-    LOGIN_USERNAME_REQUIRED(
-            "Username is required",
-            "Username cannot be empty",
-            "نام کاربری اجباری است",
-            "نام کاربری نمی‌تواند خالی باشد",
+    LOGIN_IDENTIFIER_REQUIRED(
+            "email or phone number is required",
+            "it can't be empty",
+            "ایمیل یا شماره اجباری است",
+            "این بخش نمی‌تواند خالی باشد",
             400
     ),
-    LOGIN_USERNAME_SIZE(
-            "Invalid username length",
-            "Username must be between 3 and 65 characters",
-            "طول نام کاربری نامعتبر",
-            "نام کاربری باید بین ۳ تا ۶۵ کاراکتر باشد",
+    LOGIN_IDENTIFIER_SIZE(
+            "Invalid email or phone length",
+            "it must be between 3 and 255 characters",
+            "طول ایمیل یا شماره نامعتبر",
+            "باید بین ۳ تا ۲۵۵ کاراکتر باشد",
+            400
+    ),
+    LOGIN_EMAIL_REQUIRED(
+            "Email is required",
+            "email can't be empty",
+            "ایمیل اجباری است",
+            "ایمیل نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_EMAIL_SIZE(
+            "Invalid email length",
+            "email must be between 3 and 255 characters",
+            "طول ایمیل نامعتبر است",
+            "ایمیل باید بین ۳ تا ۲۵۵ کاراکتر باشد",
+            400
+    ),
+    LOGIN_PHONE_REQUIRED(
+            "Phone is required",
+            "phone number can't be empty",
+            "شماره اجباری است",
+            "شماره نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_PHONE_SIZE(
+            "Invalid phone number",
+            "Invalid phone number",
+            "شماره نامعتبر است",
+            "شماره نامعتبر است",
             400
     ),
     LOGIN_PASSWORD_REQUIRED(
@@ -121,7 +206,52 @@ public enum ApiMessage {
             400
     ),
 
-    // Signup Validation Errors
+    LOGIN_MFA_REQUIRED(
+            "MFA token is required",
+            "it can't be empty",
+            "توکن MFA اجباری است",
+            "این بخش نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_MFA_SIZE(
+            "Invalid MFA length",
+            "it must be smaller than 255 characters",
+            "طول توکن mfa نامعتبر",
+            "باید کمتر از ۲۵۵ کاراکتر باشد",
+            400
+    ),
+    LOGIN_OTP_REQUIRED(
+            "Validation code is required",
+            "OTP code can't be empty",
+            "کد تایید اجباری است",
+            "کد تایید نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_OTP_SIZE(
+            "Invalid validation code length",
+            "OTP must be smaller than 6 digits",
+            "طول کد تایید نامعتبر",
+            "باید کمتر از ۶ رقم باشد",
+            400
+    ),
+    LOGIN_MFA_EXPIRED(
+            "Session Expired",
+            "Your verification session has expired or is invalid. Please try logging in again.",
+            "پایان مهلت تایید",
+            "زمان تایید کد به پایان رسیده و یا درخواست نامعتبر است. لطفاً مجدداً وارد شوید.",
+            400
+    ),
+    LOGIN_OTP_WRONG(
+            "Invalid or Expired Verification Code",
+            "The verification code is invalid or has expired. Please request a new code.",
+            "کد تأیید نامعتبر یا پایان‌یافته",
+            "کد وارد شده نادرست است یا دیگر اعتبار ندارد. لطفاً کد جدیدی درخواست کنید.",
+            400
+    ),
+
+    //========================================================================================
+    //                             Signup Validation Errors
+    //========================================================================================
     SIGNUP_VALIDATION_FAILED(
             "Signup failed",
             "Please clear the errors below",
@@ -129,12 +259,12 @@ public enum ApiMessage {
             "لطفاً خطاهای زیر را برطرف کنید",
             400
     ),
-    SIGNUP_DATABASE_ERROR(
+    SIGNUP_INTERNAL_ERROR(
             "Signup failed",
             "Registration is currently unavailable. Please try again later.",
             "ثبت نام انجام نشد",
             "امکان ثبت نام شما در حال حاضر وجود ندارد. لطفاً بعدا دوباره امتحان کنید.",
-            400 // Bad Request
+            500 // Bad Request
     ),
     SIGNUP_USERNAME_REQUIRED(
             "Username is required",
@@ -206,6 +336,55 @@ public enum ApiMessage {
             "رمز عبور باید حداقل شامل یک حرف بزرگ، یک حرف کوچک و یک عدد باشد",
             400
     ),
+    SIGNUP_EMAIL_TAKEN(
+            "Email is taken",
+            "This email has been registered before. you can loginWithPassword with this email",
+            "این ایمیل قبلا ثبت شده است",
+            "می‌توانید از بخش ورود با این ایمیل وارد شوید",
+            409
+    ),
+    SIGNUP_PHONE_TAKEN(
+            "Phone number is taken",
+            "This phone number has been registered before. you can loginWithPassword with this email",
+            "این شماره قبلا ثبت شده است",
+            "می‌توانید از بخش ورود با این شماره وارد شوید",
+            409
+    ),
+    SIGNUP_EMAIL_REQUIRED(
+            "Email is required",
+            "Email address cannot be empty",
+            "ایمیل اجباری است",
+            "آدرس ایمیل نمی‌تواند خالی باشد",
+            400
+    ),
+    SIGNUP_EMAIL_FORMAT(
+            "Invalid email format",
+            "Please enter a valid email address",
+            "فرمت ایمیل نامعتبر",
+            "لطفاً یک آدرس ایمیل معتبر وارد کنید",
+            400
+    ),
+    SIGNUP_EMAIL_SIZE(
+            "Invalid email length",
+            "Email must be less than 255 characters",
+            "طول ایمیل نامعتبر",
+            "ایمیل باید کمتر از ۲۵۵ کاراکتر باشد",
+            400
+    ),
+    SIGNUP_PHONE_REQUIRED(
+            "Phone number is required",
+            "Phone number cannot be empty",
+            "شماره موبایل اجباری است",
+            "شماره موبایل نمی‌تواند خالی باشد",
+            400
+    ),
+    SIGNUP_PHONE_FORMAT(
+            "Invalid phone number format",
+            "Phone number must be valid format (e.g. +989120000000 or 09120000000)",
+            "فرمت شماره موبایل نامعتبر",
+            "شماره موبایل باید معتبر باشد (مثلاً 09120000000)",
+            400
+    ),
     SIGNUP_NAME_FORMAT(
             "Invalid name format",
             "Name can only contain letters and spaces",
@@ -213,13 +392,44 @@ public enum ApiMessage {
             "نام فقط می‌تواند شامل حروف و فاصله باشد",
             400
     ),
-    SIGNUP_USERNAME_TAKEN(
-            "Username is already taken",
-            "Please choose another username",
-            "نام کاربری تکراری است",
-            "این نام کاربری قبلاً توسط شخص دیگری انتخاب شده است. یک نام کاربری دیگر را امتحان کنید",
-            400 // Conflict
+
+    // ================================================
+    REFRESH_SUCCESS(
+            "Successful Refresh",
+            null,
+            "رفرش موفق",
+            null,
+            200
+    ),
+    REFRESH_TOKEN_NOT_EXIST(
+            "Refresh Token is not exist or revoked",
+            "Refresh Token is not exist or revoked",
+            "رفرش توکن وجود ندارد یا باطل شده است",
+            "رفرش توکن وجود ندارد یا باطل شده است",
+            400
+    ),
+    REFRESH_TOKEN_EXPIRED(
+            "Refresh Token is expired",
+            "login again",
+            "رفرش توکن منقضی شده است",
+            "دوباره وارد شوید",
+            400
+    ),
+    REFRESH_TOKEN_INVALID_SIZE(
+            "Refresh Token length should be 36",
+            "Refresh Token length should be 36",
+            "طول رفرش توکن باید ۳۶ باشد",
+            "طول رفرش توکن باید ۳۶ باشد",
+            400
+    ),
+    REFRESH_TOKEN_REQUIRED(
+            "Refresh Token is required",
+            "Refresh Token is required",
+            "رفرش توکن اجباری است",
+            "رفرش توکن اجباری است",
+            400
     );
+    // ================================================
 
     private final String title;
     private final String message;
