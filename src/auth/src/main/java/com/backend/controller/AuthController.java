@@ -1,17 +1,18 @@
 package com.backend.controller;
 
-import com.backend.annotation.docs.SignupApiDocs;
 import com.backend.common.ApiMessage;
-import com.backend.config.ApplicationProperties;
 import com.backend.dto.ApiResponse;
+import com.backend.dto.auth.VerifyRequest;
 import com.backend.dto.auth.login.*;
 import com.backend.dto.auth.refresh.RefreshRequest;
 import com.backend.dto.auth.refresh.RefreshResponse;
-import com.backend.dto.auth.signup.SignupRequest;
-import com.backend.dto.auth.signup.SignupResponse;
+import com.backend.dto.auth.signup.SignupCompleteRequest;
+import com.backend.dto.auth.signup.SignupInitiateRequest;
+import com.backend.dto.auth.signup.SignupInitiateResponse;
+import com.backend.dto.auth.signup.SignupVerifyResponse;
 import com.backend.service.auth.AuthService;
 import com.backend.service.auth.RefreshTokenService;
-import com.backend.service.system.RateLimitService;
+import com.backend.service.auth.SignupService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ import java.time.LocalDateTime;
  * <h2>Authentication Controller</h2>
  * <p>
  * REST controller responsible for handling authentication flows.
- * Exposes endpoints for user loginWithPassword and token generation.
+ * Exposes endpoints for user login and token generation.
  * </p>
  *
  * @since 1.0.0
@@ -39,10 +40,8 @@ import java.time.LocalDateTime;
 public class AuthController {
 
     private final AuthService authSrv;
+    private final SignupService signupSrv;
     private final RefreshTokenService refreshTokenSrv;
-    private final RateLimitService rateLimitSrv;
-
-    private final ApplicationProperties appPrp;
 
     // ===================
     //       Login
@@ -137,7 +136,7 @@ public class AuthController {
         String userAgent = request.getHeader("User-Agent");
         String deviceId = request.getHeader("X-Device-Id");
 
-        LoginResponse response = authSrv.verifyOTP(verifyRequest, ipAddress, userAgent, deviceId);
+        LoginResponse response = authSrv.verifyLoginOTP(verifyRequest, ipAddress, userAgent, deviceId);
 
 
         ApiMessage msg = switch (response.step()) {
@@ -164,21 +163,20 @@ public class AuthController {
     // ===================
     //       Signup
     // ===================
-    @SignupApiDocs
-    @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<SignupResponse>> signup(
-            @Valid @RequestBody SignupRequest signupRequest,
+    @PostMapping("/signup/initiate")
+    public ResponseEntity<ApiResponse<SignupInitiateResponse>> signupInitiate(
+            @Valid @RequestBody SignupInitiateRequest signupInitiateRequest,
             HttpServletRequest request
     ) {
 
         String ipAddress = extractClientIp(request);
 
-        log.info("Signing up for email: [{}] and IP: [{}]", signupRequest.email(), ipAddress);
+        log.info("Signing up for email: [{}] and IP: [{}]", signupInitiateRequest.email(), ipAddress);
 
-        SignupResponse responseData = authSrv.signup(signupRequest);
+        SignupInitiateResponse responseData = signupSrv.signupInitiate(signupInitiateRequest);
 
-        ApiMessage msg = ApiMessage.SIGNUP_SUCCESS;
-        ApiResponse<SignupResponse> response = ApiResponse.<SignupResponse>builder()
+        ApiMessage msg = ApiMessage.SIGNUP_INITIATE_EMAIL_SUCCESS;
+        ApiResponse<SignupInitiateResponse> response = ApiResponse.<SignupInitiateResponse>builder()
                 .success(true)
                 .status(msg.getStatusCode())
                 .title(msg.getTitle())
@@ -191,17 +189,54 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    private String extractClientIp(HttpServletRequest request) {
-        String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
-        } else {
-            ip = ip.split(",")[0].trim();
-        }
-        return ip;
+    @PostMapping("/signup/verify")
+    public ResponseEntity<ApiResponse<SignupVerifyResponse>> signupVerify(
+            @Valid @RequestBody VerifyRequest request
+    ) {
+
+        log.info("Received signup OTP verification request for MFA token: [{}]", request.mfa());
+
+        SignupVerifyResponse responseData = signupSrv.verifySignupOTP(request);
+
+        ApiMessage msg = ApiMessage.SIGNUP_VERIFY_OTP_SUCCESS;
+        ApiResponse<SignupVerifyResponse> response = ApiResponse.<SignupVerifyResponse>builder()
+                .success(true)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(responseData)
+                .timestamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
     }
 
-    // ===================================
+    @PostMapping("/signup/complete")
+    public ResponseEntity<ApiResponse<Void>> signupComplete(
+            @Valid @RequestBody SignupCompleteRequest request
+    ) {
+        log.info("Received request to complete registration for temp token: [{}]", request.temp_token());
+
+        signupSrv.signupComplete(request);
+
+        ApiMessage msg = ApiMessage.SIGNUP_SUCCESS;
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    // ==============================================
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshResponse>> refresh(
             @Valid @RequestBody RefreshRequest refreshRequest
@@ -221,5 +256,15 @@ public class AuthController {
                         .timestamp(LocalDateTime.now())
                         .build()
         );
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        } else {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 }

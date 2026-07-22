@@ -1,21 +1,17 @@
 package com.backend.service.auth;
 
 import com.backend.common.ApiMessage;
+import com.backend.dto.auth.VerifyRequest;
 import com.backend.dto.auth.login.*;
-import com.backend.dto.auth.signup.SignupRequest;
-import com.backend.dto.auth.signup.SignupResponse;
 import com.backend.dto.user.UserDto;
 import com.backend.handler.AuthException;
 import com.backend.handler.CustomLockedException;
 import com.backend.handler.UserSuspendException;
 import com.backend.security.userdetails.CustomUserDetails;
-import com.backend.grpc.*;
-
 import com.backend.service.system.RateLimitService;
-import io.grpc.StatusRuntimeException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -33,14 +29,10 @@ import java.util.Objects;
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
-    private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
     private final RateLimitService rateLimitService;
     private final TwoFactorService twoFactorSer;
     private final UserDetailsService userDetailsService;
-
-    @GrpcClient("user-service")
-    private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
 
     public LoginResponse loginWithPassword(LoginWithPassRequest loginWithPassRequest, String ip, String userAgent, String deviceId) {
         String identifier = loginWithPassRequest.identifier();
@@ -96,6 +88,7 @@ public class AuthService {
             log.info("User with id: {} authenticated successfully. 2FA is on...", user.getId());
             // Default is send notif with email
             String mfa = twoFactorSer.initiate2FA(user.getId(), user.getEmail(), true);
+            log.info("Login MFA token successfully generated and sent for user id: {}",  user.getId());
             return LoginResponse.builder()
                     .step("2FA-EMAIL")
                     .mfa_token(mfa)
@@ -121,9 +114,7 @@ public class AuthService {
     }
 
     public LoginResponse loginWithOTPPhone(LoginOTPPhoneRequest otpPhoneRequest) {
-
         String rawPhone = "0" + otpPhoneRequest.phone().replaceFirst("^(?:\\+98|0098|0)?", "");
-
         return processOtpLogin(rawPhone, "2FA-PHONE", "phone");
     }
 
@@ -187,6 +178,28 @@ public class AuthService {
                 .build();
     }
 
+    public LoginResponse verifyLoginOTP(VerifyRequest verifyRequest, String ip, String userAgent, String deviceId) {
+
+        TwoFactorService.MfaVerificationResult result = twoFactorSer.verify2FA(verifyRequest.mfa(), verifyRequest.otp());
+
+        Long userId = result.userId();
+        log.info("user id: {}", userId);
+
+        // prevent using signup mfa token for login
+        if (userId == null) {
+            log.warn("Attempt to login with a signup MFA token. Identifier: {}", result.identifier());
+            throw new AuthException(ApiMessage.LOGIN_OTP_WRONG);
+        }
+
+        log.info("OTP verified successfully for user ID: {}. Generating refresh-token...", userId);
+        String token = refreshTokenService.create(userId, ip, userAgent, deviceId);
+
+        return LoginResponse.builder()
+                .step("SUCCESS")
+                .refresh_token(token)
+                .build();
+    }
+
     private void checkUserMFALocked(String identifier) {
         long cooldownSeconds = twoFactorSer.getMfaCooldown(identifier);
         if (cooldownSeconds > 0) {
@@ -201,18 +214,6 @@ public class AuthService {
                     seconds, minutes, hours
             );
         }
-    }
-
-    public LoginResponse verifyOTP(VerifyRequest verifyRequest, String ip, String userAgent, String deviceId) {
-
-        Long userId = twoFactorSer.verify2FA(verifyRequest.mfa(), verifyRequest.otp());
-
-        log.info("OTP verified successfully for user ID: {}. Generating refresh-token...", userId);
-        String token = refreshTokenService.create(userId, ip, userAgent, deviceId);
-        return LoginResponse.builder()
-                .step("SUCCESS")
-                .refresh_token(token)
-                .build();
     }
 
     private void checkUserSuspend(UserDto user) {
@@ -251,43 +252,5 @@ public class AuthService {
                 minutes,
                 hours
         );
-    }
-
-    private void checkEmailUnique(String email) {
-        EmailExistsResponse response = userServiceStub.checkEmailExists(
-                CheckEmailExistsRequest.newBuilder().setEmail(email).build()
-        );
-        if (response.getExists()) {
-            log.warn("Signup failed. Email [{}] is already registered.", email);
-            throw new AuthException(ApiMessage.SIGNUP_EMAIL_TAKEN);
-        }
-    }
-
-    public SignupResponse signup(SignupRequest request) {
-        String email = request.email() != null ? request.email().toLowerCase().trim() : "";
-        String phone = request.phone() != null ? request.phone().trim() : "";
-
-        checkEmailUnique(email);
-
-        try {
-            CreateUserRequest grpcRequest = CreateUserRequest.newBuilder()
-                    .setEmail(email)
-                    .setFirstName(request.first_name().trim())
-                    .setLastName(request.last_name().trim())
-                    .setPassword(passwordEncoder.encode(request.password().trim()))
-                    .build();
-
-            CreateUserResponse response = userServiceStub.createUser(grpcRequest);
-            log.info("User successfully registered via gRPC. User ID: {}", response.getUserId());
-
-            return SignupResponse.builder()
-                    .user_id(response.getUserId())
-                    .build();
-
-        } catch (StatusRuntimeException e) {
-            log.warn("gRPC error during signup. Status: {}", e.getStatus().getCode(), e);
-
-            throw new AuthException(ApiMessage.SIGNUP_INTERNAL_ERROR, "Registration failed on server.");
-        }
     }
 }

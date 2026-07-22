@@ -1,17 +1,17 @@
 info:
-  name: verify
+  name: Signup Verify
   type: http
-  seq: 5
+  seq: 10
 
 http:
   method: POST
-  url: http://localhost:8080/api/auth/verify
+  url: http://localhost:8080/api/auth/signup/verify
   body:
     type: json
     data: |-
       {
-        "mfa": "m5KVXVWFMMATr5Fd5QmrMNeKkwEQX401oV6p8mx2Cag",
-        "otp": "42233"
+        "mfa": "0NKp_f8LrDNm0_eo7XQHW1qkSx4iBe1_tIeZa_UdplA",
+        "otp": "48173"
       }
   auth: inherit
 
