@@ -1,7 +1,7 @@
 info:
   name: mock-user
   type: grpc
-  seq: 5
+  seq: 4
 
 grpc:
   url: localhost:9090

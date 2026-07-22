@@ -55,9 +55,9 @@ public enum ApiMessage {
     ),
     LOGIN_SUCCESS_NEED_2FA_EMAIL(
             "Verification code sent to your email",
-            "Two-factor authentication is enabled for your account. Please check your email and enter the code.",
+            "Two-factor authentication is enabled for your account. If you haven't received it, Please check your inbox and spam folder.",
             "کد تایید به ایمیل شما ارسال شد",
-            "احراز هویت دومرحله‌ای برای حساب شما فعال است. لطفا ایمیل خود را بررسی کرده و کد تایید را وارد کنید.",
+            "احراز هویت دومرحله‌ای برای حساب شما فعال است. اگر ایمیلی دریافت نکردید، لطفاً صندوق ورودی و پوشه Spam خود را بررسی کنید.",
             200
     ),
     LOGIN_SUCCESS_NEED_2FA_PHONE(
@@ -68,10 +68,24 @@ public enum ApiMessage {
             200
     ),
     SIGNUP_SUCCESS(
-            "Registered successfully",
-            "now go to the loginWithPassword page and loginWithPassword with your username and password",
-            "با موفقیت ثبت نام شدید",
-            "حال به صفحه ورود بروید و با یوزرنیم و پسورد خود وارد شوید",
+            "Registration successful",
+            "Please sign in to continue.",
+            "ثبت‌نام با موفقیت انجام شد",
+            "برای ادامه وارد حساب کاربری خود شوید.",
+            200
+    ),
+    SIGNUP_INITIATE_EMAIL_SUCCESS(
+            "Verification code sent to your email",
+            "If you haven't received it, Please check your inbox and spam folder.",
+            "کد تایید به ایمیل شما ارسال شد",
+            "اگر ایمیلی دریافت نکردید، لطفاً صندوق ورودی و پوشه Spam خود را بررسی کنید.",
+            200
+    ),
+    SIGNUP_VERIFY_OTP_SUCCESS(
+            "Email Verified Successfully",
+            "Your email has been verified. You can now complete your registration process.",
+            "ایمیل با موفقیت تایید شد",
+            "ایمیل شما با موفقیت تایید شد. اکنون می‌توانید مراحل ثبت‌نام خود را تکمیل کنید.",
             200
     ),
 
@@ -116,9 +130,24 @@ public enum ApiMessage {
             403 // Forbidden
     ),
 
+
     // ======================================
     //               Errors
     // ======================================
+    SIGNUP_FAILED(
+            "Signup Failed",
+            "We couldn't complete your registration. Please try again later.",
+            "ثبت‌نام انجام نشد",
+            "ثبت‌نام شما انجام نشد. لطفاً دوباره تلاش کنید.",
+            400
+    ),
+    SIGNUP_INVALID_TEMP_TOKEN(
+            "Session Expired",
+            "Your session has expired. Please try again.",
+            "نشست شما به پایان رسیده است",
+            "مهلت انجام این مرحله به پایان رسیده است. لطفاً دوباره تلاش کنید.",
+            400
+    ),
     EMAIL_NOT_FOUND(
             "Email not found",
             "this email is not exist.",
@@ -156,18 +185,18 @@ public enum ApiMessage {
             "این بخش نمی‌تواند خالی باشد",
             400
     ),
-    LOGIN_IDENTIFIER_SIZE(
-            "Invalid email or phone length",
-            "it must be between 3 and 255 characters",
-            "طول ایمیل یا شماره نامعتبر",
-            "باید بین ۳ تا ۲۵۵ کاراکتر باشد",
-            400
-    ),
     LOGIN_EMAIL_REQUIRED(
             "Email is required",
             "email can't be empty",
             "ایمیل اجباری است",
             "ایمیل نمی‌تواند خالی باشد",
+            400
+    ),
+    LOGIN_IDENTIFIER_SIZE(
+            "Invalid email or phone length",
+            "it must be between 3 and 255 characters",
+            "طول ایمیل یا شماره نامعتبر",
+            "باید بین ۳ تا ۲۵۵ کاراکتر باشد",
             400
     ),
     LOGIN_EMAIL_SIZE(
@@ -287,6 +316,13 @@ public enum ApiMessage {
             "نام نمی‌تواند خالی باشد",
             400
     ),
+    SIGNUP_TEMP_TOKEN_REQUIRED(
+            "Temp token is required",
+            "Temp token cannot be empty",
+            "توکن موقت اجباری است",
+            "توکن موقت نمی‌تواند خالی باشد",
+            400
+    ),
     SIGNUP_FIRSTNAME_SIZE(
             "Invalid first name length",
             "First name must be between 2 and 50 characters",
@@ -338,14 +374,14 @@ public enum ApiMessage {
     ),
     SIGNUP_EMAIL_TAKEN(
             "Email is taken",
-            "This email has been registered before. you can loginWithPassword with this email",
+            "This email has been registered before. you can login with this email",
             "این ایمیل قبلا ثبت شده است",
             "می‌توانید از بخش ورود با این ایمیل وارد شوید",
             409
     ),
     SIGNUP_PHONE_TAKEN(
             "Phone number is taken",
-            "This phone number has been registered before. you can loginWithPassword with this email",
+            "This phone number has been registered before. you can login with this phone",
             "این شماره قبلا ثبت شده است",
             "می‌توانید از بخش ورود با این شماره وارد شوید",
             409

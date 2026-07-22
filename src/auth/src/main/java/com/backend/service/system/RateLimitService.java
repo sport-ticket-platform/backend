@@ -38,7 +38,7 @@ public class RateLimitService {
             lockUser(identifier, lockTime);
         }
 
-        log.info("Failed loginWithPassword attempt registered for user: {}. Total failures: {}", identifier, currentCount);
+        log.info("Failed login attempt registered for user: {}. Total failures: {}", identifier, currentCount);
     }
 
     public int getUserFailedAttempts(String identifier) {

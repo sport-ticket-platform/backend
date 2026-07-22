@@ -26,7 +26,9 @@ public class TwoFactorService {
     private final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
     private final String REDIS_MFA_PREFIX = "mfa:token:";
     private final String REDIS_MFA_COOLDOWN_PREFIX = "mfa:cooldown:";
+    private static final String GUEST_USER_MARKER = "GUEST"; // for signup
 
+    public record MfaVerificationResult(Long userId, String identifier) {}
 
     public long getMfaCooldown(String identifier) {
         String cooldownKey = REDIS_MFA_COOLDOWN_PREFIX + identifier;
@@ -46,6 +48,7 @@ public class TwoFactorService {
 
     /**
      * <p>create mfa token in redis, then call notif service</p>
+     * userId can be null for new user signups.
      */
     public String initiate2FA(Long userId, String identifier, boolean isEmail) {
 
@@ -69,9 +72,12 @@ public class TwoFactorService {
         String otpCode = generateOtpCode();
         String redisKey = REDIS_MFA_PREFIX + mfaToken;
 
+        // handle userId == null for signup
+        String userIdStr = (userId != null) ? userId.toString() : GUEST_USER_MARKER;
+
         redisTemplate.opsForValue().set(
                 redisKey,
-                userId.toString() + ":" + identifier + ":" + otpCode,
+                userIdStr + ":" + identifier + ":" + otpCode,
                 appPrp.getMfaTokenTtlMin(),
                 TimeUnit.MINUTES
         );
@@ -81,19 +87,19 @@ public class TwoFactorService {
         // send otp
         sendOtpToUser(identifier, otpCode, isEmail);
 
-        log.info("MFA initiated for user ID: {}. Token generated.", userId);
+        log.info("MFA initiated for identifier: {}. Token generated.", identifier);
         return mfaToken;
     }
 
     /**
-     * <p>Validate MFA token and OTP code, return user ID if successful</p>
+     * <p>Validate MFA token and OTP code, return Result object</p>
      */
-    public Long verify2FA(String mfaToken, String enteredCode) {
+    public MfaVerificationResult verify2FA(String mfaToken, String enteredCode) {
         String redisKey = REDIS_MFA_PREFIX + mfaToken;
         String value = redisTemplate.opsForValue().get(redisKey);
 
         if (value == null) {
-            log.warn("MFA verification failed: Token {} expired or not found. Returning generic OTP wrong error.", mfaToken);
+            log.warn("MFA verification failed: Token {} expired or not found.", mfaToken);
             throw new AuthException(ApiMessage.LOGIN_OTP_WRONG, "otp");
         }
 
@@ -103,9 +109,11 @@ public class TwoFactorService {
             throw new IllegalStateException("Internal server error: Invalid data format in cache.");
         }
 
-        Long userId = Long.parseLong(parts[0]);
+        String userIdStr = parts[0];
         String identifier = parts[1]; // for rate limit serv & cooldown
         String savedOtpCode = parts[2];
+
+        Long userId = GUEST_USER_MARKER.equals(userIdStr) ? null : Long.parseLong(userIdStr);
 
         String cooldownKey = REDIS_MFA_COOLDOWN_PREFIX + identifier;
 
@@ -113,15 +121,18 @@ public class TwoFactorService {
         redisTemplate.delete(cooldownKey);
 
         if (!savedOtpCode.equals(enteredCode.trim())) {
-            log.warn("MFA verification failed for user ID: {}. Incorrect OTP code.", userId);
+            log.warn("MFA verification failed for identifier: {}. Incorrect OTP code.", identifier);
+
             rateLimitService.incrementFailedAttempts(identifier);
+
             throw new AuthException(ApiMessage.LOGIN_OTP_WRONG, "otp");
         }
 
         rateLimitService.clearFailedAttempts(identifier);
-        log.info("MFA successfully verified for user ID: {}", userId);
 
-        return userId;
+        log.info("MFA successfully verified for identifier: {}", identifier);
+
+        return new MfaVerificationResult(userId, identifier);
     }
 
     public String generateSecureToken() {
