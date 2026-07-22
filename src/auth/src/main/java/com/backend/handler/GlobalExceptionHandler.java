@@ -246,6 +246,29 @@ public class GlobalExceptionHandler {
     }
 
     // ======================================
+    //     Malformed or Missing Request Body
+    // ======================================
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadableException(
+            org.springframework.http.converter.HttpMessageNotReadableException ex) {
+
+        log.warn("Malformed or missing request body: {}", ex.getMessage());
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(400) // 400 Bad Request
+                .title("Invalid Request Payload")
+                .message("Required request body is missing or malformed.")
+                .titleFa("درخواست نامعتبر")
+                .messageFa("بدنه درخواست (Body) ارسال نشده یا فرمت اطلاعات ارسالی نامعتبر است.")
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(400).body(response);
+    }
+
+    // ======================================
     //     Global 500 Internal Server Error
     // ======================================
     @ExceptionHandler(org.springframework.security.authentication.AuthenticationServiceException.class)

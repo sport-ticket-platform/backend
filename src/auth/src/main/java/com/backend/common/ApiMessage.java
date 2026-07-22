@@ -55,9 +55,9 @@ public enum ApiMessage {
     ),
     LOGIN_SUCCESS_NEED_2FA_EMAIL(
             "Verification code sent to your email",
-            "Two-factor authentication is enabled for your account. Please check your email and enter the code.",
+            "Two-factor authentication is enabled for your account. If you haven't received it, Please check your inbox and spam folder.",
             "کد تایید به ایمیل شما ارسال شد",
-            "احراز هویت دومرحله‌ای برای حساب شما فعال است. لطفا ایمیل خود را بررسی کرده و کد تایید را وارد کنید.",
+            "احراز هویت دومرحله‌ای برای حساب شما فعال است. اگر ایمیلی دریافت نکردید، لطفاً صندوق ورودی و پوشه Spam خود را بررسی کنید.",
             200
     ),
     LOGIN_SUCCESS_NEED_2FA_PHONE(
@@ -69,9 +69,16 @@ public enum ApiMessage {
     ),
     SIGNUP_SUCCESS(
             "Registered successfully",
-            "now go to the loginWithPassword page and loginWithPassword with your username and password",
+            null,
             "با موفقیت ثبت نام شدید",
-            "حال به صفحه ورود بروید و با یوزرنیم و پسورد خود وارد شوید",
+            null,
+            200
+    ),
+    SIGNUP_INITIATE_EMAIL_SUCCESS(
+            "Verification code sent to your email",
+            "If you haven't received it, Please check your inbox and spam folder.",
+            "کد تایید به ایمیل شما ارسال شد",
+            "اگر ایمیلی دریافت نکردید، لطفاً صندوق ورودی و پوشه Spam خود را بررسی کنید.",
             200
     ),
 
