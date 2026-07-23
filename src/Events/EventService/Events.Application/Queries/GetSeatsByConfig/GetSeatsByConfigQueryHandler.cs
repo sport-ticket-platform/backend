@@ -40,6 +40,7 @@ public class GetSeatsByConfigQueryHandler : IRequestHandler<GetSeatsByConfigQuer
             WHERE s.config_id = ANY(@ConfigIds)
             ORDER BY s.config_id, s.section, s.row_no, s.seat_no;";
 
+            
             var command = new CommandDefinition(
                 sql,
                 new { request.ConfigIds },
