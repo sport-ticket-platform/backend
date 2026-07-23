@@ -24,16 +24,23 @@ public class TwoFactorService {
     private final RateLimitService rateLimitService;
     private final SecureRandom secureRandom = new SecureRandom();
     private final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
-    private final String REDIS_MFA_PREFIX = "mfa:token:";
+
+    // پیشوند ثابت حذف شد و به صورت داینامیک تولید می‌شود
     private final String REDIS_MFA_COOLDOWN_PREFIX = "mfa:cooldown:";
     private static final String GUEST_USER_MARKER = "GUEST"; // for signup
 
+    // رکورد خروجی دیگر نیازی به برگرداندن purpose ندارد، چون خودش ورودی است
     public record MfaVerificationResult(Long userId, String identifier) {}
+
+    // متد کمکی برای ساخت کلید یکتا
+    private String buildMfaKey(String purpose, String token) {
+        return "mfa:" + purpose.toLowerCase() + ":" + token;
+    }
 
     public long getMfaCooldown(String identifier) {
         String cooldownKey = REDIS_MFA_COOLDOWN_PREFIX + identifier;
         Long ttl = redisTemplate.getExpire(cooldownKey, TimeUnit.SECONDS);
-        return ttl > 0 ? ttl : 0;
+        return ttl != null && ttl > 0 ? ttl : 0;
     }
 
     public void applyMfaCooldown(String identifier) {
@@ -50,7 +57,7 @@ public class TwoFactorService {
      * <p>create mfa token in redis, then call notif service</p>
      * userId can be null for new user signups.
      */
-    public String initiate2FA(Long userId, String identifier, boolean isEmail) {
+    public String initiate2FA(Long userId, String identifier, boolean isEmail, String purpose) {
 
         long remainingSeconds = getMfaCooldown(identifier);
 
@@ -70,11 +77,13 @@ public class TwoFactorService {
 
         String mfaToken = generateSecureToken();
         String otpCode = generateOtpCode();
-        String redisKey = REDIS_MFA_PREFIX + mfaToken;
 
-        // handle userId == null for signup
+        // ساخت کلید با فرمت mfa:purpose:token
+        String redisKey = buildMfaKey(purpose, mfaToken);
+
         String userIdStr = (userId != null) ? userId.toString() : GUEST_USER_MARKER;
 
+        // ذخیره در ردیس (دیگر نیازی به ذخیره purpose در Value نیست)
         redisTemplate.opsForValue().set(
                 redisKey,
                 userIdStr + ":" + identifier + ":" + otpCode,
@@ -87,19 +96,21 @@ public class TwoFactorService {
         // send otp
         sendOtpToUser(identifier, otpCode, isEmail);
 
-        log.info("MFA initiated for identifier: {}. Token generated.", identifier);
+        log.info("MFA initiated for identifier: {} with purpose: {}. Token generated.", identifier, purpose);
         return mfaToken;
     }
 
     /**
      * <p>Validate MFA token and OTP code, return Result object</p>
      */
-    public MfaVerificationResult verify2FA(String mfaToken, String enteredCode) {
-        String redisKey = REDIS_MFA_PREFIX + mfaToken;
+    public MfaVerificationResult verify2FA(String mfaToken, String enteredCode, String expectedPurpose) {
+
+        // جستجوی مستقیم کلید با استفاده از Purpose ای که سرویس فراخوان درخواست کرده
+        String redisKey = buildMfaKey(expectedPurpose, mfaToken);
         String value = redisTemplate.opsForValue().get(redisKey);
 
         if (value == null) {
-            log.warn("MFA verification failed: Token {} expired or not found.", mfaToken);
+            log.warn("MFA verification failed: Token {} for purpose {} expired, not found, or used for wrong purpose.", mfaToken, expectedPurpose);
             throw new AuthException(ApiMessage.LOGIN_OTP_WRONG, "otp");
         }
 
@@ -110,7 +121,7 @@ public class TwoFactorService {
         }
 
         String userIdStr = parts[0];
-        String identifier = parts[1]; // for rate limit serv & cooldown
+        String identifier = parts[1];
         String savedOtpCode = parts[2];
 
         Long userId = GUEST_USER_MARKER.equals(userIdStr) ? null : Long.parseLong(userIdStr);
@@ -130,7 +141,7 @@ public class TwoFactorService {
 
         rateLimitService.clearFailedAttempts(identifier);
 
-        log.info("MFA successfully verified for identifier: {}", identifier);
+        log.info("MFA successfully verified for identifier: {} with purpose: {}", identifier, expectedPurpose);
 
         return new MfaVerificationResult(userId, identifier);
     }
