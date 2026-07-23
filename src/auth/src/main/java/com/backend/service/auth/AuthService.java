@@ -55,12 +55,16 @@ public class AuthService {
     public LoginResponse loginWithPassword(LoginWithPassRequest loginWithPassRequest, String ip, String userAgent, String deviceId) {
         String identifier = loginWithPassRequest.identifier();
 
+        // Phone Normalizing
         if (identifier != null && identifier.matches("^(?:\\+98|0098|0)?9\\d{9}$")) {
             identifier = "0" + identifier.replaceFirst("^(?:\\+98|0098|0)?", "");
         }
 
         log.info("Attempting to authenticate user: {}", identifier);
 
+        // lock checks sooner than other checks
+        // because if a user locked and password is incorrect,
+        // user can still brute force password until it's correct
         checkUserLocked(identifier);
 
         Authentication authentication;
@@ -74,7 +78,10 @@ public class AuthService {
         }
         catch (BadCredentialsException | CredentialsExpiredException e) {
             log.warn("Authentication failed for identifier {}: {}", identifier, e.getMessage());
+
+            // increase failed attempt for this identifier
             rateLimitService.incrementFailedAttempts(identifier);
+
             throw e;
         }
         catch (AuthenticationServiceException e) {
@@ -94,8 +101,10 @@ public class AuthService {
 
         checkUserSuspend(user);
 
+        // checking for 2fa
         if (user.isTwoFactorEnabled()) {
             log.info("User with id: {} authenticated successfully. 2FA is on...", user.getId());
+            // Default is send notif with email
             String mfa = twoFactorSer.initiate2FA(user.getId(), user.getEmail(), true, MFA_PURPOSE_LOGIN);
             log.info("Login MFA token successfully generated and sent for user id: {}",  user.getId());
             return LoginResponse.builder()
@@ -108,6 +117,8 @@ public class AuthService {
 
         String token = refreshTokenService.create(user.getId(), ip, userAgent, deviceId);
 
+        // login is completely successful in both state(2fa on or off)
+        // (if it's on it will delete after correct otp) so deleting all previous failed attempts
         rateLimitService.clearFailedAttempts(identifier);
 
         return LoginResponse.builder()
@@ -128,20 +139,26 @@ public class AuthService {
     private LoginResponse processOtpLogin(String identifier, String step, String type) {
         log.info("Attempting OTP({}) login initiation for user: {}", type, identifier);
 
+        // check user mfa locked
         checkUserMFALocked(identifier);
+
+        // ==============================================================================
 
         boolean shouldSilentDrop = false;
         String silentDropReason = "";
         UserDto user = null;
 
+        // user exist?
+        UserDetails userDetails;
         try {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(identifier);
+            userDetails = userDetailsService.loadUserByUsername(identifier);
             user = ((CustomUserDetails) userDetails).getUser();
         } catch (UsernameNotFoundException e) {
             shouldSilentDrop = true;
             silentDropReason = "User not found";
         }
 
+        // user locked?
         if (!shouldSilentDrop) {
             Long lockExpirationTime = rateLimitService.getLockExpirationTime(identifier);
             if (lockExpirationTime != null && lockExpirationTime > System.currentTimeMillis()) {
@@ -150,6 +167,7 @@ public class AuthService {
             }
         }
 
+        // user Suspend?
         if (!shouldSilentDrop && !user.isActive()) {
             shouldSilentDrop = true;
             silentDropReason = "User account is suspended";
@@ -159,9 +177,15 @@ public class AuthService {
 
         if (shouldSilentDrop) {
             log.warn("OTP login silent drop for identifier [{}]. Reason: {}", identifier, silentDropReason);
+
+            // fake token
             mfaToken = java.util.UUID.randomUUID().toString().replace("-", "") + java.util.UUID.randomUUID().toString().substring(0, 10);
+
+            // apply mfa lock
             twoFactorSer.applyMfaCooldown(identifier);
+
         } else {
+            // everything is fine
             log.info("User {} is valid. Initiating real OTP flow...", user.getId());
             mfaToken = twoFactorSer.initiate2FA(user.getId(), identifier, true, MFA_PURPOSE_LOGIN);
         }
@@ -174,12 +198,12 @@ public class AuthService {
 
     public LoginResponse verifyLoginOTP(VerifyRequest verifyRequest, String ip, String userAgent, String deviceId) {
 
-        // ارسال Purpose به متد اعتبارسنجی
         TwoFactorService.MfaVerificationResult result = twoFactorSer.verify2FA(verifyRequest.mfa(), verifyRequest.otp(), MFA_PURPOSE_LOGIN);
 
         Long userId = result.userId();
         log.info("user id: {}", userId);
 
+        // prevent using signup mfa token for login
         if (userId == null) {
             log.warn("Attempt to login with a signup MFA token. Identifier: {}", result.identifier());
             throw new AuthException(ApiMessage.LOGIN_OTP_WRONG);
@@ -194,21 +218,20 @@ public class AuthService {
                 .build();
     }
 
-    // ==============================================================================
-    // RESET PASSWORD
-    // ==============================================================================
-
+    // reset password
     public ResetPasswordInitiateResponse initiatePasswordReset(ResetPasswordInitiateRequest request) {
         String email = request.email();
 
         log.info("Attempting password reset initiation for user: {}", email);
 
+        // check user mfa locked
         checkUserMFALocked(email);
 
         boolean shouldSilentDrop = false;
         String silentDropReason = "";
         UserDto user = null;
 
+        // user exist?
         try {
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
             user = ((CustomUserDetails) userDetails).getUser();
@@ -217,6 +240,7 @@ public class AuthService {
             silentDropReason = "User not found";
         }
 
+        // user Suspend?
         if (!shouldSilentDrop && !user.isActive()) {
             shouldSilentDrop = true;
             silentDropReason = "User account is suspended";
@@ -226,9 +250,12 @@ public class AuthService {
 
         if (shouldSilentDrop) {
             log.warn("Password reset silent drop for identifier [{}]. Reason: {}", email, silentDropReason);
+            // fake token
             mfaToken = java.util.UUID.randomUUID().toString().replace("-", "") + java.util.UUID.randomUUID().toString().substring(0, 10);
+            // apply mfa lock
             twoFactorSer.applyMfaCooldown(email);
         } else {
+            // everything is fine
             log.info("User {} with email[{}] is valid. Initiating real OTP flow for password reset...", user.getId(), email);
             mfaToken = twoFactorSer.initiate2FA(user.getId(), email, true, MFA_PURPOSE_RESET_PASSWORD);
         }
@@ -239,8 +266,6 @@ public class AuthService {
     }
 
     public ResetPasswordVerifyResponse verifyResetPasswordOTP(VerifyRequest request) {
-
-        // ارسال Purpose به متد اعتبارسنجی
         TwoFactorService.MfaVerificationResult result = twoFactorSer.verify2FA(request.mfa(), request.otp(), MFA_PURPOSE_RESET_PASSWORD);
 
         Long userId = result.userId();
@@ -300,10 +325,15 @@ public class AuthService {
             throw e;
         }
 
+        refreshTokenService.revokeAllByUserId(userId, "Password reset | All sessions revoked");
+
         redisTemplate.delete(tempTokenKey);
 
-        log.info("Password successfully reset for user ID: [{}]", userId);
+        log.info("Password successfully reset and all sessions revoked for user ID: [{}]", userId);
     }
+
+
+    // =================================================================================
 
     private void checkUserMFALocked(String identifier) {
         long cooldownSeconds = twoFactorSer.getMfaCooldown(identifier);

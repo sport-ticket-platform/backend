@@ -5,10 +5,11 @@ info:
 
 grpc:
   url: localhost:9090
-  method: /UserService/GetUserById
+  method: /UserService/ChangeUserPassword
   methodType: unary
   message: |-
     {
-      "id": 3
+      "id": 1,
+      "new_password": "aaa"
     }
   auth: inherit
