@@ -39,6 +39,13 @@ public enum ApiMessage {
             null,
             200 // OK
     ),
+    LOGOUT_SUCCESS(
+            "Logged out successfully",
+            null,
+            "با موفقیت خارج شدید",
+            null,
+            200 // OK
+    ),
     LOGIN_EMAIL_OTP_SENT(
             "If the email exists, a verification code has been sent.",
             "Please check your inbox and spam folder. If you haven't received it, your account may be locked or suspended. You can try logging in with a password or contact support.",

@@ -70,7 +70,7 @@ public class RefreshTokenService {
                     UserSuspendException.class
             }
     )
-    public RefreshResponse refresh(String requestRefreshToken) {
+    public RefreshResponse refresh(String requestRefreshToken, String ipAddress, String userAgent, String deviceId) {
         log.info("Attempting to rotate refresh token and generate new access token...");
 
         RefreshToken refreshToken = refreshRep.findByToken(requestRefreshToken)
@@ -110,9 +110,9 @@ public class RefreshTokenService {
 
         RefreshToken newRefreshToken = RefreshToken.builder()
                 .userId(refreshToken.getUserId())
-                .ipAddress(refreshToken.getIpAddress())
-                .userAgent(refreshToken.getUserAgent())
-                .deviceId(refreshToken.getDeviceId())
+                .ipAddress(ipAddress)
+                .userAgent(userAgent)
+                .deviceId(deviceId)
                 .token(UUID.randomUUID().toString())
                 .expirationDate(
                         LocalDateTime.now().plusSeconds(
@@ -122,7 +122,6 @@ public class RefreshTokenService {
                 .build();
 
         newRefreshToken = refreshRep.save(newRefreshToken);
-
 
         String newAccessToken = jwtTokenProvider.generateToken(userDetails);
 
@@ -139,5 +138,22 @@ public class RefreshTokenService {
         log.info("Revoking all refresh tokens for user ID: {} due to password reset...", userId);
         refreshRep.revokeAllTokensForUser(userId, reason);
         log.info("All refresh tokens for user ID: {} successfully revoked.", userId);
+    }
+
+    @Transactional
+    public void revokeRefreshToken(String requestRefreshToken) {
+        log.info("Attempting to revoke refresh token...");
+
+        refreshRep.findByToken(requestRefreshToken).ifPresentOrElse(
+                token -> {
+                    if (token.isActive()) {
+                        refreshRep.revokeToken(token.getToken(), "User logged out manually");
+                        log.info("Refresh token for user {} successfully revoked.", token.getUserId());
+                    } else {
+                        log.info("Refresh token is already revoked. Skipping.");
+                    }
+                },
+                () -> log.warn("Refresh token not found.")
+        );
     }
 }

@@ -4,6 +4,7 @@ import com.backend.common.ApiMessage;
 import com.backend.dto.ApiResponse;
 import com.backend.dto.auth.VerifyRequest;
 import com.backend.dto.auth.login.*;
+import com.backend.dto.auth.logout.LogoutRequest;
 import com.backend.dto.auth.refresh.RefreshRequest;
 import com.backend.dto.auth.refresh.RefreshResponse;
 import com.backend.dto.auth.reset_password.ResetPasswordCompleteRequest;
@@ -243,10 +244,22 @@ public class AuthController {
     // ==============================================
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshResponse>> refresh(
-            @Valid @RequestBody RefreshRequest refreshRequest
+            @Valid @RequestBody RefreshRequest refreshRequest,
+            HttpServletRequest request // اضافه شدن HttpServletRequest
     ) {
+        // استخراج اطلاعات جدید کلاینت در لحظه رفرش
+        String ipAddress = extractClientIp(request);
+        String userAgent = request.getHeader("User-Agent");
+        String deviceId = request.getHeader("X-Device-Id");
 
-        RefreshResponse response = refreshTokenSrv.refresh(refreshRequest.refresh_token());
+        // پاس دادن اطلاعات جدید به سرویس
+        RefreshResponse response = refreshTokenSrv.refresh(
+                refreshRequest.refresh_token(),
+                ipAddress,
+                userAgent,
+                deviceId
+        );
+
         ApiMessage msg = ApiMessage.REFRESH_SUCCESS;
         return ResponseEntity.ok(
                 ApiResponse.<RefreshResponse>builder()
@@ -260,6 +273,33 @@ public class AuthController {
                         .timestamp(LocalDateTime.now())
                         .build()
         );
+    }
+
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @Valid @RequestBody LogoutRequest request
+    ) {
+        log.info("Received logout request");
+
+        if (request.refresh_token() != null && !request.refresh_token().isBlank()) {
+            refreshTokenSrv.revokeRefreshToken(request.refresh_token());
+        }
+
+        ApiMessage msg = ApiMessage.LOGOUT_SUCCESS;
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/reset-password/initiate")

@@ -1,0 +1,21 @@
+info:
+  name: Logout
+  type: http
+  seq: 15
+
+http:
+  method: POST
+  url: http://localhost:8080/api/auth/logout
+  body:
+    type: json
+    data: |-
+      {
+        "refresh_token": "ece46799-1587-44ec-b089-22a8e2f77909"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
