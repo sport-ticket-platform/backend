@@ -3,4 +3,8 @@ using MediatR;
 
 namespace EventService.Events.Application.Queries.GetAllMatches;
 
-public sealed record GetAllMatchesQuery(int Limit,int Offset) : IRequest<IEnumerable<MatchDto>>;
+public class GetAllMatchesQuery : IRequest<IEnumerable<MatchDto>>
+{
+    public int Limit { get; set; }
+    public int Offset { get; set; }
+}
