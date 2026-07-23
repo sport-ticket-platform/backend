@@ -30,11 +30,8 @@ builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
 
 builder.Services.AddGrpc();
 
-builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>(); 
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<GlobalValidationFilter>();
-});
+builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>();
+builder.Services.AddControllers(options => { options.Filters.Add<GlobalValidationFilter>(); });
 
 var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];
@@ -53,7 +50,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.MapInboundClaims = false;
-        
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -82,8 +79,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireSupportOrAdmin", policy =>
         policy.Requirements.Add(new RoleRequirement(Role.SUPPORT, Role.ADMIN)));
 });
-
-
 
 
 // var resourceBuilder = ResourceBuilder.CreateDefault()
@@ -147,3 +142,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.Run();
 
+/*
+ *
+ *
+ *
+ * consider solving the issue in which entering the phone number is after signing up, and it is fully arbitrary,
+ * which is useful for two factor authentication, so you must adjust the validators to not hinder the model binding if
+ * the phone number was not supplied
+ *
+ *
+ *
+ *
+ */
