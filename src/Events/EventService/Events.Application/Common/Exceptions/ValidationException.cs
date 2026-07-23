@@ -1,4 +1,4 @@
-namespace EventService.Events.Application.Exceptions;
+namespace EventService.Events.Application.Common.Exceptions;
 
 
 public class ValidationException : Exception
