@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 
 public record RefreshRequest(
         @NotBlank(message = "REFRESH_TOKEN_REQUIRED")
-        @Size(min = 36, max = 36, message = "REFRESH_TOKEN_INVALID_SIZE")
+        @Size(min = 35, max = 37, message = "REFRESH_TOKEN_INVALID_SIZE")
         String refresh_token
 ) {
 }

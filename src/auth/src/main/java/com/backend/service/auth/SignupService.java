@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class SignupService {
 
+    private static final String MFA_PURPOSE_SIGNUP = "signup";
+
     private final TwoFactorService twoFactorSer;
     private final StringRedisTemplate redisTemplate;
     private final PasswordEncoder passwordEncoder;
@@ -38,7 +40,8 @@ public class SignupService {
 
         log.info("Initiating signup OTP for new email: {}", email);
 
-        String mfaToken = twoFactorSer.initiate2FA(null, email, true);
+        // ارسال Purpose به عنوان آرگومان آخر
+        String mfaToken = twoFactorSer.initiate2FA(null, email, true, MFA_PURPOSE_SIGNUP);
 
         log.info("Signup MFA token successfully generated and sent for email: {}", email);
 
@@ -49,11 +52,12 @@ public class SignupService {
 
     public SignupVerifyResponse verifySignupOTP(VerifyRequest request) {
 
-        TwoFactorService.MfaVerificationResult result = twoFactorSer.verify2FA(request.mfa(), request.otp());
+        // ارسال Purpose به متد اعتبارسنجی
+        TwoFactorService.MfaVerificationResult result = twoFactorSer.verify2FA(request.mfa(), request.otp(), MFA_PURPOSE_SIGNUP);
 
-        // prevent using login mfa token for signup
+        // prevent using an existing user's MFA token for signup (extra safeguard)
         if (result.userId() != null) {
-            log.warn("Attempt to signup with a login MFA token. UserID: {}", result.userId());
+            log.warn("Attempt to signup with a non-guest MFA token. UserID: {}", result.userId());
             throw new AuthException(ApiMessage.LOGIN_OTP_WRONG);
         }
 

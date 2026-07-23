@@ -74,7 +74,21 @@ public enum ApiMessage {
             "برای ادامه وارد حساب کاربری خود شوید.",
             200
     ),
+    RESET_PASSWORD_SUCCESS(
+            "Password Reset Successfully",
+            "You have been logged out from all devices. Please log in with your new password.",
+            "رمز عبور با موفقیت تغییر یافت",
+            "از تمامی دستگاه‌ها خارج شدید. لطفاً با رمز عبور جدید وارد شوید.",
+            200
+    ),
     SIGNUP_INITIATE_EMAIL_SUCCESS(
+            "Verification code sent to your email",
+            "If you haven't received it, Please check your inbox and spam folder.",
+            "کد تایید به ایمیل شما ارسال شد",
+            "اگر ایمیلی دریافت نکردید، لطفاً صندوق ورودی و پوشه Spam خود را بررسی کنید.",
+            200
+    ),
+    RESET_PASSWORD_INITIATE_EMAIL_SUCCESS(
             "Verification code sent to your email",
             "If you haven't received it, Please check your inbox and spam folder.",
             "کد تایید به ایمیل شما ارسال شد",
@@ -86,6 +100,13 @@ public enum ApiMessage {
             "Your email has been verified. You can now complete your registration process.",
             "ایمیل با موفقیت تایید شد",
             "ایمیل شما با موفقیت تایید شد. اکنون می‌توانید مراحل ثبت‌نام خود را تکمیل کنید.",
+            200
+    ),
+    RESET_PASSWORD_VERIFY_OTP_SUCCESS(
+            "Email Verified Successfully",
+            "Your email has been verified. You can set your new password.",
+            "ایمیل با موفقیت تایید شد",
+            "ایمیل شما با موفقیت تایید شد. اکنون می‌توانید رمز جدید خود را تعیین کنید.",
             200
     ),
 
@@ -139,6 +160,13 @@ public enum ApiMessage {
             "We couldn't complete your registration. Please try again later.",
             "ثبت‌نام انجام نشد",
             "ثبت‌نام شما انجام نشد. لطفاً دوباره تلاش کنید.",
+            400
+    ),
+    RESET_PASSWORD_FAILED(
+            "Reset Password Failed",
+            "We couldn't complete your request. Please try again later.",
+            "تغییر رمز عبور انجام نشد",
+            "لطفاً بعدا تلاش کنید.",
             400
     ),
     SIGNUP_INVALID_TEMP_TOKEN(

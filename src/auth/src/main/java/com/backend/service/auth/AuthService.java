@@ -3,7 +3,14 @@ package com.backend.service.auth;
 import com.backend.common.ApiMessage;
 import com.backend.dto.auth.VerifyRequest;
 import com.backend.dto.auth.login.*;
+import com.backend.dto.auth.reset_password.ResetPasswordCompleteRequest;
+import com.backend.dto.auth.reset_password.ResetPasswordInitiateRequest;
+import com.backend.dto.auth.reset_password.ResetPasswordInitiateResponse;
+import com.backend.dto.auth.reset_password.ResetPasswordVerifyResponse;
 import com.backend.dto.user.UserDto;
+import com.backend.grpc.ResetPasswordRequest;
+import com.backend.grpc.ResetPasswordResponse;
+import com.backend.grpc.UserServiceGrpc;
 import com.backend.handler.AuthException;
 import com.backend.handler.CustomLockedException;
 import com.backend.handler.UserSuspendException;
@@ -12,6 +19,8 @@ import com.backend.service.system.RateLimitService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -28,11 +37,20 @@ import java.util.Objects;
 @Slf4j
 public class AuthService {
 
+    private static final String MFA_PURPOSE_LOGIN = "login";
+    private static final String MFA_PURPOSE_RESET_PASSWORD = "reset_password";
+
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final RateLimitService rateLimitService;
     private final TwoFactorService twoFactorSer;
     private final UserDetailsService userDetailsService;
+    private final StringRedisTemplate redisTemplate;
+    private final PasswordEncoder passwordEncoder;
+
+    @GrpcClient("user-service")
+    private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
+
 
     public LoginResponse loginWithPassword(LoginWithPassRequest loginWithPassRequest, String ip, String userAgent, String deviceId) {
         String identifier = loginWithPassRequest.identifier();
@@ -87,7 +105,7 @@ public class AuthService {
         if (user.isTwoFactorEnabled()) {
             log.info("User with id: {} authenticated successfully. 2FA is on...", user.getId());
             // Default is send notif with email
-            String mfa = twoFactorSer.initiate2FA(user.getId(), user.getEmail(), true);
+            String mfa = twoFactorSer.initiate2FA(user.getId(), user.getEmail(), true, MFA_PURPOSE_LOGIN);
             log.info("Login MFA token successfully generated and sent for user id: {}",  user.getId());
             return LoginResponse.builder()
                     .step("2FA-EMAIL")
@@ -169,7 +187,7 @@ public class AuthService {
         } else {
             // everything is fine
             log.info("User {} is valid. Initiating real OTP flow...", user.getId());
-            mfaToken = twoFactorSer.initiate2FA(user.getId(), identifier, true);
+            mfaToken = twoFactorSer.initiate2FA(user.getId(), identifier, true, MFA_PURPOSE_LOGIN);
         }
 
         return LoginResponse.builder()
@@ -180,7 +198,7 @@ public class AuthService {
 
     public LoginResponse verifyLoginOTP(VerifyRequest verifyRequest, String ip, String userAgent, String deviceId) {
 
-        TwoFactorService.MfaVerificationResult result = twoFactorSer.verify2FA(verifyRequest.mfa(), verifyRequest.otp());
+        TwoFactorService.MfaVerificationResult result = twoFactorSer.verify2FA(verifyRequest.mfa(), verifyRequest.otp(), MFA_PURPOSE_LOGIN);
 
         Long userId = result.userId();
         log.info("user id: {}", userId);
@@ -199,6 +217,123 @@ public class AuthService {
                 .refresh_token(token)
                 .build();
     }
+
+    // reset password
+    public ResetPasswordInitiateResponse initiatePasswordReset(ResetPasswordInitiateRequest request) {
+        String email = request.email();
+
+        log.info("Attempting password reset initiation for user: {}", email);
+
+        // check user mfa locked
+        checkUserMFALocked(email);
+
+        boolean shouldSilentDrop = false;
+        String silentDropReason = "";
+        UserDto user = null;
+
+        // user exist?
+        try {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            user = ((CustomUserDetails) userDetails).getUser();
+        } catch (UsernameNotFoundException e) {
+            shouldSilentDrop = true;
+            silentDropReason = "User not found";
+        }
+
+        // user Suspend?
+        if (!shouldSilentDrop && !user.isActive()) {
+            shouldSilentDrop = true;
+            silentDropReason = "User account is suspended";
+        }
+
+        String mfaToken;
+
+        if (shouldSilentDrop) {
+            log.warn("Password reset silent drop for identifier [{}]. Reason: {}", email, silentDropReason);
+            // fake token
+            mfaToken = java.util.UUID.randomUUID().toString().replace("-", "") + java.util.UUID.randomUUID().toString().substring(0, 10);
+            // apply mfa lock
+            twoFactorSer.applyMfaCooldown(email);
+        } else {
+            // everything is fine
+            log.info("User {} with email[{}] is valid. Initiating real OTP flow for password reset...", user.getId(), email);
+            mfaToken = twoFactorSer.initiate2FA(user.getId(), email, true, MFA_PURPOSE_RESET_PASSWORD);
+        }
+
+        return ResetPasswordInitiateResponse.builder()
+                .mfa_token(mfaToken)
+                .build();
+    }
+
+    public ResetPasswordVerifyResponse verifyResetPasswordOTP(VerifyRequest request) {
+        TwoFactorService.MfaVerificationResult result = twoFactorSer.verify2FA(request.mfa(), request.otp(), MFA_PURPOSE_RESET_PASSWORD);
+
+        Long userId = result.userId();
+
+        if (userId == null) {
+            log.warn("Attempt to reset password with a signup MFA token. Identifier: {}", result.identifier());
+            throw new AuthException(ApiMessage.LOGIN_OTP_WRONG);
+        }
+
+        log.info("OTP verified successfully for password reset. User ID: {}. Generating temp token...", userId);
+
+        String tempToken = java.util.UUID.randomUUID().toString().replace("-", "");
+
+        redisTemplate.opsForValue().set(
+                "reset:temp:" + tempToken,
+                String.valueOf(userId),
+                15,
+                java.util.concurrent.TimeUnit.MINUTES
+        );
+
+        log.info("Temporary reset token successfully generated and cached for user ID: {}", userId);
+
+        return ResetPasswordVerifyResponse.builder()
+                .temp_token(tempToken)
+                .build();
+    }
+
+    public void completePasswordReset(ResetPasswordCompleteRequest request) {
+        String tempTokenKey = "reset:temp:" + request.temp_token();
+        String userIdStr = redisTemplate.opsForValue().get(tempTokenKey);
+
+        if (userIdStr == null) {
+            log.warn("Password reset completion failed. Temp token expired or invalid: [{}]", request.temp_token());
+            throw new AuthException(ApiMessage.SIGNUP_INVALID_TEMP_TOKEN);
+        }
+
+        long userId = Long.parseLong(userIdStr);
+        log.info("Completing password reset for user ID: [{}]", userId);
+
+        String hashedPassword = passwordEncoder.encode(request.password());
+
+        try {
+            ResetPasswordRequest grpcRequest = ResetPasswordRequest.newBuilder()
+                    .setId(userId)
+                    .setNewPassword(hashedPassword)
+                    .build();
+
+            ResetPasswordResponse userServiceResponse = userServiceStub.changeUserPassword(grpcRequest);
+
+            if (!userServiceResponse.getSuccess()) {
+                log.warn("Password reset failed in user-service for user ID: [{}]", userId);
+                throw new AuthException(ApiMessage.RESET_PASSWORD_FAILED);
+            }
+
+        } catch (io.grpc.StatusRuntimeException e) {
+            log.error("gRPC error while resetting password for user ID [{}]: {}", userId, e.getStatus());
+            throw e;
+        }
+
+        refreshTokenService.revokeAllByUserId(userId, "Password reset | All sessions revoked");
+
+        redisTemplate.delete(tempTokenKey);
+
+        log.info("Password successfully reset and all sessions revoked for user ID: [{}]", userId);
+    }
+
+
+    // =================================================================================
 
     private void checkUserMFALocked(String identifier) {
         long cooldownSeconds = twoFactorSer.getMfaCooldown(identifier);
@@ -227,13 +362,13 @@ public class AuthService {
         Long lockExpirationTime = rateLimitService.getLockExpirationTime(identifier);
 
         if (lockExpirationTime == null) {
-            return; // account not locked
+            return;
         }
 
         long now = System.currentTimeMillis();
 
         if (lockExpirationTime < now) {
-            return; // account not locked
+            return;
         }
 
         long remainingMs = lockExpirationTime - now;

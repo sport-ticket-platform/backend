@@ -133,4 +133,11 @@ public class RefreshTokenService {
                 .refresh_token(newRefreshToken.getToken()) // new one
                 .build();
     }
+
+    @Transactional
+    public void revokeAllByUserId(Long userId, String reason) {
+        log.info("Revoking all refresh tokens for user ID: {} due to password reset...", userId);
+        refreshRep.revokeAllTokensForUser(userId, reason);
+        log.info("All refresh tokens for user ID: {} successfully revoked.", userId);
+    }
 }

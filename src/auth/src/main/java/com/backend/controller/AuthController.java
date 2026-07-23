@@ -6,6 +6,10 @@ import com.backend.dto.auth.VerifyRequest;
 import com.backend.dto.auth.login.*;
 import com.backend.dto.auth.refresh.RefreshRequest;
 import com.backend.dto.auth.refresh.RefreshResponse;
+import com.backend.dto.auth.reset_password.ResetPasswordCompleteRequest;
+import com.backend.dto.auth.reset_password.ResetPasswordInitiateRequest;
+import com.backend.dto.auth.reset_password.ResetPasswordInitiateResponse;
+import com.backend.dto.auth.reset_password.ResetPasswordVerifyResponse;
 import com.backend.dto.auth.signup.SignupCompleteRequest;
 import com.backend.dto.auth.signup.SignupInitiateRequest;
 import com.backend.dto.auth.signup.SignupInitiateResponse;
@@ -256,6 +260,83 @@ public class AuthController {
                         .timestamp(LocalDateTime.now())
                         .build()
         );
+    }
+
+    @PostMapping("/reset-password/initiate")
+    public ResponseEntity<ApiResponse<ResetPasswordInitiateResponse>> resetPasswordInitiate(
+            @Valid @RequestBody ResetPasswordInitiateRequest request,
+            HttpServletRequest httpRequest
+    ) {
+
+        String ipAddress = extractClientIp(httpRequest);
+
+        log.info("Initiating password reset for email: [{}] and IP: [{}]", request.email(), ipAddress);
+
+        ResetPasswordInitiateResponse responseData = authSrv.initiatePasswordReset(request);
+
+        ApiMessage msg = ApiMessage.RESET_PASSWORD_INITIATE_EMAIL_SUCCESS;
+
+        ApiResponse<ResetPasswordInitiateResponse> response = ApiResponse.<ResetPasswordInitiateResponse>builder()
+                .success(true)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(responseData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password/verify")
+    public ResponseEntity<ApiResponse<ResetPasswordVerifyResponse>> resetPasswordVerify(
+            @Valid @RequestBody VerifyRequest request
+    ) {
+
+        log.info("Received password reset OTP verification request for MFA token: [{}]", request.mfa());
+
+        ResetPasswordVerifyResponse responseData = authSrv.verifyResetPasswordOTP(request);
+
+        ApiMessage msg = ApiMessage.RESET_PASSWORD_VERIFY_OTP_SUCCESS;
+
+        ApiResponse<ResetPasswordVerifyResponse> response = ApiResponse.<ResetPasswordVerifyResponse>builder()
+                .success(true)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(responseData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password/complete")
+    public ResponseEntity<ApiResponse<Void>> resetPasswordComplete(
+            @Valid @RequestBody ResetPasswordCompleteRequest request
+    ) {
+        log.info("Received request to complete password reset for temp token: [{}]", request.temp_token());
+
+        authSrv.completePasswordReset(request);
+
+        ApiMessage msg = ApiMessage.RESET_PASSWORD_SUCCESS;
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     private String extractClientIp(HttpServletRequest request) {
