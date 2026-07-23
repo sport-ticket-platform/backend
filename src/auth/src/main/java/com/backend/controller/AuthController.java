@@ -244,10 +244,22 @@ public class AuthController {
     // ==============================================
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshResponse>> refresh(
-            @Valid @RequestBody RefreshRequest refreshRequest
+            @Valid @RequestBody RefreshRequest refreshRequest,
+            HttpServletRequest request // اضافه شدن HttpServletRequest
     ) {
+        // استخراج اطلاعات جدید کلاینت در لحظه رفرش
+        String ipAddress = extractClientIp(request);
+        String userAgent = request.getHeader("User-Agent");
+        String deviceId = request.getHeader("X-Device-Id");
 
-        RefreshResponse response = refreshTokenSrv.refresh(refreshRequest.refresh_token());
+        // پاس دادن اطلاعات جدید به سرویس
+        RefreshResponse response = refreshTokenSrv.refresh(
+                refreshRequest.refresh_token(),
+                ipAddress,
+                userAgent,
+                deviceId
+        );
+
         ApiMessage msg = ApiMessage.REFRESH_SUCCESS;
         return ResponseEntity.ok(
                 ApiResponse.<RefreshResponse>builder()

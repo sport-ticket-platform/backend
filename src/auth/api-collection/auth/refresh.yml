@@ -6,11 +6,14 @@ info:
 http:
   method: POST
   url: http://localhost:8080/api/auth/refresh
+  headers:
+    - name: X-Forwarded-For
+      value: 193.42.1.77
   body:
     type: json
     data: |-
       {
-        "refresh_token": "1345bb90-0c7b-4f0b-b9d0-51321d4075a1"
+        "refresh_token": "33157d94-c353-48fa-82f3-76ef06ad15bb"
       }
   auth: inherit
 
