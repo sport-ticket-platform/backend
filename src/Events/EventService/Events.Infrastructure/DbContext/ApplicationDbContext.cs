@@ -3,7 +3,7 @@ using Npgsql;
 
 namespace EventService.Events.Infrastructure.DbContext;
 
-public class ApplicationDbContext : IDisposable
+public class ApplicationDbContext : IAsyncDisposable
 {
     public IDbConnection DbConnection { get; private set; }
 
@@ -13,8 +13,12 @@ public class ApplicationDbContext : IDisposable
         DbConnection = new NpgsqlConnection(connectionString);
     }
 
-    public void Dispose()
+
+    public async ValueTask DisposeAsync()
     {
-        DbConnection.Dispose();
+        if (DbConnection is IAsyncDisposable dbConnectionAsyncDisposable)
+            await dbConnectionAsyncDisposable.DisposeAsync();
+        else
+            DbConnection.Dispose();
     }
 }

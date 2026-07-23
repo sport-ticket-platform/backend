@@ -15,7 +15,8 @@
 
     <ItemGroup>
       <Folder Include="Events.API\" />
-      <Folder Include="Events.Application\" />
+      <Folder Include="Events.Application\Commands\" />
+      <Folder Include="Events.Application\Exceptions\" />
     </ItemGroup>
 
     <ItemGroup>
