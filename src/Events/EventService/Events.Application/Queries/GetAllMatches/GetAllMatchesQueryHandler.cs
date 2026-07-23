@@ -22,10 +22,8 @@ public class GetAllMatchesQueryHandler : IRequestHandler<GetAllMatchesQuery, IEn
     public async Task<IEnumerable<MatchDto>> Handle(GetAllMatchesQuery request, CancellationToken cancellationToken)
     {
         _logger.LogInformation("fetching all matches");
-
-        try
-        {
-            const string sql = @"
+        
+        const string sql = @"
             SELECT
                 m.match_id       AS ""MatchId"",
                 m.match_time     AS ""MatchTime"",
@@ -51,27 +49,11 @@ public class GetAllMatchesQueryHandler : IRequestHandler<GetAllMatchesQuery, IEn
             ORDER BY m.match_time
             LIMIT @Limit OFFSET @Offset;";
 
-            var command = new CommandDefinition(
-                sql,
-                new { Limit = request.Limit, Offset = request.Offset },
-                cancellationToken: cancellationToken
-            );
-            return await _dbContext.DbConnection.QueryAsync<MatchDto>(command);
-        }
-        catch (NpgsqlException ex) when (ex.InnerException is IOException)
-        {
-            _logger.LogCritical(ex, "Database connection failed while fetching the matches.");
-            throw new InfrastructureException("Unable to reach the database", ex);
-        }
-        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
-        {
-            _logger.LogError(ex, "Database query timed out while fetching matches.");
-            throw new InfrastructureException("Database operation timed out.", ex);
-        }
-        catch (PostgresException ex)
-        {
-            _logger.LogError(ex, "Database rejected the query while fetching matches.{state}", ex.SqlState);
-            throw new InfrastructureException("DataBase query failed", ex);
-        }
+        var command = new CommandDefinition(
+            sql,
+            new { Limit = request.Limit, Offset = request.Offset },
+            cancellationToken: cancellationToken
+        );
+        return await _dbContext.DbConnection.QueryAsync<MatchDto>(command);
     }
 }

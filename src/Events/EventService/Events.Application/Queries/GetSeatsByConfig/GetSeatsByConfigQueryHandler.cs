@@ -25,11 +25,10 @@ public class GetSeatsByConfigQueryHandler : IRequestHandler<GetSeatsByConfigQuer
 
     public async Task<IEnumerable<SeatDto>> Handle(GetSeatsByConfigQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Fetching all the seats with their reservation status for specified config Ids {configIds}",
+        _logger.LogInformation(
+            "Fetching all the seats with their reservation status for specified config Ids {configIds}",
             request.ConfigIds);
-        try
-        {
-            const string sql = @"
+        const string sql = @"
             SELECT
                 s.seat_id    AS ""SeatId"",
                 s.config_id  AS ""ConfigId"",
@@ -40,43 +39,23 @@ public class GetSeatsByConfigQueryHandler : IRequestHandler<GetSeatsByConfigQuer
             WHERE s.config_id = ANY(@ConfigIds)
             ORDER BY s.config_id, s.section, s.row_no, s.seat_no;";
 
-            
-            var command = new CommandDefinition(
-                sql,
-                new { request.ConfigIds },
-                cancellationToken: cancellationToken
-            );
-            var seats = (await _dbContext.DbConnection.QueryAsync<SeatDto>(command)).ToList();
 
-            if (seats.Count == 0)
-                return seats;
+        var command = new CommandDefinition(
+            sql,
+            new { request.ConfigIds },
+            cancellationToken: cancellationToken
+        );
+        var seats = (await _dbContext.DbConnection.QueryAsync<SeatDto>(command)).ToList();
 
-            var unreservedSeatIds = new HashSet<long>(
-                await _reservationServiceClient.GetUnreservedSeatIdsAsync(request.ConfigIds, cancellationToken));
-
-            foreach (var seat in seats)
-                seat.IsReserved = !unreservedSeatIds.Contains(seat.SeatId);
-
+        if (seats.Count == 0)
             return seats;
-        }
-        catch (NpgsqlException ex) when (ex.InnerException is IOException)
-        {
-            _logger.LogCritical(ex, "Database connection failed while fetching the seats for configIds {configIds}.",
-                request.ConfigIds);
-            throw new InfrastructureException("Unable to reach the database", ex);
-        }
-        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
-        {
-            _logger.LogError(ex, "Database query timed out while fetching the seats for configIds {configIds}.",
-                request.ConfigIds);
-            throw new InfrastructureException("Database operation timed out.", ex);
-        }
-        catch (PostgresException ex)
-        {
-            _logger.LogError(ex,
-                "Database rejected the query while fetching the seats for configIds {configIds}.{state}",
-                request.ConfigIds, ex.SqlState);
-            throw new InfrastructureException("DataBase query failed", ex);
-        }
+
+        var unreservedSeatIds = new HashSet<long>(
+            await _reservationServiceClient.GetUnreservedSeatIdsAsync(request.ConfigIds, cancellationToken));
+
+        foreach (var seat in seats)
+            seat.IsReserved = !unreservedSeatIds.Contains(seat.SeatId);
+
+        return seats;
     }
 }

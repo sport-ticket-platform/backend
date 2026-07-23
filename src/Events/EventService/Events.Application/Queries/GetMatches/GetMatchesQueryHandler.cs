@@ -22,9 +22,7 @@ public class GetMatchesQueryHandler : IRequestHandler<GetMatchesQuery, IEnumerab
     public async Task<IEnumerable<MatchDto>> Handle(GetMatchesQuery request, CancellationToken cancellationToken)
     {
         _logger.LogInformation("fetching the filtered matches");
-        try
-        {
-            var sqlBuilder = new StringBuilder(@"
+        var sqlBuilder = new StringBuilder(@"
             SELECT
                 m.match_id       AS ""MatchId"",
                 m.match_time     AS ""MatchTime"",
@@ -50,106 +48,90 @@ public class GetMatchesQueryHandler : IRequestHandler<GetMatchesQuery, IEnumerab
             WHERE 1 = 1
         ");
 
-            var parameters = new DynamicParameters();
+        var parameters = new DynamicParameters();
 
-            // --- Sport ---
-            if (request.SportId.HasValue)
-            {
-                sqlBuilder.Append(" AND m.sport_id = @SportId");
-                parameters.Add("SportId", request.SportId.Value);
-            }
-            else if (!string.IsNullOrWhiteSpace(request.SportName))
-            {
-                sqlBuilder.Append(" AND s.sport_name ILIKE @SportName");
-                parameters.Add("SportName", $"%{request.SportName}%");
-            }
-
-            // --- League ---
-            if (request.LeagueId.HasValue)
-            {
-                sqlBuilder.Append(" AND m.league_id = @LeagueId");
-                parameters.Add("LeagueId", request.LeagueId.Value);
-            }
-            else if (!string.IsNullOrWhiteSpace(request.LeagueName))
-            {
-                sqlBuilder.Append(" AND l.name ILIKE @LeagueName");
-                parameters.Add("LeagueName", $"%{request.LeagueName}%");
-            }
-
-            // --- City ---
-            if (request.CityId.HasValue)
-            {
-                sqlBuilder.Append(" AND v.city_id = @CityId");
-                parameters.Add("CityId", request.CityId.Value);
-            }
-            else if (!string.IsNullOrWhiteSpace(request.CityName))
-            {
-                sqlBuilder.Append(" AND c.name ILIKE @CityName");
-                parameters.Add("CityName", $"%{request.CityName}%");
-            }
-
-            // --- Venue ---
-            if (request.VenueId.HasValue)
-            {
-                sqlBuilder.Append(" AND m.venue_id = @VenueId");
-                parameters.Add("VenueId", request.VenueId.Value);
-            }
-            else if (!string.IsNullOrWhiteSpace(request.VenueName))
-            {
-                sqlBuilder.Append(" AND v.name ILIKE @VenueName");
-                parameters.Add("VenueName", $"%{request.VenueName}%");
-            }
-
-            // --- Team (host OR guest) ---
-            if (request.TeamId.HasValue)
-            {
-                sqlBuilder.Append(" AND (m.host_team_id = @TeamId OR m.guest_team_id = @TeamId)");
-                parameters.Add("TeamId", request.TeamId.Value);
-            }
-            else if (!string.IsNullOrWhiteSpace(request.TeamName))
-            {
-                sqlBuilder.Append(" AND (ht.name ILIKE @TeamName OR gt.name ILIKE @TeamName)");
-                parameters.Add("TeamName", $"%{request.TeamName}%");
-            }
-
-            // --- Date range ---
-            if (request.FromDate.HasValue)
-            {
-                sqlBuilder.Append(" AND m.match_time >= @FromDate");
-                parameters.Add("FromDate", request.FromDate.Value);
-            }
-
-            if (request.ToDate.HasValue)
-            {
-                sqlBuilder.Append(" AND m.match_time <= @ToDate");
-                parameters.Add("ToDate", request.ToDate.Value);
-            }
-
-            sqlBuilder.Append(" ORDER BY m.match_time LIMIT @Limit OFFSET @Offset");
-            parameters.Add("Limit", request.Limit);
-            parameters.Add("Offset", request.Offset);
-
-            var command = new CommandDefinition(
-                sqlBuilder.ToString(),
-                parameters,
-                cancellationToken: cancellationToken
-            );
-            return await _dbContext.DbConnection.QueryAsync<MatchDto>(command);
-        }
-        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        // --- Sport ---
+        if (request.SportId.HasValue)
         {
-            _logger.LogCritical(ex, "Database connection failed while fetching the matches.");
-            throw new InfrastructureException("Unable to reach the database", ex);
+            sqlBuilder.Append(" AND m.sport_id = @SportId");
+            parameters.Add("SportId", request.SportId.Value);
         }
-        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        else if (!string.IsNullOrWhiteSpace(request.SportName))
         {
-            _logger.LogError(ex, "Database query timed out while fetching matches.");
-            throw new InfrastructureException("Database operation timed out.", ex);
+            sqlBuilder.Append(" AND s.sport_name ILIKE @SportName");
+            parameters.Add("SportName", $"%{request.SportName}%");
         }
-        catch (PostgresException ex)
+
+        // --- League ---
+        if (request.LeagueId.HasValue)
         {
-            _logger.LogError(ex, "Database rejected the query while fetching matches.{state}", ex.SqlState);
-            throw new InfrastructureException("DataBase query failed", ex);
+            sqlBuilder.Append(" AND m.league_id = @LeagueId");
+            parameters.Add("LeagueId", request.LeagueId.Value);
         }
+        else if (!string.IsNullOrWhiteSpace(request.LeagueName))
+        {
+            sqlBuilder.Append(" AND l.name ILIKE @LeagueName");
+            parameters.Add("LeagueName", $"%{request.LeagueName}%");
+        }
+
+        // --- City ---
+        if (request.CityId.HasValue)
+        {
+            sqlBuilder.Append(" AND v.city_id = @CityId");
+            parameters.Add("CityId", request.CityId.Value);
+        }
+        else if (!string.IsNullOrWhiteSpace(request.CityName))
+        {
+            sqlBuilder.Append(" AND c.name ILIKE @CityName");
+            parameters.Add("CityName", $"%{request.CityName}%");
+        }
+
+        // --- Venue ---
+        if (request.VenueId.HasValue)
+        {
+            sqlBuilder.Append(" AND m.venue_id = @VenueId");
+            parameters.Add("VenueId", request.VenueId.Value);
+        }
+        else if (!string.IsNullOrWhiteSpace(request.VenueName))
+        {
+            sqlBuilder.Append(" AND v.name ILIKE @VenueName");
+            parameters.Add("VenueName", $"%{request.VenueName}%");
+        }
+
+        // --- Team (host OR guest) ---
+        if (request.TeamId.HasValue)
+        {
+            sqlBuilder.Append(" AND (m.host_team_id = @TeamId OR m.guest_team_id = @TeamId)");
+            parameters.Add("TeamId", request.TeamId.Value);
+        }
+        else if (!string.IsNullOrWhiteSpace(request.TeamName))
+        {
+            sqlBuilder.Append(" AND (ht.name ILIKE @TeamName OR gt.name ILIKE @TeamName)");
+            parameters.Add("TeamName", $"%{request.TeamName}%");
+        }
+
+        // --- Date range ---
+        if (request.FromDate.HasValue)
+        {
+            sqlBuilder.Append(" AND m.match_time >= @FromDate");
+            parameters.Add("FromDate", request.FromDate.Value);
+        }
+
+        if (request.ToDate.HasValue)
+        {
+            sqlBuilder.Append(" AND m.match_time <= @ToDate");
+            parameters.Add("ToDate", request.ToDate.Value);
+        }
+
+        sqlBuilder.Append(" ORDER BY m.match_time LIMIT @Limit OFFSET @Offset");
+        parameters.Add("Limit", request.Limit);
+        parameters.Add("Offset", request.Offset);
+
+        var command = new CommandDefinition(
+            sqlBuilder.ToString(),
+            parameters,
+            cancellationToken: cancellationToken
+        );
+        return await _dbContext.DbConnection.QueryAsync<MatchDto>(command);
     }
 }
