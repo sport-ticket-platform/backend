@@ -21,10 +21,9 @@ public class GetMatchesQueryHandler : IRequestHandler<GetMatchesQuery, IEnumerab
 
     public async Task<IEnumerable<MatchDto>> Handle(GetMatchesQuery request, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("fetching the filtered matches");
         try
         {
-
-
             var sqlBuilder = new StringBuilder(@"
             SELECT
                 m.match_id       AS ""MatchId"",
