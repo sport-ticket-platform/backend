@@ -4,6 +4,7 @@ import com.backend.common.ApiMessage;
 import com.backend.dto.ApiResponse;
 import com.backend.dto.auth.VerifyRequest;
 import com.backend.dto.auth.login.*;
+import com.backend.dto.auth.logout.LogoutRequest;
 import com.backend.dto.auth.refresh.RefreshRequest;
 import com.backend.dto.auth.refresh.RefreshResponse;
 import com.backend.dto.auth.reset_password.ResetPasswordCompleteRequest;
@@ -260,6 +261,33 @@ public class AuthController {
                         .timestamp(LocalDateTime.now())
                         .build()
         );
+    }
+
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @Valid @RequestBody LogoutRequest request
+    ) {
+        log.info("Received logout request");
+
+        if (request.refresh_token() != null && !request.refresh_token().isBlank()) {
+            refreshTokenSrv.revokeRefreshToken(request.refresh_token());
+        }
+
+        ApiMessage msg = ApiMessage.LOGOUT_SUCCESS;
+
+        ApiResponse<Void> response = ApiResponse.<Void>builder()
+                .success(true)
+                .status(msg.getStatusCode())
+                .title(msg.getTitle())
+                .message(msg.getMessage())
+                .titleFa(msg.getTitleFa())
+                .messageFa(msg.getMessageFa())
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/reset-password/initiate")

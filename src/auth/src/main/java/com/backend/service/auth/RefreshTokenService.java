@@ -140,4 +140,21 @@ public class RefreshTokenService {
         refreshRep.revokeAllTokensForUser(userId, reason);
         log.info("All refresh tokens for user ID: {} successfully revoked.", userId);
     }
+
+    @Transactional
+    public void revokeRefreshToken(String requestRefreshToken) {
+        log.info("Attempting to revoke refresh token...");
+
+        refreshRep.findByToken(requestRefreshToken).ifPresentOrElse(
+                token -> {
+                    if (token.isActive()) {
+                        refreshRep.revokeToken(token.getToken(), "User logged out manually");
+                        log.info("Refresh token for user {} successfully revoked.", token.getUserId());
+                    } else {
+                        log.info("Refresh token is already revoked. Skipping.");
+                    }
+                },
+                () -> log.warn("Refresh token not found.")
+        );
+    }
 }
