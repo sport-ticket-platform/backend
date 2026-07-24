@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using ValidationException = UserService.Users.Application.Exceptions.ValidationException;
 
 namespace UserService.Users.API.ActionFilters;
 
@@ -26,12 +27,8 @@ public class GlobalValidationFilter : IAsyncActionFilter
 
             if (!result.IsValid)
             {
-                var errors = result.Errors
-                    .GroupBy(e => e.PropertyName)
-                    .ToDictionary(g => g.Key, g => g.Select(e => e.ErrorMessage).ToArray());
-
-                context.Result = new BadRequestObjectResult(new ValidationProblemDetails(errors));
-                return; 
+                var errors = result.Errors.Select(v => v.ErrorMessage).ToList();
+                throw new ValidationException(errors);
             }
         }
 
