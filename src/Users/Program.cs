@@ -13,6 +13,7 @@ using UserService.Users.API.ActionFilters;
 using UserService.Users.API.AuthorizationPolicies.Requirements;
 using UserService.Users.API.AuthorizationPolicies.RequirementsHandlers;
 using UserService.Users.API.GrpcServices;
+using UserService.Users.API.Interceptors;
 using UserService.Users.API.Middlewares;
 using UserService.Users.API.Validators;
 using UserService.Users.Application.Services;
@@ -27,6 +28,7 @@ builder.Services.AddScoped<ApplicationDbContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.UserService>();
 builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
+builder.Services.AddScoped<ExceptionInterceptor>();
 
 builder.Services.AddGrpc();
 

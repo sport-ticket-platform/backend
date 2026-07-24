@@ -14,6 +14,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		compose.yaml = compose.yaml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Events", "Events", "{E7269A9B-1E7E-4E3E-96E2-499E9682AF33}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventService", "src\Events\EventService\EventService.csproj", "{2A9D0706-4153-4A65-8EC9-D83A4621E537}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +40,18 @@ Global
 		{87CB30CA-4186-42E6-B1D3-F1849EA7A79B}.Release|x64.Build.0 = Release|Any CPU
 		{87CB30CA-4186-42E6-B1D3-F1849EA7A79B}.Release|x86.ActiveCfg = Release|Any CPU
 		{87CB30CA-4186-42E6-B1D3-F1849EA7A79B}.Release|x86.Build.0 = Release|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Debug|x64.Build.0 = Debug|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Debug|x86.Build.0 = Debug|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Release|x64.ActiveCfg = Release|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Release|x64.Build.0 = Release|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Release|x86.ActiveCfg = Release|Any CPU
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,5 +59,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{8D35EFEC-78C4-8934-F699-CDC21DCDF895} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{87CB30CA-4186-42E6-B1D3-F1849EA7A79B} = {8D35EFEC-78C4-8934-F699-CDC21DCDF895}
+		{E7269A9B-1E7E-4E3E-96E2-499E9682AF33} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{2A9D0706-4153-4A65-8EC9-D83A4621E537} = {E7269A9B-1E7E-4E3E-96E2-499E9682AF33}
 	EndGlobalSection
 EndGlobal
