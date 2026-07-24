@@ -16,7 +16,6 @@ public class AddNewTicketConfigCommandHandler : IRequestHandler<AddNewTicketConf
     {
         _dbContext = dbContext;
     }
-
     public async Task<int> Handle(AddNewTicketConfigCommand request, CancellationToken cancellationToken)
     {
         var connection = (DbConnection)_dbContext.DbConnection;

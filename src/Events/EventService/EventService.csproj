@@ -14,10 +14,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Events.API\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="MediatR" Version="14.1.0" />
         <PackageReference Include="Dapper" Version="2.1.79" />
         <PackageReference Include="FluentValidation" Version="12.1.1" />
