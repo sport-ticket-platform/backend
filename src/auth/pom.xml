@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
     <groupId>com</groupId>
-    <artifactId>backend</artifactId>
+    <artifactId>auth</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>backend</name>
     <description>backend</description>
