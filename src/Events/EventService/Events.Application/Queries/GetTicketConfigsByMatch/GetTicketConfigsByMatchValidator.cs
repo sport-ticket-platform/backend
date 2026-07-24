@@ -8,6 +8,6 @@ public class GetTicketConfigsByMatchValidator : AbstractValidator<GetTicketConfi
     {
         RuleFor(x => x.MatchId)
             .NotNull()
-            .LessThan(0);
+            .GreaterThan(0);
     }
 }
