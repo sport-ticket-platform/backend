@@ -50,12 +50,12 @@ public class GetSeatsByConfigQueryHandler : IRequestHandler<GetSeatsByConfigQuer
         if (seats.Count == 0)
             return seats;
 
-        var unreservedSeatIds = new HashSet<long>(
-            await _reservationServiceClient.GetUnreservedSeatIdsAsync(request.ConfigIds, cancellationToken));
+        var reservedSeats = await _reservationServiceClient.GetReservedSeatsByConfigIdsAsync(request.ConfigIds, cancellationToken);
+        var reservedSeatIds = new HashSet<long>(reservedSeats.Select(rs => rs.SeatId));
 
         foreach (var seat in seats)
-            seat.IsReserved = !unreservedSeatIds.Contains(seat.SeatId);
-
+            seat.IsReserved = reservedSeatIds.Contains(seat.SeatId);
+        
         return seats;
     }
 }

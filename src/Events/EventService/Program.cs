@@ -1,10 +1,15 @@
 using System.Reflection;
 using System.Security.Cryptography;
 using EventService.Events.API.AuthorizationPolicies.Requirements;
+using EventService.Events.API.Grpc.Interceptors;
 using EventService.Events.API.Middlewares;
 using EventService.Events.Application.Common.Behaviors;
+using EventService.Events.Application.Interfaces;
 using EventService.Events.Application.Queries.GetSeatsByConfig;
 using EventService.Events.Infrastructure.DbContext;
+using EventService.Events.Infrastructure;
+using EventService.Events.Infrastructure.Grpc;
+using EventService.Reservations.Grpc;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,7 +23,12 @@ builder.Services.AddScoped<ApplicationDbContext>();
 
 builder.Services.AddValidatorsFromAssembly(typeof(GetSeatsByConfigQueryValidator).Assembly);
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+builder.Services.AddScoped<IReservationServiceClient, GrpcReservationServiceClient>();
 
+builder.Services.AddGrpcClient<ReservationService.ReservationServiceClient>(o =>
+{
+    o.Address = new Uri(builder.Configuration["ReservationService:GrpcUrl"]!);
+}).Services.AddScoped<ExceptionInterceptor>();
 
 var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];
@@ -68,11 +78,9 @@ builder.Services.AddAuthorization(options =>
 });
 
 
-
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-//app.MapGrpcService<UserGrpcService>();
 app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();

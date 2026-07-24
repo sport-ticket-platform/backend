@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "I0/nJ5MU/IQ=",
+  "dgSpecHash": "ojFndpl4cgU=",
   "success": true,
   "projectFilePath": "/home/mmdcj/RiderProjects/backend/src/Events/EventService/EventService.csproj",
   "expectedPackageFiles": [
@@ -11,10 +11,10 @@
     "/home/mmdcj/.nuget/packages/grpc.aspnetcore/2.71.0/grpc.aspnetcore.2.71.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.aspnetcore.server/2.71.0/grpc.aspnetcore.server.2.71.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.aspnetcore.server.clientfactory/2.71.0/grpc.aspnetcore.server.clientfactory.2.71.0.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/grpc.core.api/2.71.0/grpc.core.api.2.71.0.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/grpc.net.client/2.71.0/grpc.net.client.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.core.api/2.80.0/grpc.core.api.2.80.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.net.client/2.80.0/grpc.net.client.2.80.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.net.clientfactory/2.71.0/grpc.net.clientfactory.2.71.0.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/grpc.net.common/2.71.0/grpc.net.common.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.net.common/2.80.0/grpc.net.common.2.80.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.tools/2.71.0/grpc.tools.2.71.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/mediatr/14.1.0/mediatr.14.1.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/mediatr.contracts/2.0.1/mediatr.contracts.2.0.1.nupkg.sha512",

@@ -1,0 +1,2 @@
+obj/Debug/net9.0/Events.API/Grpc/Client/protos/Reservation.cs \
+obj/Debug/net9.0/Events.API/Grpc/Client/protos/ReservationGrpc.cs: Events.API/Grpc/Client/protos/reservation.proto

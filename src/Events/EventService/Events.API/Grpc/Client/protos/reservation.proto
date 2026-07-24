@@ -1,0 +1,22 @@
+syntax = "proto3";
+package Event;
+option csharp_namespace = "EventService.Reservations.Grpc";
+
+
+
+service ReservationService {
+  rpc GetReservedSeatsByConfigIds (GetReservedSeatsByConfigIdsRequest) returns (GetReservedSeatsByConfigIdsResponse);
+}
+
+message GetReservedSeatsByConfigIdsRequest {
+  repeated int32 config_ids = 1;
+}
+
+message ReservedSeat {
+  int64 seat_id = 1;
+  int32 config_id = 2;
+}
+
+message GetReservedSeatsByConfigIdsResponse {
+  repeated ReservedSeat reserved_seats = 1;
+}
