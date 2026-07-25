@@ -1,0 +1,17 @@
+info:
+  name: Private Path
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: localhost:8081/api/test/admin
+  auth:
+    type: bearer
+    token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9BRE1JTiJdLCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJhdWQiOlsiZnJvbnRlbmQiXSwiaWF0IjoxNzg0OTg5MzM4LCJleHAiOjE3ODQ5OTAyMzh9.M1YkAQecxY_hYDSvsVB_qnPuA3cBaE4Jep8G9_EcB25eeFlH3Idphydpcv53AR90UAPbMsSqm4uxGgAyGUKxW0ZC3ukGVVv_mf12Cmdfx3DLLYWQeUU02EPayaEFWPfpnFLKUi06x5oI9hxM2CCZDzMUCmYGe0p3SRRZR_OA4eL5hXKdbzTxsw64mB0JyJ4YlCne9moYcrl58MNRQsuy_Lnxf3w_g_mc0TQ92nsjskQU53K54Uu7iksCEqHmxBNpbd9azkUQQ0zl7z57hNmbcWFF6gpt5tKl0rxeT0GeAFqdko5dfis2axGfoNB7DtuKtxlgHQE6EaAtLZaXaSO0IQ
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

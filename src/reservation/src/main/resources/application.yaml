@@ -1,3 +1,39 @@
+server:
+  address: 0.0.0.0
+  port: 8081
+
 spring:
   application:
-    name: reservation
+    name: reservation-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sportik-backend}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:taha1111}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+  output:
+    ansi:
+      enabled: always
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4317
+      transport: grpc
+
+app:
+  security:
+    public-paths: /error,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/api/test/public
+
+    jwt:
+      public-key: classpath:keys/public_key.pem
+      issuer: auth-service
