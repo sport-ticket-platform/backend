@@ -6,9 +6,11 @@ using EventService.Events.API.Middlewares;
 using EventService.Events.Application.Common.Behaviors;
 using EventService.Events.Application.Interfaces;
 using EventService.Events.Application.Queries.GetSeatsByConfig;
+using EventService.Events.Domain.Repositories;
 using EventService.Events.Infrastructure.DbContext;
 using EventService.Events.Infrastructure;
 using EventService.Events.Infrastructure.Grpc;
+using EventService.Events.Infrastructure.Repositories;
 using EventService.Reservations.Grpc;
 using FluentValidation;
 using MediatR;
@@ -24,6 +26,7 @@ builder.Services.AddScoped<ApplicationDbContext>();
 builder.Services.AddValidatorsFromAssembly(typeof(GetSeatsByConfigQueryValidator).Assembly);
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddScoped<IReservationServiceClient, GrpcReservationServiceClient>();
+builder.Services.AddScoped<IWriteRepository, WriteRepository>();
 
 builder.Services.AddGrpcClient<ReservationService.ReservationServiceClient>(o =>
 {
@@ -78,10 +81,63 @@ builder.Services.AddAuthorization(options =>
 });
 
 
+// var resourceBuilder = ResourceBuilder.CreateDefault()
+//     .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
+//     .AddAttributes(new Dictionary<string, object>
+//     {
+//         ["deployment.environment"] = builder.Environment.EnvironmentName
+//     });
+//
+// // ---------- Traces ----------
+// builder.Services.AddOpenTelemetry()
+//     .WithTracing(tracing => tracing
+//         .SetResourceBuilder(resourceBuilder)
+//         .AddAspNetCoreInstrumentation(options =>
+//         {
+//             options.RecordException = true;
+//         })
+//         .AddHttpClientInstrumentation() // traces outbound calls (e.g., Auth → User service)
+//         .AddNpgsql()                    // traces Postgres queries via Npgsql
+//         .AddOtlpExporter(otlp =>
+//         {
+//             otlp.Endpoint = new Uri(otlpEndpoint);
+//             otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+//         }))
+//
+//     // ---------- Metrics ----------
+//     .WithMetrics(metrics => metrics
+//         .SetResourceBuilder(resourceBuilder)
+//         .AddAspNetCoreInstrumentation()
+//         .AddHttpClientInstrumentation()
+//         .AddRuntimeInstrumentation()   // GC, thread pool, memory
+//         .AddOtlpExporter(otlp =>
+//         {
+//             otlp.Endpoint = new Uri(otlpEndpoint);
+//             otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+//         }));
+//
+// // ---------- Logging ----------
+// builder.Logging.ClearProviders();
+// builder.Logging.AddOpenTelemetry(logging =>
+// {
+//     logging.SetResourceBuilder(resourceBuilder);
+//     logging.IncludeFormattedMessage = true;
+//     logging.IncludeScopes = true;
+//     logging.ParseStateValues = true;
+//
+//     logging.AddOtlpExporter(otlp =>
+//     {
+//         otlp.Endpoint = new Uri(otlpEndpoint);
+//         otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+//     });
+// });
+
+
+
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapControllers();
 app.Run();

@@ -1,3 +1,5 @@
+using EventService.Events.Application.Commands.AddNewMatch;
+using EventService.Events.Application.Commands.AddNewTicketConfig;
 using EventService.Events.Application.Common.Dtos;
 using EventService.Events.Application.Queries.GellAllLeagues;
 using EventService.Events.Application.Queries.GetAllMatches;
@@ -12,8 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EventService.Events.API.Controllers;
 
 [ApiController]
-[Authorize(policy:"RequireUser")]
-[Route("/event")]
+[Route("/api/event")]
 public class EventController : ControllerBase
 {
     private readonly ILogger<EventController> _logger;
@@ -25,6 +26,7 @@ public class EventController : ControllerBase
         _sender = sender;
     }
 
+    [Authorize(policy:"RequireUser")]
     [HttpGet("match")]
     public async Task<IActionResult> GetAllMatches([FromQuery] GetAllMatchesQuery query)
     {
@@ -45,6 +47,7 @@ public class EventController : ControllerBase
         return Ok(allMatches);
     }
     
+    [Authorize(policy:"RequireUser")]
     [HttpPost("match")]
     public async Task<IActionResult> GetMatch([FromBody] GetMatchesQuery query)
     {
@@ -66,6 +69,7 @@ public class EventController : ControllerBase
 
     }
 
+    [Authorize(policy:"RequireUser")]
     [HttpGet("match/{MatchId}")]
     public async Task<IActionResult> GetTicketConfig([FromRoute] GetTicketConfigsByMatchQuery query)
     {
@@ -81,6 +85,7 @@ public class EventController : ControllerBase
         return Ok(seats);
     }
 
+    [Authorize(policy:"RequireUser")]
     [HttpGet("venues")]
     public async Task<IActionResult> GetAllVenues([FromQuery] GetVenuesQuery query)
     {
@@ -101,6 +106,7 @@ public class EventController : ControllerBase
         return Ok(venues);
     }
     
+    [Authorize(policy:"RequireUser")]
     [HttpGet("leagues")]
     public async Task<IActionResult> GetAllLeagues([FromQuery] GetAllLeaguesQuery query)
     {
@@ -118,5 +124,24 @@ public class EventController : ControllerBase
 
         var venues = await _sender.Send(query);
         return Ok(venues);
+    }
+
+    [Authorize(policy:"RequireAdmin")]
+    [HttpPost("new/match")]
+    public async Task<IActionResult> AddNewMatch(AddNewMatchCommand command,CancellationToken ct)
+    {
+        _logger.LogInformation("adding new match");
+        var matchId = await _sender.Send(command,ct);
+        return Ok(matchId);
+    }
+    
+    
+    [Authorize(policy:"RequireAdmin")]
+    [HttpPost("new/match/{matchId}/ticket")]
+    public async Task<IActionResult> AddNewُTicketConfig(AddNewTicketConfigCommand command,CancellationToken ct)
+    {
+        _logger.LogInformation("adding new ticket");
+        var matchId = await _sender.Send(command,ct);
+        return Ok(matchId);
     }
 }
