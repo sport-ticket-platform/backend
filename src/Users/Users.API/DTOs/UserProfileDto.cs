@@ -5,5 +5,5 @@ public record UserProfileDto(
     string FirstName,
     string LastName,
     string Email,
-    string PhoneNumber,
-    string City);
+    string? PhoneNumber,
+    string? City);
