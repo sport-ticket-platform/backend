@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UserService.Users.API.DTOs;
 using UserService.Users.API.Exceptions;
 using UserService.Users.Application.Services;
 using UserService.Users.Domain.ReadModels;
@@ -7,7 +8,7 @@ using UserService.Users.Domain.ReadModels;
 namespace UserService.Users.API.Controllers;
 
 [ApiController]
-[Authorize(policy:"RequireAdmin")]
+[Authorize(policy: "RequireAdmin")]
 [Route("/api/[controller]")]
 public class AdminController : ControllerBase
 {
@@ -23,12 +24,13 @@ public class AdminController : ControllerBase
     }
 
     [HttpGet("report")]
-    public async Task<IActionResult> GetAllOpenReports([FromQuery] int limit, [FromQuery] int offset,CancellationToken ct)
+    public async Task<IActionResult> GetAllOpenReports([FromQuery] int limit, [FromQuery] int offset,
+        CancellationToken ct)
     {
         if (!long.TryParse(User.FindFirst("sub")?.Value, out var adminIdClaim))
             throw new UnauthorizedException("The admin must first log in");
 
-        _logger.LogInformation("fetching all reports created by users for admin {adminId}",adminIdClaim);
+        _logger.LogInformation("fetching all reports created by users for admin {adminId}", adminIdClaim);
 
         if (limit > 100)
             limit = MAXIMUM_LIMIT;
@@ -45,8 +47,17 @@ public class AdminController : ControllerBase
         if (!long.TryParse(User.FindFirst("sub")?.Value, out var adminIdClaim))
             throw new UnauthorizedException("The admin must first log in");
 
-        _logger.LogInformation("fetching report {reportId} for admin {adminId}",reportId,adminIdClaim);
-        var report = await _adminService.GetOpenReport(reportId,ct);
+        _logger.LogInformation("fetching report {reportId} for admin {adminId}", reportId, adminIdClaim);
+        var report = await _adminService.GetOpenReport(reportId, ct);
         return Ok(report);
+    }
+
+    [HttpPut("report/{reportId}")]
+    public async Task AnswerReport([FromQuery] int reportId, [FromBody] ReportResponseDto responseDto,
+        CancellationToken ct)
+    {
+        _logger.LogInformation("answering the report {reportId}", reportId);
+        await _adminService.AnswerReport(reportId, responseDto.Response, ct);
+        return;
     }
 }

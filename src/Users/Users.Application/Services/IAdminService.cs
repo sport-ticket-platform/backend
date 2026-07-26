@@ -8,5 +8,8 @@ public interface IAdminService
     public Task<List<UserReports>> GetAllOpenReports(int limit, int offset, CancellationToken ct);
     public Task<Report> GetOpenReport(int reportId, CancellationToken ct);
 
+    public Task AnswerReport(int reportId, string response, CancellationToken ct);
+
+
 
 }

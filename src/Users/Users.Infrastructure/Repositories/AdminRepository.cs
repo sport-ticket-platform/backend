@@ -25,7 +25,7 @@ public class AdminRepository : IAdminRepository
         const string sql = @"
         SELECT *  FROM TABLE (report)
         WHERE status = @Status
-        LIMIT @Limit OFFSET @Offset
+        LIMIT @Limit OFFSET @Offset;
         ";
 
         try
@@ -58,7 +58,7 @@ public class AdminRepository : IAdminRepository
     {
         const string sql = @"
         SELECT * FROM table (report)
-        WHERE report_id = @ReportId";
+        WHERE report_id = @ReportId;";
 
         try
         {
@@ -82,6 +82,45 @@ public class AdminRepository : IAdminRepository
         catch (PostgresException ex)
         {
             _logger.LogError(ex, "Database rejected the query while fetching all the reports.{state}", ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
+    }
+
+    public async Task<int> UpdateReport(Report report, CancellationToken ct)
+    {
+        const string sql = @"
+        UPDATE report
+        SET
+            type = @Type,
+            reported_at = @ReportedAt,
+            request = @Request,
+            response = @Response,
+            responded_at = @RespondedAt,
+            status = @Status
+        WHERE report_id = @ReportId;";
+        try
+        {
+            var command = new CommandDefinition(
+                sql,
+                report,
+                cancellationToken: ct
+            );
+            return await _dbContext.DbConnection.ExecuteAsync(command);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while fetching the report {reportId}.",report.ReportId);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while fetching the report {reportId}.",report.ReportId);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while updating the report {reportId}.{state}",
+                report.ReportId, ex.SqlState);
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }

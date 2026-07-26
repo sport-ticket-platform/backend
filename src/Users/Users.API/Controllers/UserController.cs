@@ -82,13 +82,13 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("report")]
-    public async Task<IActionResult> CreateReport([FromBody] ReportDto reportDto, CancellationToken ct)
+    public async Task<IActionResult> CreateReport([FromBody] ReportReqestDto reportReqestDto, CancellationToken ct)
     {
         if (!long.TryParse(User.FindFirst("sub")?.Value, out var userIdClaim))
             throw new UnauthorizedException("The user must first log in");
 
         _logger.LogInformation("creating a new report for user {userId}",userIdClaim);
-        var reportId = await _userService.CreateReport(userIdClaim, reportDto.RequestConent, reportDto.Type, ct);
+        var reportId = await _userService.CreateReport(userIdClaim, reportReqestDto.RequestConent, reportReqestDto.Type, ct);
         return Ok(reportId);
     }
 }

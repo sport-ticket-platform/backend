@@ -466,8 +466,6 @@ public class UserRepository : IUserRepository
             _logger.LogError(ex,"User referenced entity dose not exist.");
             throw new NotFoundException(
                 "User referenced entity dose not exist.");
-
-
         }
         catch (PostgresException ex)
         {

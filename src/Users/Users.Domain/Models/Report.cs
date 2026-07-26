@@ -51,21 +51,20 @@ public class Report
             status: ReportStatus.OPEN);
     }
 
-    public void MarkInProgress()
+    
+    public void AnswerReport(string response, DateTimeOffset respondedAt)
     {
         if (Status != ReportStatus.OPEN)
-            throw new DomainException($"Cannot move report to IN_PROGRESS from {Status}.");
+            throw new DomainException("A report must be OPENED before it can be CLOSED.");
+        
+        ValidateResponse(response);
+        
+        if (respondedAt.CompareTo(ReportedAt) <= 0)
+            throw new ArgumentException("The report time  cannot be equal of after the respond time");
 
-        Status = ReportStatus.IN_PROGRESS;
-    }
+        Response = response;
+        RespondedAt = respondedAt;
 
-    
-    public void Close()
-    {
-        if (Status != ReportStatus.IN_PROGRESS)
-            throw new DomainException("A report must be RESOLVED before it can be CLOSED.");
-
-        Status = ReportStatus.CLOSED;
     }
     
     private static void ValidateId(long id, string name)

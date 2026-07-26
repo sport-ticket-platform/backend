@@ -3,7 +3,7 @@ using UserService.Users.API.DTOs;
 
 namespace UserService.Users.API.Validators;
 
-public class ReportDtoValidator : AbstractValidator<ReportDto>
+public class ReportDtoValidator : AbstractValidator<ReportReqestDto>
 {
     public ReportDtoValidator()
     {
