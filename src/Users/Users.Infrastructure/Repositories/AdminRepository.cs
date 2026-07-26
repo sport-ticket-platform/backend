@@ -1,5 +1,7 @@
+using System.Text;
 using Dapper;
 using Npgsql;
+using UserService.Users.API.DTOs;
 using UserService.Users.Domain.Enums;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
@@ -124,4 +126,70 @@ public class AdminRepository : IAdminRepository
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }
+    
+    public async Task<List<AdminUserView>> GetUsersByFilter(UserFilterDto filter, CancellationToken ct)
+{
+    var sqlBuilder = new StringBuilder(@"
+        SELECT
+            u.user_id    AS ""UserId"",
+            u.first_name AS ""FirstName"",
+            u.last_name  AS ""LastName"",
+            u.email      AS ""Email"",
+            u.status     AS ""Status""
+        FROM users u
+        WHERE 1 = 1
+    ");
+
+    var parameters = new DynamicParameters();
+
+    if (!string.IsNullOrWhiteSpace(filter.FirstName))
+    {
+        sqlBuilder.Append(" AND u.first_name ILIKE @FirstName");
+        parameters.Add("FirstName", $"%{filter.FirstName}%");
+    }
+
+    if (!string.IsNullOrWhiteSpace(filter.LastName))
+    {
+        sqlBuilder.Append(" AND u.last_name ILIKE @LastName");
+        parameters.Add("LastName", $"%{filter.LastName}%");
+    }
+
+    if (!string.IsNullOrWhiteSpace(filter.Email))
+    {
+        sqlBuilder.Append(" AND u.email ILIKE @Email");
+        parameters.Add("Email", $"%{filter.Email}%");
+    }
+
+    if (filter.Status.HasValue)
+    {
+        sqlBuilder.Append(" AND u.status = @Status");
+        parameters.Add("Status", filter.Status.Value);
+    }
+
+    sqlBuilder.Append(" ORDER BY u.user_id LIMIT @Limit OFFSET @Offset");
+    parameters.Add("Limit", filter.Limit);
+    parameters.Add("Offset", filter.Offset);
+
+    try
+    {
+        var command = new CommandDefinition(sqlBuilder.ToString(), parameters, cancellationToken: ct);
+        var users = await _dbContext.DbConnection.QueryAsync<AdminUserView>(command);
+        return users.ToList();
+    }
+    catch (NpgsqlException ex) when (ex.InnerException is IOException)
+    {
+        _logger.LogCritical(ex, "Database connection failed while fetching filtered users.");
+        throw new InfrastructureException("Unable to reach the database", ex);
+    }
+    catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+    {
+        _logger.LogError(ex, "Database query timed out while fetching filtered users.");
+        throw new InfrastructureException("Database operation timed out.", ex);
+    }
+    catch (PostgresException ex)
+    {
+        _logger.LogError(ex, "Database rejected the query while fetching filtered users. {state}", ex.SqlState);
+        throw new InfrastructureException("DataBase query failed", ex);
+    }
+}
 }

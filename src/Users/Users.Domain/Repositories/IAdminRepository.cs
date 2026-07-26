@@ -1,3 +1,4 @@
+using UserService.Users.API.DTOs;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
 
@@ -9,6 +10,7 @@ public interface IAdminRepository
     public Task<Report?> GetOpenReport(int reportId, CancellationToken ct);
 
     public Task<int> UpdateReport(Report report, CancellationToken ct);
+    Task<List<AdminUserView>> GetUsersByFilter(UserFilterDto filter, CancellationToken ct);
 
 
 }

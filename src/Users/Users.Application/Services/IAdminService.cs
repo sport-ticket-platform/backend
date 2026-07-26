@@ -1,3 +1,4 @@
+using UserService.Users.API.DTOs;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
 
@@ -10,6 +11,7 @@ public interface IAdminService
 
     public Task AnswerReport(int reportId, string response, CancellationToken ct);
 
+    public Task<List<AdminUserView>> GetUsers(UserFilterDto filter, CancellationToken ct);
 
 
 }

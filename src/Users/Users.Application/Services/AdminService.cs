@@ -1,3 +1,4 @@
+using UserService.Users.API.DTOs;
 using UserService.Users.Application.Exceptions;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
@@ -45,5 +46,9 @@ public class AdminService : IAdminService
             throw new NotFoundException($"The report {reportId} does not exist");
     } 
     
+    public async Task<List<AdminUserView>> GetUsers(UserFilterDto filter, CancellationToken ct)
+    {
+        return await _adminRepo.GetUsersByFilter(filter, ct);
+    }
     
 }

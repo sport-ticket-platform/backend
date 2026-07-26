@@ -12,6 +12,7 @@ using OpenTelemetry.Trace;
 using UserService.Users.API.ActionFilters;
 using UserService.Users.API.AuthorizationPolicies.Requirements;
 using UserService.Users.API.AuthorizationPolicies.RequirementsHandlers;
+using UserService.Users.API.DTOs;
 using UserService.Users.API.GrpcServices;
 using UserService.Users.API.Interceptors;
 using UserService.Users.API.Middlewares;
@@ -31,6 +32,7 @@ builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
 builder.Services.AddScoped<ExceptionInterceptor>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IValidator<UserFilterDto>, UserFilterDtoValidator>();
 
 
 builder.Services.AddGrpc();

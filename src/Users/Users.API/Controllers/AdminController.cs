@@ -60,4 +60,12 @@ public class AdminController : ControllerBase
         await _adminService.AnswerReport(reportId, responseDto.Response, ct);
         return;
     }
+    
+    [HttpGet("users")]
+    public async Task<IActionResult> GetUsers([FromQuery] UserFilterDto filter, CancellationToken ct)
+    {
+        _logger.LogInformation("fetching users");
+        var users = await _adminService.GetUsers(filter, ct);
+        return Ok(users);
+    }
 }
