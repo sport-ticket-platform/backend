@@ -19,7 +19,6 @@ public class Report
     public ReportStatus Status { get; private set; }
 
     private Report(
-        long reportId,
         long userId,
         ReportType type,
         DateTimeOffset reportedAt,
@@ -28,7 +27,6 @@ public class Report
         DateTimeOffset? respondedAt,
         ReportStatus status)
     {
-        ReportId = reportId;
         UserId = userId;
         Type = type;
         ReportedAt = reportedAt;
@@ -38,14 +36,12 @@ public class Report
         Status = status;
     }
 
-    public static Report Create(long reportId, long userId, ReportType type, string request)
+    public static Report Create(long userId, ReportType type, string request)
     {
-        ValidateId(reportId, nameof(reportId));
         ValidateId(userId, nameof(userId));
         ValidateRequest(request);
 
         return new Report(
-            reportId,
             userId,
             type,
             DateTimeOffset.Now,

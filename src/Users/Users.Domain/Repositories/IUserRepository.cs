@@ -1,3 +1,4 @@
+using UserService.Users.Domain.Enums;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
 
@@ -20,5 +21,8 @@ public interface IUserRepository
     public Task<User> CreateUser(User user,CancellationToken ct);
 
     public Task<bool> CheckPhoneExists(string phone, CancellationToken ct);
+
+    public Task<int> CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct);
+
 
 }

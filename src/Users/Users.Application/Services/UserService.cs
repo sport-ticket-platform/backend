@@ -1,5 +1,6 @@
 using UserService.Users.Application.Exceptions;
 using UserService.Users.Application.Requests;
+using UserService.Users.Domain.Enums;
 using UserService.Users.Domain.Exceptions;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
@@ -94,7 +95,7 @@ public class UserService : IUserService
 
         if (await _userRepo.CheckEmailExists(user.Email, ct))
             throw new DomainException("A user with this email already exists");
-        
+
         return await _userRepo.CreateUser(user, ct);
     }
 
@@ -112,10 +113,15 @@ public class UserService : IUserService
         else
             user.DeactivateAccount();
 
-        
+
         await _userRepo.UpdateUser(user, ct);
     }
-    
-    
-    
+
+    public async Task CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct)
+    {
+        _logger.LogInformation("creating a new report for user {userId}", userId);
+        var report = Report.Create(userId, type, requestContent);
+
+        await _userRepo.CreateReport(report,ct);
+    }
 }

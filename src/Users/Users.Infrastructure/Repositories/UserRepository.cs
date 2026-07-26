@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using Dapper;
 using Npgsql;
+using UserService.Users.Domain.Enums;
 using UserService.Users.Domain.Exceptions;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
@@ -340,7 +341,7 @@ public class UserRepository : IUserRepository
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }
-    
+
     public async Task<bool> CheckPhoneExists(string phone, CancellationToken ct)
     {
         _logger.LogInformation("checking whether phone {phone} exists", phone);
@@ -363,18 +364,19 @@ public class UserRepository : IUserRepository
         }
         catch (PostgresException ex)
         {
-            _logger.LogError(ex, "Database rejected the query while checking phone {phone}.{state}", phone, ex.SqlState);
+            _logger.LogError(ex, "Database rejected the query while checking phone {phone}.{state}", phone,
+                ex.SqlState);
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }
 
     public async Task<User> CreateUser(User user, CancellationToken ct)
-{
-    _logger.LogInformation("creating user with email {email}", user.Email);
-
-    try
     {
-        const string sql = @"
+        _logger.LogInformation("creating user with email {email}", user.Email);
+
+        try
+        {
+            const string sql = @"
         INSERT INTO users
             (first_name, last_name, role, email, email_verified, phone_number,
              phone_verified, registration_date, password, balance, city_id, status, two_factor_enabled)
@@ -397,33 +399,71 @@ public class UserRepository : IUserRepository
             status             AS ""Status"",
             two_factor_enabled AS ""IsTwoFactorEnabled"";
         ";
-        var command = new CommandDefinition(
-            sql,
-            user,
-            cancellationToken: ct
-        );
-        return await _dbContext.DbConnection.QuerySingleAsync<User>(command);
+            var command = new CommandDefinition(
+                sql,
+                user,
+                cancellationToken: ct
+            );
+            return await _dbContext.DbConnection.QuerySingleAsync<User>(command);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while creating user with email {email}.", user.Email);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database operation timed out while creating user with email {email}", user.Email);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            _logger.LogWarning(ex, "Unique constraint violated while creating user with email {email}.", user.Email);
+            throw new DomainException("A user with this email already exists");
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while creating user with email {email}.{state}",
+                user.Email, ex.SqlState);
+            throw new InfrastructureException("DataBase operation failed", ex);
+        }
     }
-    catch (NpgsqlException ex) when (ex.InnerException is IOException)
+
+    public async Task<int> CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct)
     {
-        _logger.LogCritical(ex, "Database connection failed while creating user with email {email}.", user.Email);
-        throw new InfrastructureException("Unable to reach the database", ex);
+        const string sql = @"
+        INSERT INTO report (user_id, type, report, status)
+        VALUES (@UserId, @Type, @Request, @Status)
+        RETURNING report_id;";
+
+        try
+        {
+            var reportId = await _dbContext.DbConnection.QuerySingleAsync<int>(
+                new CommandDefinition(sql, new
+                {
+                    UserId = userId,
+                    Type = type.ToString(),
+                    Request = requestContent,
+                    Status = ReportStatus.OPEN.ToString()
+                }, cancellationToken: ct));
+
+            _logger.LogInformation("Created report {ReportId} for user {UserId}", reportId, userId);
+            return reportId;
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while creating a new report.");
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while creating a new report.");
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while creating a new report.{state}", ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
     }
-    catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
-    {
-        _logger.LogError(ex, "Database operation timed out while creating user with email {email}", user.Email);
-        throw new InfrastructureException("Database operation timed out.", ex);
-    }
-    catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UniqueViolation)
-    {
-        _logger.LogWarning(ex, "Unique constraint violated while creating user with email {email}.", user.Email);
-        throw new DomainException("A user with this email already exists");
-    }
-    catch (PostgresException ex)
-    {
-        _logger.LogError(ex, "Database rejected the query while creating user with email {email}.{state}",
-            user.Email, ex.SqlState);
-        throw new InfrastructureException("DataBase operation failed", ex);
-    }
-}
 }

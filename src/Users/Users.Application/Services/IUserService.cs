@@ -1,4 +1,5 @@
 using UserService.Users.Application.Requests;
+using UserService.Users.Domain.Enums;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
 
@@ -16,5 +17,6 @@ public interface IUserService
     public Task<User> GetUserByPhone(string phone, CancellationToken ct);
     public Task<bool> CheckEmailExists(string email, CancellationToken ct);
     public Task<User> CreateUser(User user, CancellationToken ct);
+    public Task CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct);
 
 }
