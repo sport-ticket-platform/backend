@@ -1,3 +1,4 @@
+using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
 using UserService.Users.Domain.Repositories;
 
@@ -20,5 +21,12 @@ public class AdminService : IAdminService
         _logger.LogInformation("fetching all the the reports created by all users");
         var reports = await _adminRepo.GetAllOpenReports(ct,limit, offset);
         return reports;
+    }
+
+    public async Task<Report> GetOpenReport(int reportId, CancellationToken ct)
+    {
+        _logger.LogInformation("fetching the open report {reportId}",reportId);
+        var report = await _adminRepo.GetOpenReport(reportId, ct);
+        return report;
     }
 }

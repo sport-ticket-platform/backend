@@ -38,4 +38,15 @@ public class AdminController : ControllerBase
         var reports = await _adminService.GetAllOpenReports(limit, offset, ct);
         return Ok(reports);
     }
+
+    [HttpGet("report/{reportId}")]
+    public async Task<IActionResult> GetOpenReport([FromQuery] int reportId, CancellationToken ct)
+    {
+        if (!long.TryParse(User.FindFirst("sub")?.Value, out var adminIdClaim))
+            throw new UnauthorizedException("The admin must first log in");
+
+        _logger.LogInformation("fetching report {reportId} for admin {adminId}",reportId,adminIdClaim);
+        var report = await _adminService.GetOpenReport(reportId,ct);
+        return Ok(report);
+    }
 }

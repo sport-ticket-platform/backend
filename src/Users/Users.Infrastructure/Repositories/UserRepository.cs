@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using Dapper;
 using Npgsql;
+using UserService.Users.Application.Exceptions;
 using UserService.Users.Domain.Enums;
 using UserService.Users.Domain.Exceptions;
 using UserService.Users.Domain.Models;
@@ -459,6 +460,14 @@ public class UserRepository : IUserRepository
         {
             _logger.LogError(ex, "Database query timed out while creating a new report.");
             throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex) when (ex.SqlState is PostgresErrorCodes.ForeignKeyViolation)
+        {
+            _logger.LogError(ex,"User referenced entity dose not exist.");
+            throw new NotFoundException(
+                "User referenced entity dose not exist.");
+
+
         }
         catch (PostgresException ex)
         {
