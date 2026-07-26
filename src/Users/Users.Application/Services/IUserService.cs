@@ -17,6 +17,8 @@ public interface IUserService
     public Task<User> GetUserByPhone(string phone, CancellationToken ct);
     public Task<bool> CheckEmailExists(string email, CancellationToken ct);
     public Task<User> CreateUser(User user, CancellationToken ct);
-    public Task CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct);
+    public Task<int> CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct);
+    public Task<List<UserReports>> GetAllReports(long userId, CancellationToken ct);
+
 
 }

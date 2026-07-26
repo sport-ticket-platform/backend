@@ -117,11 +117,19 @@ public class UserService : IUserService
         await _userRepo.UpdateUser(user, ct);
     }
 
-    public async Task CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct)
+    public async Task<int> CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct)
     {
         _logger.LogInformation("creating a new report for user {userId}", userId);
         var report = Report.Create(userId, type, requestContent);
 
-        await _userRepo.CreateReport(report,ct);
+        var reportId = await _userRepo.CreateReport(report.UserId,report.Request,report.Type,ct);
+        return reportId;
+    }
+
+    public async Task<List<UserReports>> GetAllReports(long userId,CancellationToken ct)
+    {
+        _logger.LogInformation("getting the the reports created by {userId}",userId);
+        var reports = await _userRepo.GetAllReports(userId,ct);
+        return reports;
     }
 }

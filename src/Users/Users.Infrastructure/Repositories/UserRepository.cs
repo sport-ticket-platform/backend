@@ -466,4 +466,43 @@ public class UserRepository : IUserRepository
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }
+
+
+    public async Task<List<UserReports>> GetAllReports(long userId, CancellationToken ct)
+    {
+        const string sql = @"
+        SELECT 
+            report_id AS ReportId,
+            status AS Status,
+            reported_at AS ReportedAt
+        FROM TABLE (report)
+        WHERE user_id = @UserId";
+
+        try
+        {
+            var command = new CommandDefinition(
+                sql,
+                new { UserId = userId },
+                cancellationToken: ct
+            );
+            var reports = await _dbContext.DbConnection.QueryAsync<UserReports>(command);
+            return reports.ToList();
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while getting all reports for user {userId}.", userId);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while getting all reports for user {userId}.", userId);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while getting all reports for user {userId}.{state}",
+                userId, ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
+    }
 }
