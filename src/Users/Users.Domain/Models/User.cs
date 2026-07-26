@@ -12,13 +12,13 @@ public class User
     public Role Role { get; private set; }
     public string Email { get; private set; }
     public bool IsEmailVerified { get; private set; } = false;
-    public string PhoneNumber { get; private set; }
+    public string? PhoneNumber { get; private set; }
     public bool IsPhoneNumberVerified { get; private set; } = false;
 
     public DateTimeOffset RegistrationDate { get; private set; } = DateTimeOffset.Now;
     public string PasswordHash { get; private set; }
     public decimal Balance { get; private set; } = default;
-    public int CityId { get; private set; } = default;
+    public int? CityId { get; private set; } = default;
     public bool IsActive { get; private set; } = true;
 
     public bool IsTwoFactorEnabled { get; private set; } = false;

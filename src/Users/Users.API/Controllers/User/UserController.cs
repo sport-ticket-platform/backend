@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UserService.Users.API.DTOs;
+using UserService.Users.API.Exceptions;
 using UserService.Users.Application.Requests;
 using UserService.Users.Application.Services;
 using UserService.Users.Domain.ReadModels;
@@ -9,7 +10,7 @@ namespace UserService.Users.API.Controllers.User;
 
 [ApiController]
 [Route("/api/user")]
-[Authorize(policy:"RequireUser")]
+[Authorize(policy: "RequireUser")]
 public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
@@ -40,7 +41,7 @@ public class UserController : ControllerBase
     public async Task<ActionResult> UpdateUserProfile([FromBody] UserProfileDto userProfileDto, CancellationToken ct)
     {
         _logger.LogInformation("updating user profile");
-        
+
         var updateProfileRequest = new UpdateProfileRequest(
             userProfileDto.UserId,
             userProfileDto.FirstName,
@@ -50,10 +51,44 @@ public class UserController : ControllerBase
             userProfileDto.City);
 
         await _userService.UpdateUserProfile(updateProfileRequest, ct);
-        return Ok(); 
+        return Ok();
     }
-    
-    
-    
-    
+
+    [HttpGet("report/{reportId}")]
+    public async Task<IActionResult> GetReportDetails(long reportId, CancellationToken ct)
+    {
+        if (!long.TryParse(User.FindFirst("sub")?.Value, out var userIdClaim))
+            throw new UnauthorizedException("The user must first log in");
+
+        _logger.LogInformation("fetching report {reportId} for user {userId}", reportId, userIdClaim);
+
+        var report = await _userService.GetReportDetails(reportId, ct);
+        if (report.UserId != userIdClaim)
+            throw new ArgumentException("The ID that is passed doesnt match the user credentials");
+
+        return Ok(report);
+    }
+
+    [HttpGet("report")]
+    public async Task<IActionResult> GetAllReports(CancellationToken ct)
+    {
+        if (!long.TryParse(User.FindFirst("sub")?.Value, out var userIdClaim))
+            throw new UnauthorizedException("The user must first log in");
+
+        _logger.LogInformation("fetching all reports for user {userId}", userIdClaim);
+
+        var reports = await _userService.GetAllReports(userIdClaim, ct);
+        return Ok(reports);
+    }
+
+    [HttpPost("report")]
+    public async Task<IActionResult> CreateReport([FromBody] ReportDto reportDto, CancellationToken ct)
+    {
+        if (!long.TryParse(User.FindFirst("sub")?.Value, out var userIdClaim))
+            throw new UnauthorizedException("The user must first log in");
+
+        _logger.LogInformation("creating a new report for user {userId}",userIdClaim);
+        var reportId = await _userService.CreateReport(userIdClaim, reportDto.RequestConent, reportDto.Type, ct);
+        return Ok(reportId);
+    }
 }
