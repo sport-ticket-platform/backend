@@ -33,7 +33,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Users.API\Controllers\Admin\" />
         <Folder Include="Users.Application\Results\" />
     </ItemGroup>
 

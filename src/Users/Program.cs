@@ -29,6 +29,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.UserService>();
 builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
 builder.Services.AddScoped<ExceptionInterceptor>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+
 
 builder.Services.AddGrpc();
 

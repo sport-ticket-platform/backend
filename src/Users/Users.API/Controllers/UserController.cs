@@ -6,7 +6,7 @@ using UserService.Users.Application.Requests;
 using UserService.Users.Application.Services;
 using UserService.Users.Domain.ReadModels;
 
-namespace UserService.Users.API.Controllers.User;
+namespace UserService.Users.API.Controllers;
 
 [ApiController]
 [Route("/api/user")]
