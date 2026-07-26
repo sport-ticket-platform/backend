@@ -132,4 +132,13 @@ public class UserService : IUserService
         var reports = await _userRepo.GetAllReports(userId,ct);
         return reports;
     }
+
+    public async Task<Report> GetReportDetails(long reportId,CancellationToken ct)
+    {
+        _logger.LogInformation("fetching report details {reportId}",reportId);
+        var report = await _userRepo.GetReportDetails(reportId, ct);
+        if(report is null)
+            throw new ArgumentException("An invalid report ID was supplied.");
+        return report;
+    }
 }

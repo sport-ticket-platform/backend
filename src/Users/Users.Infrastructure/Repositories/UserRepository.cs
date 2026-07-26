@@ -505,4 +505,36 @@ public class UserRepository : IUserRepository
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }
+
+    public async Task<Report?> GetReportDetails(long reportId, CancellationToken ct)
+    {
+        const string sql = @"
+        SELECT * FROM report WHERE report_id = @ReportId";
+        try
+        {
+            var command = new CommandDefinition(
+                sql,
+                new { ReportId = reportId },
+                cancellationToken: ct
+            );
+            return await _dbContext.DbConnection.QueryFirstOrDefaultAsync(command);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while fetching report {reportId}.", reportId);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while fetching report {reportId}.", reportId);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while fetching report {reportId}.{state}",
+                reportId, ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
+    }
+
 }
