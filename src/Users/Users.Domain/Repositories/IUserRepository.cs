@@ -27,6 +27,10 @@ public interface IUserRepository
     public Task<List<UserReports>> GetAllReports(long userId, CancellationToken ct);
     public Task<Report?> GetReportDetails(long reportId, CancellationToken ct);
 
+    public Task<List<City>> SearchCities(string? searchTerm, int limit, int offset, CancellationToken ct);
+
+
+
 
 
 

@@ -15,6 +15,9 @@ public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
     private readonly IUserService _userService;
+    private const int MAXIMUM_LIMIT = 40;
+    private const int DEFAULT_OFFSET = 0;
+
 
     public UserController(ILogger<UserController> logger, IUserService userService)
     {
@@ -87,8 +90,31 @@ public class UserController : ControllerBase
         if (!long.TryParse(User.FindFirst("sub")?.Value, out var userIdClaim))
             throw new UnauthorizedException("The user must first log in");
 
-        _logger.LogInformation("creating a new report for user {userId}",userIdClaim);
-        var reportId = await _userService.CreateReport(userIdClaim, reportReqestDto.RequestConent, reportReqestDto.Type, ct);
+        _logger.LogInformation("creating a new report for user {userId}", userIdClaim);
+        var reportId =
+            await _userService.CreateReport(userIdClaim, reportReqestDto.RequestConent, reportReqestDto.Type, ct);
         return Ok(reportId);
+    }
+
+    // [HttpGet("cities")]
+    // public async Task<IActionResult> GetAllCities(CancellationToken ct)
+    // {
+    //     _logger.LogInformation("fetching all the users");
+    //     var cities = await _userService.GetAllCities(ct);
+    //     return Ok(cities);
+    // }
+
+    [HttpGet("cities")]
+    public async Task<IActionResult> SearchCity([FromQuery] string? searchTerm, CancellationToken ct,
+        [FromQuery] int limit = 20, [FromQuery] int offset = 0)
+    {
+        if (limit > 40)
+            limit = MAXIMUM_LIMIT;
+        if (offset < 0)
+            offset = DEFAULT_OFFSET;
+
+        _logger.LogInformation("fetching city like {searchTerm}", searchTerm);
+        var cities = await _userService.SearchCities(searchTerm, limit, offset, ct);
+        return Ok(cities);
     }
 }

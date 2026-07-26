@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using UserService.Users.Application.Exceptions;
 using UserService.Users.Application.Requests;
 using UserService.Users.Domain.Enums;
@@ -122,23 +123,29 @@ public class UserService : IUserService
         _logger.LogInformation("creating a new report for user {userId}", userId);
         var report = Report.Create(userId, type, requestContent);
 
-        var reportId = await _userRepo.CreateReport(report.UserId,report.Request,report.Type,ct);
+        var reportId = await _userRepo.CreateReport(report.UserId, report.Request, report.Type, ct);
         return reportId;
     }
 
-    public async Task<List<UserReports>> GetAllReports(long userId,CancellationToken ct)
+    public async Task<List<UserReports>> GetAllReports(long userId, CancellationToken ct)
     {
-        _logger.LogInformation("getting the the reports created by {userId}",userId);
-        var reports = await _userRepo.GetAllReports(userId,ct);
+        _logger.LogInformation("getting the the reports created by {userId}", userId);
+        var reports = await _userRepo.GetAllReports(userId, ct);
         return reports;
     }
 
-    public async Task<Report> GetReportDetails(long reportId,CancellationToken ct)
+    public async Task<Report> GetReportDetails(long reportId, CancellationToken ct)
     {
-        _logger.LogInformation("fetching report details {reportId}",reportId);
+        _logger.LogInformation("fetching report details {reportId}", reportId);
         var report = await _userRepo.GetReportDetails(reportId, ct);
-        if(report is null)
+        if (report is null)
             throw new ArgumentException("An invalid report ID was supplied.");
         return report;
+    }
+
+    public async Task<List<City>> SearchCities(string? searchTerm, int limit, int offset, CancellationToken ct)
+    {
+        _logger.LogInformation("fetching cities like {searchTerm}", searchTerm);
+        return await _userRepo.SearchCities(searchTerm, limit, offset, ct);
     }
 }

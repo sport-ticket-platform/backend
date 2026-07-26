@@ -463,7 +463,7 @@ public class UserRepository : IUserRepository
         }
         catch (PostgresException ex) when (ex.SqlState is PostgresErrorCodes.ForeignKeyViolation)
         {
-            _logger.LogError(ex,"User referenced entity dose not exist.");
+            _logger.LogError(ex, "User referenced entity dose not exist.");
             throw new NotFoundException(
                 "User referenced entity dose not exist.");
         }
@@ -544,4 +544,55 @@ public class UserRepository : IUserRepository
         }
     }
 
+    
+    public async Task<List<City>> SearchCities(string? searchTerm, int limit,int offset, CancellationToken ct)
+    {
+        string sql = "";
+        object parameters;
+        if (searchTerm is not null)
+        {
+            sql = @"
+            SELECT
+                city_id AS ""CityId"",
+                name    AS ""Name""
+            FROM city
+            WHERE name ILIKE @SearchTerm
+            ORDER BY name
+            LIMIT @Limit OFFSET @Offset;";
+            parameters = new { SearchTerm = $"%{searchTerm}%", Limit = limit, Offset = offset };
+        }
+        else
+        {
+            sql = @"
+            SELECT 
+            city_id AS CityId,
+            name AS Name
+            FROM table (city)
+            LIMIT @Limit OFFSET @Offset;";
+            parameters = new { Limit = limit, Offset = offset };
+        }
+
+        try
+        {
+            var cities = await _dbContext.DbConnection.QueryAsync<City>(
+                new CommandDefinition(sql, parameters, cancellationToken: ct));
+            return cities.ToList();
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while fetching cities {searchTerm}.", searchTerm);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while fetching the cities {searchTerm}.", searchTerm);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while the cities {searchTerm}.{state}", searchTerm,
+                ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
+    }
 }

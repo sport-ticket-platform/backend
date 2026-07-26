@@ -32,7 +32,7 @@ public class AdminController : ControllerBase
 
         _logger.LogInformation("fetching all reports created by users for admin {adminId}", adminIdClaim);
 
-        if (limit > 100)
+        if (limit > 40)
             limit = MAXIMUM_LIMIT;
         if (offset < 0)
             offset = DEFAULT_OFFSET;

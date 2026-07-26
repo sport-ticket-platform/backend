@@ -19,8 +19,12 @@ public interface IUserService
     public Task<User> CreateUser(User user, CancellationToken ct);
     public Task<int> CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct);
     public Task<List<UserReports>> GetAllReports(long userId, CancellationToken ct);
-
     public Task<Report> GetReportDetails(long reportId, CancellationToken ct);
+    public Task<List<City>> SearchCities(string searchTerm, int limit, int offset, CancellationToken ct);
+
+
+
+
 
 
 

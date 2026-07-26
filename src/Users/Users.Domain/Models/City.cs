@@ -4,23 +4,23 @@ namespace UserService.Users.Domain.Models;
 
 public class City
 {
-    public int SportId { get; private set; }
+    public int CityId { get; private set; }
     public string Name { get; private set; }
 
-    private City(int sportId, string name)
+    private City(int cityId, string name)
     {
-        SportId = sportId;
+        CityId = cityId;
         Name = name;
     }
 
-    public City Create(int sportId, string name)
+    public City Create(int cityId, string name)
     {
-        if (int.IsNegative(sportId))
+        if (int.IsNegative(cityId))
             throw new DomainException("The city ID must be positive");
 
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("The city's name supplied is not a valid name");
 
-        return new City(sportId, name);
+        return new City(cityId, name);
     }
 }
