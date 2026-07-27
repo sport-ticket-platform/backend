@@ -78,13 +78,13 @@ public class WriteRepository : IWriteRepository
             }
             catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.ForeignKeyViolation)
             {
-                _logger.LogError("One or more referenced entities (venue, host team, or guest team) do not exist.");
+                _logger.LogError(ex,"One or more referenced entities (venue, host team, or guest team) do not exist.");
                 throw new NotFoundException(
                     "One or more referenced entities (venue, host team, or guest team) do not exist.");
             }
             catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.CheckViolation)
             {
-                _logger.LogError("Host team and guest team cannot be the same.");
+                _logger.LogError(ex,"Host team and guest team cannot be the same.");
                 throw new BusinessLogicException("Host team and guest team cannot be the same.");
             }
 

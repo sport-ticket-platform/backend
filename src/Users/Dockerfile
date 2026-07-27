@@ -15,8 +15,7 @@ COPY . .
 
 RUN dotnet build "UserService.csproj" \
     -c $BUILD_CONFIGURATION \
-    -o /app/build \
-    --no-restore
+    -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
@@ -24,8 +23,8 @@ ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "UserService.csproj" \
     -c $BUILD_CONFIGURATION \
     -o /app/publish \
-    /p:UseAppHost=false \
-    --no-restore
+    /p:UseAppHost=false
+    
 
 FROM base AS final
 WORKDIR /app

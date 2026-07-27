@@ -96,7 +96,7 @@ public class UserRepository : IUserRepository
             ";
             var command = new CommandDefinition(
                 sql,
-                userId,
+                new {UserId = userId},
                 cancellationToken: ct
             );
             var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<User>(command);
@@ -171,12 +171,12 @@ public class UserRepository : IUserRepository
               u.last_name   AS ""LastName"",
               u.email       AS ""Email"",
               u.phone_number AS ""PhoneNumber"",
-              u.balance     AS ""Balance"",
               c.name        AS ""City""
               FROM users u
               JOIN city c ON c.city_id = u.city_id
               WHERE u.user_id = @UserId;
               ";
+            new UserProfile("sad", "asd", "efad", "werta", "ewrw");
             var command = new CommandDefinition(
                 sql,
                 new { UserId = userId },

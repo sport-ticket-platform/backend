@@ -28,14 +28,14 @@ public class User
         RegexOptions.Compiled);
 
 
-    private const int LeastChars = 5;
+    private const int LeastChars = 4;
     private const int MostChars = 50;
     private const string PhoneNumberPrefix = "09";
     private const int PhoneNumberLength = 11;
     private const int CurrencyDecimalPlaces = 2;
 
 
-    private User(string firstName, string lastName, Role role, string email, string phoneNumber,
+    public User(string firstName, string lastName, Role role, string email, string phoneNumber,
         string passwordHash, int cityId, bool isEmailVerified = false, bool isPhoneNumberVerified = false)
     {
         FirstName = firstName;

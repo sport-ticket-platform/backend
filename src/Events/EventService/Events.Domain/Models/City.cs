@@ -16,10 +16,10 @@ public class City
     public City Create(int sportId, string name)
     {
         if (int.IsNegative(sportId))
-            throw new DomainException("The sport ID must be positive");
+            throw new DomainException("The city ID must be positive");
 
         if (string.IsNullOrWhiteSpace(name))
-            throw new DomainException("The sport's name supplied is not a valid name");
+            throw new DomainException("The city's name supplied is not a valid name");
 
         return new City(sportId, name);
     }

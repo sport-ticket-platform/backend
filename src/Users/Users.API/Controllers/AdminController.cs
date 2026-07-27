@@ -8,7 +8,7 @@ using UserService.Users.Domain.ReadModels;
 namespace UserService.Users.API.Controllers;
 
 [ApiController]
-[Authorize(policy: "RequireAdmin")]
+[AllowAnonymous]
 [Route("/api/[controller]")]
 public class AdminController : ControllerBase
 {

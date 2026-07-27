@@ -10,7 +10,7 @@ namespace UserService.Users.API.Controllers;
 
 [ApiController]
 [Route("/api/user")]
-[Authorize(policy: "RequireUser")]
+[AllowAnonymous]
 public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
