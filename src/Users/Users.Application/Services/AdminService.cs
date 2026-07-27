@@ -51,4 +51,23 @@ public class AdminService : IAdminService
         return await _adminRepo.GetUsersByFilter(filter, ct);
     }
     
+    public async Task ChangeAccountStatus(long userId, bool active, CancellationToken ct)
+    {
+        _logger.LogInformation("changing user's account status to {active} user account with ID {userId}", active,
+            userId);
+        var user = await _adminRepo.GetUserById(userId, ct);
+
+        if (user is null)
+            throw new NotFoundException("User not found");
+
+        if (active)
+            user.ActivateAccount();
+        else
+            user.DeactivateAccount();
+
+
+        await _adminRepo.UpdateUser(user, ct);
+    }
+
+    
 }

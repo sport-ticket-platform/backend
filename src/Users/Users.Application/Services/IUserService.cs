@@ -8,7 +8,6 @@ namespace UserService.Users.Application.Services;
 public interface IUserService
 {
     public Task<UserProfile> GetUserProfileById(long userId, CancellationToken ct);
-    public Task ChangeAccountStatus(long userId, bool active, CancellationToken ct);
     public Task ChangePassword(long userId, string newPasswordHash, CancellationToken ct);
     public Task UpdateUserProfile(UpdateProfileRequest updateRequest, CancellationToken ct);
 
@@ -21,6 +20,7 @@ public interface IUserService
     public Task<List<UserReports>> GetAllReports(long userId, CancellationToken ct);
     public Task<Report> GetReportDetails(long reportId, CancellationToken ct);
     public Task<List<City>> SearchCities(string searchTerm, int limit, int offset, CancellationToken ct);
+
 
 
 

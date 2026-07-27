@@ -99,25 +99,7 @@ public class UserService : IUserService
 
         return await _userRepo.CreateUser(user, ct);
     }
-
-    public async Task ChangeAccountStatus(long userId, bool active, CancellationToken ct)
-    {
-        _logger.LogInformation("changing user's account status to {active} user account with ID {userId}", active,
-            userId);
-        var user = await _userRepo.GetUserById(userId, ct);
-
-        if (user is null)
-            throw new NotFoundException("User not found");
-
-        if (active)
-            user.ActivateAccount();
-        else
-            user.DeactivateAccount();
-
-
-        await _userRepo.UpdateUser(user, ct);
-    }
-
+    
     public async Task<int> CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct)
     {
         _logger.LogInformation("creating a new report for user {userId}", userId);

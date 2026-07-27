@@ -11,6 +11,10 @@ public interface IAdminRepository
 
     public Task<int> UpdateReport(Report report, CancellationToken ct);
     Task<List<AdminUserView>> GetUsersByFilter(UserFilterDto filter, CancellationToken ct);
+    public Task UpdateUser(User user, CancellationToken ct);
+
+    public Task<User?> GetUserById(long userId, CancellationToken ct);
+
 
 
 }

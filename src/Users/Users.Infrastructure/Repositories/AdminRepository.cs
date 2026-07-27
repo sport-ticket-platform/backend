@@ -111,12 +111,13 @@ public class AdminRepository : IAdminRepository
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
-            _logger.LogCritical(ex, "Database connection failed while fetching the report {reportId}.",report.ReportId);
+            _logger.LogCritical(ex, "Database connection failed while fetching the report {reportId}.",
+                report.ReportId);
             throw new InfrastructureException("Unable to reach the database", ex);
         }
         catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
         {
-            _logger.LogError(ex, "Database query timed out while fetching the report {reportId}.",report.ReportId);
+            _logger.LogError(ex, "Database query timed out while fetching the report {reportId}.", report.ReportId);
             throw new InfrastructureException("Database operation timed out.", ex);
         }
         catch (PostgresException ex)
@@ -126,10 +127,10 @@ public class AdminRepository : IAdminRepository
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }
-    
+
     public async Task<List<AdminUserView>> GetUsersByFilter(UserFilterDto filter, CancellationToken ct)
-{
-    var sqlBuilder = new StringBuilder(@"
+    {
+        var sqlBuilder = new StringBuilder(@"
         SELECT
             u.user_id    AS ""UserId"",
             u.first_name AS ""FirstName"",
@@ -140,56 +141,155 @@ public class AdminRepository : IAdminRepository
         WHERE 1 = 1
     ");
 
-    var parameters = new DynamicParameters();
+        var parameters = new DynamicParameters();
 
-    if (!string.IsNullOrWhiteSpace(filter.FirstName))
-    {
-        sqlBuilder.Append(" AND u.first_name ILIKE @FirstName");
-        parameters.Add("FirstName", $"%{filter.FirstName}%");
+        if (!string.IsNullOrWhiteSpace(filter.FirstName))
+        {
+            sqlBuilder.Append(" AND u.first_name ILIKE @FirstName");
+            parameters.Add("FirstName", $"%{filter.FirstName}%");
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.LastName))
+        {
+            sqlBuilder.Append(" AND u.last_name ILIKE @LastName");
+            parameters.Add("LastName", $"%{filter.LastName}%");
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Email))
+        {
+            sqlBuilder.Append(" AND u.email ILIKE @Email");
+            parameters.Add("Email", $"%{filter.Email}%");
+        }
+
+        if (filter.Status.HasValue)
+        {
+            sqlBuilder.Append(" AND u.status = @Status");
+            parameters.Add("Status", filter.Status.Value);
+        }
+
+        sqlBuilder.Append(" ORDER BY u.user_id LIMIT @Limit OFFSET @Offset");
+        parameters.Add("Limit", filter.Limit);
+        parameters.Add("Offset", filter.Offset);
+
+        try
+        {
+            var command = new CommandDefinition(sqlBuilder.ToString(), parameters, cancellationToken: ct);
+            var users = await _dbContext.DbConnection.QueryAsync<AdminUserView>(command);
+            return users.ToList();
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while fetching filtered users.");
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while fetching filtered users.");
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while fetching filtered users. {state}", ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
     }
 
-    if (!string.IsNullOrWhiteSpace(filter.LastName))
+    public async Task<User?> GetUserById(long userId, CancellationToken ct)
     {
-        sqlBuilder.Append(" AND u.last_name ILIKE @LastName");
-        parameters.Add("LastName", $"%{filter.LastName}%");
+        try
+        {
+            const string sql = @"
+            SELECT
+                user_id            AS ""UserId"",
+                first_name         AS ""FirstName"",
+                last_name          AS ""LastName"",
+                role               AS ""Role"",
+                email              AS ""Email"",
+                email_verified     AS ""IsEmailVerified"",
+                phone_number       AS ""PhoneNumber"",
+                phone_verified     AS ""IsPhoneVerified"",
+                registration_date  AS ""RegistrationDate"",
+                password           AS ""PasswordHash"",
+                balance            AS ""Balance"",
+                city_id            AS ""CityId"",
+                status             AS ""Status"",
+                two_factor_enabled AS ""IsTwoFactorEnabled""
+            FROM users
+            WHERE user_id = @UserId;
+            ";
+            var command = new CommandDefinition(
+                sql,
+                userId,
+                cancellationToken: ct
+            );
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<User>(command);
+            return user;
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while fetching the user {userId}.",
+                userId);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database query timed out while fetching user {UserId}", userId);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while fetching the user {userId}.{state}", userId,
+                ex.SqlState);
+            throw new InfrastructureException("DataBase query failed", ex);
+        }
     }
-
-    if (!string.IsNullOrWhiteSpace(filter.Email))
+    
+    public async Task UpdateUser(User user, CancellationToken ct)
     {
-        sqlBuilder.Append(" AND u.email ILIKE @Email");
-        parameters.Add("Email", $"%{filter.Email}%");
+        try
+        {
+            const string sql = @"
+            UPDATE users
+            SET
+                first_name         = @FirstName,
+                last_name           = @LastName,
+                role                = @Role::user_role,
+                email               = @Email,
+                email_verified      = @IsEmailVerified,
+                phone_number        = @PhoneNumber,
+                phone_verified      = @IsPhoneNumberVerified,
+                registration_date   = @RegistrationDate,
+                password            = @PasswordHash,
+                balance             = @Balance,
+                city_id             = @CityId,
+                status              = @Status,
+                two_factor_enabled  = @IsTwoFactorEnabled
+            WHERE user_id = @UserId;
+        ";
+            var command = new CommandDefinition(
+                sql,
+                user,
+                cancellationToken: ct
+            );
+            await _dbContext.DbConnection.ExecuteAsync(command);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is IOException)
+        {
+            _logger.LogCritical(ex, "Database connection failed while fetching the user {userId}.",
+                user.UserId);
+            throw new InfrastructureException("Unable to reach the database", ex);
+        }
+        catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
+        {
+            _logger.LogError(ex, "Database operation timed out while fetching user {UserId}", user.UserId);
+            throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex)
+        {
+            _logger.LogError(ex, "Database rejected the query while fetching the user {userId}.{state}", user.UserId,
+                ex.SqlState);
+            throw new InfrastructureException("DataBase operation failed", ex);
+        }
     }
-
-    if (filter.Status.HasValue)
-    {
-        sqlBuilder.Append(" AND u.status = @Status");
-        parameters.Add("Status", filter.Status.Value);
-    }
-
-    sqlBuilder.Append(" ORDER BY u.user_id LIMIT @Limit OFFSET @Offset");
-    parameters.Add("Limit", filter.Limit);
-    parameters.Add("Offset", filter.Offset);
-
-    try
-    {
-        var command = new CommandDefinition(sqlBuilder.ToString(), parameters, cancellationToken: ct);
-        var users = await _dbContext.DbConnection.QueryAsync<AdminUserView>(command);
-        return users.ToList();
-    }
-    catch (NpgsqlException ex) when (ex.InnerException is IOException)
-    {
-        _logger.LogCritical(ex, "Database connection failed while fetching filtered users.");
-        throw new InfrastructureException("Unable to reach the database", ex);
-    }
-    catch (NpgsqlException ex) when (ex.InnerException is TimeoutException)
-    {
-        _logger.LogError(ex, "Database query timed out while fetching filtered users.");
-        throw new InfrastructureException("Database operation timed out.", ex);
-    }
-    catch (PostgresException ex)
-    {
-        _logger.LogError(ex, "Database rejected the query while fetching filtered users. {state}", ex.SqlState);
-        throw new InfrastructureException("DataBase query failed", ex);
-    }
-}
+    
 }

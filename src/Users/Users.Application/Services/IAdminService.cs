@@ -12,6 +12,8 @@ public interface IAdminService
     public Task AnswerReport(int reportId, string response, CancellationToken ct);
 
     public Task<List<AdminUserView>> GetUsers(UserFilterDto filter, CancellationToken ct);
+    public Task ChangeAccountStatus(long userId, bool active, CancellationToken ct);
+    
 
 
 }

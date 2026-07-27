@@ -53,12 +53,12 @@ public class AdminController : ControllerBase
     }
 
     [HttpPut("report/{reportId}")]
-    public async Task AnswerReport([FromQuery] int reportId, [FromBody] ReportResponseDto responseDto,
+    public async Task<IActionResult> AnswerReport([FromQuery] int reportId, [FromBody] ReportResponseDto responseDto,
         CancellationToken ct)
     {
         _logger.LogInformation("answering the report {reportId}", reportId);
         await _adminService.AnswerReport(reportId, responseDto.Response, ct);
-        return;
+        return Ok();
     }
     
     [HttpGet("users")]
@@ -67,5 +67,13 @@ public class AdminController : ControllerBase
         _logger.LogInformation("fetching users");
         var users = await _adminService.GetUsers(filter, ct);
         return Ok(users);
+    }
+
+    [HttpPut("users/{userId}")]
+    public async Task<IActionResult> ChangeAccountStatus([FromRoute] int userId, [FromQuery] bool active ,CancellationToken ct)
+    {
+        _logger.LogInformation("Changing user account status");
+        await _adminService.ChangeAccountStatus(userId, active, ct);
+        return Ok();
     }
 }

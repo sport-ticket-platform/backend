@@ -71,11 +71,6 @@ public class UserRepository : IUserRepository
         }
     }
 
-    public Task ChangePassword(long userId, string newPasswordHash, CancellationToken ct)
-    {
-        throw new NotImplementedException();
-    }
-
     public async Task<User?> GetUserById(long userId, CancellationToken ct)
     {
         try
@@ -544,8 +539,8 @@ public class UserRepository : IUserRepository
         }
     }
 
-    
-    public async Task<List<City>> SearchCities(string? searchTerm, int limit,int offset, CancellationToken ct)
+
+    public async Task<List<City>> SearchCities(string? searchTerm, int limit, int offset, CancellationToken ct)
     {
         string sql = "";
         object parameters;
