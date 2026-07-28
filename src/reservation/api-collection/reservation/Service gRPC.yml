@@ -1,0 +1,12 @@
+info:
+  name: Service gRPC
+  type: grpc
+  seq: 2
+
+grpc:
+  url: localhost:9091
+  method: ""
+  message:
+    - title: message 1
+      message: "{}"
+  auth: inherit
