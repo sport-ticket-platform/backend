@@ -98,7 +98,7 @@
         <!-- gRPC -->
         <dependency>
             <groupId>net.devh</groupId>
-            <artifactId>grpc-client-spring-boot-starter</artifactId>
+            <artifactId>grpc-server-spring-boot-starter</artifactId>
             <version>${grpc.spring.boot.version}</version>
         </dependency>
         <dependency>
