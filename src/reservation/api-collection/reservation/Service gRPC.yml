@@ -5,8 +5,15 @@ info:
 
 grpc:
   url: localhost:9091
-  method: ""
+  method: /Event.ReservationService/GetReservedSeatsByConfigIds
+  methodType: unary
   message:
     - title: message 1
-      message: "{}"
+      message: |-
+        {
+          "config_ids": [
+            268,
+            268
+          ]
+        }
   auth: inherit
