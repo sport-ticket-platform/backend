@@ -78,6 +78,27 @@ public class UserRepository : IUserRepository
             _logger.LogError(ex, "Database operation timed out while fetching user {UserId}", user.UserId);
             throw new InfrastructureException("Database operation timed out.", ex);
         }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            if (ex.ConstraintName is not null &&
+                ex.ConstraintName.Contains("email", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(ex, "Unique constraint violated while updating user with email {Email}.",
+                    user.Email);
+                throw new DomainException("A user with this email already exists.");
+            }
+
+            if (ex.ConstraintName is not null &&
+                ex.ConstraintName.Contains("phone", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(ex, "Unique constraint violated while updating user with phone number {Phone}.",
+                    user.PhoneNumber);
+                throw new DomainException("A user with this phone number already exists.");
+            }
+
+            _logger.LogWarning(ex, "Unique constraint violated: {ConstraintName}", ex.ConstraintName);
+            throw new DomainException("A unique field conflict occurred.");
+        }
         catch (PostgresException ex)
         {
             _logger.LogError(ex, "Database rejected the query while fetching the user {userId}.{state}", user.UserId,
