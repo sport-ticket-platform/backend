@@ -35,7 +35,22 @@ public class User
     private const int CurrencyDecimalPlaces = 2;
 
 
-    public User(string firstName, string lastName, Role role, string email, string phoneNumber,
+    private User(long userId,string firstName, string lastName, Role role, string email, string phoneNumber,
+        string passwordHash, int cityId, bool isEmailVerified = false, bool isPhoneNumberVerified = false)
+    {
+        UserId = userId;
+        FirstName = firstName;
+        LastName = lastName;
+        Role = role;
+        Email = email;
+        PhoneNumber = phoneNumber;
+        PasswordHash = passwordHash;
+        CityId = cityId;
+        IsEmailVerified = isEmailVerified;
+        IsPhoneNumberVerified = isPhoneNumberVerified;
+    }
+    
+    private User(string firstName, string lastName, Role role, string email, string phoneNumber,
         string passwordHash, int cityId, bool isEmailVerified = false, bool isPhoneNumberVerified = false)
     {
         FirstName = firstName;
@@ -104,6 +119,24 @@ public class User
     }
 
 
+    public static User Create(long userId,string firstName, string lastName, Role userRole, string email, string phoneNumber,
+        string passwordHash, int cityId, bool emailIsVerified = false, bool phoneNumberIsVerified = false)
+    {
+        ValidateNameLength(firstName, nameof(firstName));
+        ValidateNameLength(lastName, nameof(lastName));
+        ValidateEmail(email);
+        ValidatePhoneNumber(phoneNumber);
+
+        if (string.IsNullOrEmpty(passwordHash))
+            throw new DomainException("The password is required.");
+
+        if (cityId <= 0)
+            throw new DomainException("The city id must be positive.");
+
+        return new User(userId,firstName, lastName, userRole, email, phoneNumber, passwordHash, cityId, emailIsVerified,
+            phoneNumberIsVerified);
+    }
+    
     public static User Create(string firstName, string lastName, Role userRole, string email, string phoneNumber,
         string passwordHash, int cityId, bool emailIsVerified = false, bool phoneNumberIsVerified = false)
     {

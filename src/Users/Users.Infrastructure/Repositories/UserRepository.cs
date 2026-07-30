@@ -9,6 +9,7 @@ using UserService.Users.Domain.ReadModels;
 using UserService.Users.Domain.Repositories;
 using UserService.Users.Infrastructure.DbContext;
 using UserService.Users.Infrastructure.Exceptions;
+using UserService.Users.Infrastructure.Persistence.Models;
 
 namespace UserService.Users.Infrastructure.Repositories;
 
@@ -41,15 +42,29 @@ public class UserRepository : IUserRepository
                 password            = @PasswordHash,
                 balance             = @Balance,
                 city_id             = @CityId,
-                status              = @Status,
+                is_active           = @IsActive,
                 two_factor_enabled  = @IsTwoFactorEnabled
             WHERE user_id = @UserId;
         ";
-            var command = new CommandDefinition(
-                sql,
-                user,
-                cancellationToken: ct
-            );
+            var parameters = new
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role.ToString(),
+                Email = user.Email,
+                IsEmailVerified = user.IsEmailVerified,
+                PhoneNumber = user.PhoneNumber,
+                IsPhoneNumberVerified = user.IsPhoneNumberVerified,
+                RegistrationDate = user.RegistrationDate,
+                PasswordHash = user.PasswordHash,
+                Balance = user.Balance,
+                CityId = user.CityId,
+                IsActive = user.IsActive,
+                IsTwoFactorEnabled = user.IsTwoFactorEnabled
+            };
+
+            var command = new CommandDefinition(sql, parameters, cancellationToken: ct);
             await _dbContext.DbConnection.ExecuteAsync(command);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
@@ -84,23 +99,31 @@ public class UserRepository : IUserRepository
                 email              AS ""Email"",
                 email_verified     AS ""IsEmailVerified"",
                 phone_number       AS ""PhoneNumber"",
-                phone_verified     AS ""IsPhoneVerified"",
+                phone_verified     AS ""IsPhoneNumberVerified"",
                 registration_date  AS ""RegistrationDate"",
                 password           AS ""PasswordHash"",
                 balance            AS ""Balance"",
                 city_id            AS ""CityId"",
-                status             AS ""Status"",
+                is_active          AS ""IsActive"",
                 two_factor_enabled AS ""IsTwoFactorEnabled""
             FROM users
             WHERE user_id = @UserId;
             ";
             var command = new CommandDefinition(
                 sql,
-                new {UserId = userId},
+                new { UserId = userId },
                 cancellationToken: ct
             );
-            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<User>(command);
-            return user;
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel>(command);
+
+            if (user is null)
+                return null;
+
+            if (Enum.TryParse<Role>(user.Role, out var userRole))
+                throw new InvalidOperationException("The role is not in the correct format");
+            
+            return User.Create(user.UserId, user.Firstname, user.LastName, userRole, user.email, user.PhoneNumber,
+                user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -130,11 +153,11 @@ public class UserRepository : IUserRepository
             const string sql = @"
             SELECT city_id AS ""CityId""
             FROM city
-            WHERE name = @name;
+            WHERE name = @Name;
             ";
             var command = new CommandDefinition(
                 sql,
-                name,
+                new{Name = name},
                 cancellationToken: ct
             );
             int? cityId = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<int>(command);
