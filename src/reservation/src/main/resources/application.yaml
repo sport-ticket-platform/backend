@@ -36,8 +36,10 @@ management:
 
 app:
   security:
-    public-paths: /error,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/api/test/public
-
+    public-paths:
+      - /api/v1/auth/**
+      - /swagger-ui/**
+      - /v3/api-docs/**
     jwt:
       public-key: classpath:keys/public_key.pem
       issuer: auth-service
