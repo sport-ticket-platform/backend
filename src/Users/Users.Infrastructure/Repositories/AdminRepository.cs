@@ -84,7 +84,7 @@ public class AdminRepository : IAdminRepository
                 new { ReportId = reportId },
                 cancellationToken: ct
             );
-            var report = await _dbContext.DbConnection.QuerySingleOrDefaultAsync<ReportPersistenceModel>(command);
+            var report = await _dbContext.DbConnection.QuerySingleOrDefaultAsync<ReportPersistenceModel?>(command);
 
             if (report is null)
                 return null;
@@ -243,13 +243,14 @@ public class AdminRepository : IAdminRepository
                 new { UserId = userId },
                 cancellationToken: ct
             );
-            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel>(command);
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel?>(command);
 
             if (user is null)
                 return null;
 
-            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.email, user.PhoneNumber,
-                user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
+            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.Email, user.PhoneNumber,
+                user.RegistrationDate, user.PasswordHash, user.CityId, user.IsEmailVerified,
+                user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {

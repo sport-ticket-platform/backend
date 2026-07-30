@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +39,9 @@ builder.Services.AddScoped<IValidator<UserFilterDto>, UserFilterDtoValidator>();
 builder.Services.AddGrpc();
 
 builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>();
-builder.Services.AddControllers(options => { options.Filters.Add<GlobalValidationFilter>(); });
+builder.Services.AddControllers(options => { options.Filters.Add<GlobalValidationFilter>(); })
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
+
 
 var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];

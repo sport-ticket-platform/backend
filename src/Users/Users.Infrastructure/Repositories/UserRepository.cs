@@ -114,13 +114,14 @@ public class UserRepository : IUserRepository
                 new { UserId = userId },
                 cancellationToken: ct
             );
-            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel>(command);
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel?>(command);
 
             if (user is null)
                 return null;
 
-            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.email, user.PhoneNumber,
-                user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
+            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.Email, user.PhoneNumber,
+                user.RegistrationDate, user.PasswordHash, user.CityId, user.IsEmailVerified,
+                user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -157,7 +158,7 @@ public class UserRepository : IUserRepository
                 new { Name = name },
                 cancellationToken: ct
             );
-            int? cityId = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<int>(command);
+            int? cityId = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<int?>(command);
             return cityId;
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
@@ -201,7 +202,7 @@ public class UserRepository : IUserRepository
                 new { UserId = userId },
                 cancellationToken: ct
             );
-            var userProfile = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserProfile>(command);
+            var userProfile = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserProfile?>(command);
             return userProfile;
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
@@ -253,13 +254,14 @@ public class UserRepository : IUserRepository
                 email,
                 cancellationToken: ct
             );
-            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel>(command);
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel?>(command);
 
             if (user is null)
                 return null;
 
-            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.email, user.PhoneNumber,
-                user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
+            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.Email, user.PhoneNumber,
+                user.RegistrationDate, user.PasswordHash, user.CityId, user.IsEmailVerified,
+                user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -309,13 +311,14 @@ public class UserRepository : IUserRepository
                 phone,
                 cancellationToken: ct
             );
-            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel>(command);
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel?>(command);
 
             if (user is null)
                 return null;
 
-            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.email, user.PhoneNumber,
-                user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
+            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.Email, user.PhoneNumber,
+                user.RegistrationDate, user.PasswordHash, user.CityId, user.IsEmailVerified,
+                user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -455,8 +458,9 @@ public class UserRepository : IUserRepository
 
             return User.Create(persistedUser.UserId, persistedUser.Firstname, persistedUser.LastName,
                 persistedUser.Role,
-                persistedUser.email, persistedUser.PhoneNumber,
-                persistedUser.PasswordHash, persistedUser.CityId, persistedUser.IsEmailVerified,
+                persistedUser.Email, persistedUser.PhoneNumber,
+                persistedUser.RegistrationDate, persistedUser.PasswordHash, persistedUser.CityId,
+                persistedUser.IsEmailVerified,
                 persistedUser.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
@@ -534,7 +538,7 @@ public class UserRepository : IUserRepository
                 report_id AS ReportId,
                 status AS Status,
                 reported_at AS ReportedAt
-            FROM TABLE (report)
+            FROM report
             WHERE user_id = @UserId";
 
         try
@@ -643,7 +647,7 @@ public class UserRepository : IUserRepository
         {
             var cities = await _dbContext.DbConnection.QueryAsync<CityPersistenceModel>(
                 new CommandDefinition(sql, parameters, cancellationToken: ct));
-            
+
             return cities
                 .Select(c => City.Create(c.CityId, c.Name))
                 .ToList();
