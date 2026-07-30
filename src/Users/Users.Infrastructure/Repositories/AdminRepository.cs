@@ -8,6 +8,7 @@ using UserService.Users.Domain.ReadModels;
 using UserService.Users.Domain.Repositories;
 using UserService.Users.Infrastructure.DbContext;
 using UserService.Users.Infrastructure.Exceptions;
+using UserService.Users.Infrastructure.Persistence.Models;
 
 namespace UserService.Users.Infrastructure.Repositories;
 
@@ -25,7 +26,11 @@ public class AdminRepository : IAdminRepository
     public async Task<List<UserReports>> GetAllOpenReports(CancellationToken ct, int limit = 20, int offset = 0)
     {
         const string sql = @"
-        SELECT *  FROM TABLE (report)
+        SELECT  
+             report_id AS ReportId,
+             status AS Status,
+             reported_at AS ReportedAt
+        FROM TABLE (report)
         WHERE status = @Status
         LIMIT @Limit OFFSET @Offset;
         ";
@@ -33,7 +38,8 @@ public class AdminRepository : IAdminRepository
         try
         {
             var command = new CommandDefinition(
-                sql, new { Status = ReportStatus.OPEN },
+                sql,
+                new { Status = ReportStatus.OPEN },
                 cancellationToken: ct
             );
             var reports = await _dbContext.DbConnection.QueryAsync<UserReports>(command);
@@ -59,7 +65,16 @@ public class AdminRepository : IAdminRepository
     public async Task<Report?> GetOpenReport(int reportId, CancellationToken ct)
     {
         const string sql = @"
-        SELECT * FROM table (report)
+        SELECT 
+            report_id    AS ""ReportId"",
+            user_id      AS ""UserId"",
+            type         AS ""Type"",
+            reported_at  AS ""ReportedAt"",
+            request      AS ""Request"",
+            response     AS ""Response"",
+            responded_at AS ""RespondedAt"",
+            status       AS ""Status""
+        FROM table (report)
         WHERE report_id = @ReportId;";
 
         try
@@ -69,7 +84,13 @@ public class AdminRepository : IAdminRepository
                 new { ReportId = reportId },
                 cancellationToken: ct
             );
-            return await _dbContext.DbConnection.QuerySingleOrDefaultAsync<Report>(command);
+            var report = await _dbContext.DbConnection.QuerySingleOrDefaultAsync<ReportPersistenceModel>(command);
+
+            if (report is null)
+                return null;
+
+            return Report.Create(report.ReportId, report.UserId, report.Type, report.ReportedAt, report.Request,
+                report.Response, report.RespondedAt, report.Status);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -207,23 +228,28 @@ public class AdminRepository : IAdminRepository
                 email              AS ""Email"",
                 email_verified     AS ""IsEmailVerified"",
                 phone_number       AS ""PhoneNumber"",
-                phone_verified     AS ""IsPhoneVerified"",
+                phone_verified     AS ""IsPhoneNumberVerified"",
                 registration_date  AS ""RegistrationDate"",
                 password           AS ""PasswordHash"",
                 balance            AS ""Balance"",
                 city_id            AS ""CityId"",
-                status             AS ""Status"",
+                is_active          AS ""IsActive"",
                 two_factor_enabled AS ""IsTwoFactorEnabled""
             FROM users
             WHERE user_id = @UserId;
             ";
             var command = new CommandDefinition(
                 sql,
-                userId,
+                new { UserId = userId },
                 cancellationToken: ct
             );
-            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<User>(command);
-            return user;
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel>(command);
+
+            if (user is null)
+                return null;
+
+            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.email, user.PhoneNumber,
+                user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -243,7 +269,7 @@ public class AdminRepository : IAdminRepository
             throw new InfrastructureException("DataBase query failed", ex);
         }
     }
-    
+
     public async Task UpdateUser(User user, CancellationToken ct)
     {
         try
@@ -262,15 +288,29 @@ public class AdminRepository : IAdminRepository
                 password            = @PasswordHash,
                 balance             = @Balance,
                 city_id             = @CityId,
-                status              = @Status,
+                is_active           = @IsActive,
                 two_factor_enabled  = @IsTwoFactorEnabled
             WHERE user_id = @UserId;
         ";
-            var command = new CommandDefinition(
-                sql,
-                user,
-                cancellationToken: ct
-            );
+            var parameters = new
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role.ToString(),
+                Email = user.Email,
+                IsEmailVerified = user.IsEmailVerified,
+                PhoneNumber = user.PhoneNumber,
+                IsPhoneNumberVerified = user.IsPhoneNumberVerified,
+                RegistrationDate = user.RegistrationDate,
+                PasswordHash = user.PasswordHash,
+                Balance = user.Balance,
+                CityId = user.CityId,
+                IsActive = user.IsActive,
+                IsTwoFactorEnabled = user.IsTwoFactorEnabled
+            };
+
+            var command = new CommandDefinition(sql, parameters, cancellationToken: ct);
             await _dbContext.DbConnection.ExecuteAsync(command);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
@@ -291,5 +331,4 @@ public class AdminRepository : IAdminRepository
             throw new InfrastructureException("DataBase operation failed", ex);
         }
     }
-    
 }
