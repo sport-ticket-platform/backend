@@ -1,4 +1,3 @@
-
 using UserService.Users.Domain.Enums;
 using UserService.Users.Domain.Exceptions;
 
@@ -18,14 +17,22 @@ public class Report
     public DateTimeOffset? RespondedAt { get; private set; }
     public ReportStatus Status { get; private set; }
 
-    private Report(
-        long userId,
-        ReportType type,
-        DateTimeOffset reportedAt,
-        string request,
-        string? response,
-        DateTimeOffset? respondedAt,
-        ReportStatus status)
+
+    private Report(long reportId, long userId, ReportType type, DateTimeOffset reportedAt, string request,
+        string? response, DateTimeOffset? respondedAt, ReportStatus status)
+    {
+        ReportId = reportId;
+        UserId = userId;
+        Type = type;
+        ReportedAt = reportedAt;
+        Request = request;
+        Response = response;
+        RespondedAt = respondedAt;
+        Status = status;
+    }
+
+    private Report(long userId, ReportType type, DateTimeOffset reportedAt, string request, string? response,
+        DateTimeOffset? respondedAt, ReportStatus status)
     {
         UserId = userId;
         Type = type;
@@ -34,6 +41,24 @@ public class Report
         Response = response;
         RespondedAt = respondedAt;
         Status = status;
+    }
+
+
+    public static Report Create(long reportId, long userId, ReportType type, DateTimeOffset reportedAt, string request,
+        string? response, DateTimeOffset? respondedAt, ReportStatus status)
+    {
+        ValidateId(userId, nameof(userId));
+        ValidateRequest(request);
+
+        return new Report(
+            reportId,
+            userId,
+            type,
+            reportedAt,
+            request,
+            response,
+            respondedAt,
+            status);
     }
 
     public static Report Create(long userId, ReportType type, string request)
@@ -51,22 +76,21 @@ public class Report
             status: ReportStatus.OPEN);
     }
 
-    
+
     public void AnswerReport(string response, DateTimeOffset respondedAt)
     {
         if (Status != ReportStatus.OPEN)
             throw new DomainException("A report must be OPENED before it can be CLOSED.");
-        
+
         ValidateResponse(response);
-        
+
         if (respondedAt.CompareTo(ReportedAt) <= 0)
             throw new ArgumentException("The report time  cannot be equal of after the respond time");
 
         Response = response;
         RespondedAt = respondedAt;
-
     }
-    
+
     private static void ValidateId(long id, string name)
     {
         if (id <= 0)

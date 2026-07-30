@@ -119,10 +119,7 @@ public class UserRepository : IUserRepository
             if (user is null)
                 return null;
 
-            if (Enum.TryParse<Role>(user.Role, out var userRole))
-                throw new InvalidOperationException("The role is not in the correct format");
-            
-            return User.Create(user.UserId, user.Firstname, user.LastName, userRole, user.email, user.PhoneNumber,
+            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.email, user.PhoneNumber,
                 user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
@@ -157,7 +154,7 @@ public class UserRepository : IUserRepository
             ";
             var command = new CommandDefinition(
                 sql,
-                new{Name = name},
+                new { Name = name },
                 cancellationToken: ct
             );
             int? cityId = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<int>(command);
@@ -199,7 +196,6 @@ public class UserRepository : IUserRepository
               JOIN city c ON c.city_id = u.city_id
               WHERE u.user_id = @UserId;
               ";
-            new UserProfile("sad", "asd", "efad", "werta", "ewrw");
             var command = new CommandDefinition(
                 sql,
                 new { UserId = userId },
@@ -247,7 +243,7 @@ public class UserRepository : IUserRepository
             password           AS ""PasswordHash"",
             balance            AS ""Balance"",
             city_id            AS ""CityId"",
-            status             AS ""Status"",
+            is_active          AS ""IsActive"",
             two_factor_enabled AS ""IsTwoFactorEnabled""
         FROM users
         WHERE email = @email;
@@ -257,8 +253,13 @@ public class UserRepository : IUserRepository
                 email,
                 cancellationToken: ct
             );
-            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<User>(command);
-            return user;
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel>(command);
+
+            if (user is null)
+                return null;
+
+            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.email, user.PhoneNumber,
+                user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -298,7 +299,7 @@ public class UserRepository : IUserRepository
             password           AS ""PasswordHash"",
             balance            AS ""Balance"",
             city_id            AS ""CityId"",
-            status             AS ""Status"",
+            is_active             AS ""IsActive"",
             two_factor_enabled AS ""IsTwoFactorEnabled""
         FROM users
         WHERE phone_number = @phone;
@@ -308,8 +309,13 @@ public class UserRepository : IUserRepository
                 phone,
                 cancellationToken: ct
             );
-            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<User>(command);
-            return user;
+            var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel>(command);
+
+            if (user is null)
+                return null;
+
+            return User.Create(user.UserId, user.Firstname, user.LastName, user.Role, user.email, user.PhoneNumber,
+                user.PasswordHash, user.CityId, user.IsEmailVerified, user.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -335,10 +341,10 @@ public class UserRepository : IUserRepository
 
         try
         {
-            const string sql = @"SELECT EXISTS(SELECT 1 FROM users WHERE email = @email);";
+            const string sql = @"SELECT EXISTS(SELECT 1 FROM users WHERE email = @Email);";
             var command = new CommandDefinition(
                 sql,
-                email,
+                new { Email = email },
                 cancellationToken: ct
             );
             return await _dbContext.DbConnection.QuerySingleAsync<bool>(command);
@@ -367,8 +373,12 @@ public class UserRepository : IUserRepository
 
         try
         {
-            const string sql = @"SELECT EXISTS(SELECT 1 FROM users WHERE phone_number = @phone);";
-            var command = new CommandDefinition(sql, phone, cancellationToken: ct);
+            const string sql = @"SELECT EXISTS(SELECT 1 FROM users WHERE phone_number = @Phone);";
+
+            var command = new CommandDefinition(sql,
+                new { Phone = phone },
+                cancellationToken: ct
+            );
             return await _dbContext.DbConnection.QuerySingleAsync<bool>(command);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
@@ -415,15 +425,39 @@ public class UserRepository : IUserRepository
             password           AS ""PasswordHash"",
             balance            AS ""Balance"",
             city_id            AS ""CityId"",
-            status             AS ""Status"",
+            is_active          AS ""IsActive"",
             two_factor_enabled AS ""IsTwoFactorEnabled"";
         ";
+            var parameters = new
+            {
+                UserId = user.UserId,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Role = user.Role.ToString(),
+                Email = user.Email,
+                IsEmailVerified = user.IsEmailVerified,
+                PhoneNumber = user.PhoneNumber,
+                IsPhoneNumberVerified = user.IsPhoneNumberVerified,
+                RegistrationDate = user.RegistrationDate,
+                PasswordHash = user.PasswordHash,
+                Balance = user.Balance,
+                CityId = user.CityId,
+                IsActive = user.IsActive,
+                IsTwoFactorEnabled = user.IsTwoFactorEnabled
+            };
+
             var command = new CommandDefinition(
                 sql,
-                user,
+                parameters,
                 cancellationToken: ct
             );
-            return await _dbContext.DbConnection.QuerySingleAsync<User>(command);
+            var persistedUser = await _dbContext.DbConnection.QuerySingleAsync<UserPersistenceModel>(command);
+
+            return User.Create(persistedUser.UserId, persistedUser.Firstname, persistedUser.LastName,
+                persistedUser.Role,
+                persistedUser.email, persistedUser.PhoneNumber,
+                persistedUser.PasswordHash, persistedUser.CityId, persistedUser.IsEmailVerified,
+                persistedUser.IsPhoneNumberVerified);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -452,7 +486,7 @@ public class UserRepository : IUserRepository
     {
         const string sql = @"
         INSERT INTO report (user_id, type, report, status)
-        VALUES (@UserId, @Type, @Request, @Status)
+        VALUES (@UserId, @Type, @Request, @Status::report_status)
         RETURNING report_id;";
 
         try
@@ -496,12 +530,12 @@ public class UserRepository : IUserRepository
     public async Task<List<UserReports>> GetAllReports(long userId, CancellationToken ct)
     {
         const string sql = @"
-        SELECT 
-            report_id AS ReportId,
-            status AS Status,
-            reported_at AS ReportedAt
-        FROM TABLE (report)
-        WHERE user_id = @UserId";
+            SELECT 
+                report_id AS ReportId,
+                status AS Status,
+                reported_at AS ReportedAt
+            FROM TABLE (report)
+            WHERE user_id = @UserId";
 
         try
         {
@@ -534,7 +568,16 @@ public class UserRepository : IUserRepository
     public async Task<Report?> GetReportDetails(long reportId, CancellationToken ct)
     {
         const string sql = @"
-        SELECT * FROM report WHERE report_id = @ReportId";
+        SELECT 
+            report_id    AS ""ReportId"",
+            user_id      AS ""UserId"",
+            type         AS ""Type"",
+            reported_at  AS ""ReportedAt"",
+            request      AS ""Request"",
+            response     AS ""Response"",
+            responded_at AS ""RespondedAt"",
+            status       AS ""Status""
+        FROM report WHERE report_id = @ReportId";
         try
         {
             var command = new CommandDefinition(
@@ -542,7 +585,13 @@ public class UserRepository : IUserRepository
                 new { ReportId = reportId },
                 cancellationToken: ct
             );
-            return await _dbContext.DbConnection.QueryFirstOrDefaultAsync(command);
+            var report = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<ReportPersistenceModel>(command);
+
+            if (report is null)
+                return null;
+
+            return Report.Create(report.ReportId, report.UserId, report.Type, report.ReportedAt, report.Request,
+                report.Response, report.RespondedAt, report.Status);
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {
@@ -592,9 +641,12 @@ public class UserRepository : IUserRepository
 
         try
         {
-            var cities = await _dbContext.DbConnection.QueryAsync<City>(
+            var cities = await _dbContext.DbConnection.QueryAsync<CityPersistenceModel>(
                 new CommandDefinition(sql, parameters, cancellationToken: ct));
-            return cities.ToList();
+            
+            return cities
+                .Select(c => City.Create(c.CityId, c.Name))
+                .ToList();
         }
         catch (NpgsqlException ex) when (ex.InnerException is IOException)
         {

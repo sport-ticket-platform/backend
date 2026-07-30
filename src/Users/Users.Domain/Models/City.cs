@@ -13,7 +13,7 @@ public class City
         Name = name;
     }
 
-    public City Create(int cityId, string name)
+    public static City Create(int cityId, string name)
     {
         if (int.IsNegative(cityId))
             throw new DomainException("The city ID must be positive");
