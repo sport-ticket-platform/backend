@@ -69,7 +69,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = audience,
 
-            ValidateLifetime = true,
+            ValidateLifetime = false,
             ClockSkew = TimeSpan.FromMinutes(1),
 
             ValidateIssuerSigningKey = true,

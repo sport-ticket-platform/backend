@@ -10,7 +10,7 @@ namespace UserService.Users.API.Controllers;
 
 [ApiController]
 [Route("/api/user")]
-[AllowAnonymous]
+[Authorize(policy:"RequireUser")]
 public class UserController : ControllerBase
 {
     private readonly ILogger<UserController> _logger;
@@ -32,7 +32,10 @@ public class UserController : ControllerBase
         _logger.LogInformation("fetching user profile");
 
         var userIdClaim = User.FindFirst("sub")?.Value;
+        _logger.LogInformation("user with ID {userId}",userIdClaim);
+        _logger.LogInformation("user with ID {claims}",User.Identity.IsAuthenticated);
 
+        
         if (!long.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
@@ -45,8 +48,11 @@ public class UserController : ControllerBase
     {
         _logger.LogInformation("updating user profile");
 
+        if (!long.TryParse(User.FindFirst("sub")?.Value, out var userIdClaim))
+            throw new UnauthorizedException("The user must first log in");
+        
         var updateProfileRequest = new UpdateProfileRequest(
-            userProfileDto.UserId,
+            userIdClaim,
             userProfileDto.FirstName,
             userProfileDto.LastName,
             userProfileDto.Email,
@@ -85,14 +91,14 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("report")]
-    public async Task<IActionResult> CreateReport([FromBody] ReportReqestDto reportReqestDto, CancellationToken ct)
+    public async Task<IActionResult> CreateReport([FromBody] ReportRequestDto reportRequestDto, CancellationToken ct)
     {
         if (!long.TryParse(User.FindFirst("sub")?.Value, out var userIdClaim))
             throw new UnauthorizedException("The user must first log in");
 
         _logger.LogInformation("creating a new report for user {userId}", userIdClaim);
         var reportId =
-            await _userService.CreateReport(userIdClaim, reportReqestDto.RequestConent, reportReqestDto.Type, ct);
+            await _userService.CreateReport(userIdClaim, reportRequestDto.RequestConent, reportRequestDto.Type, ct);
         return Ok(reportId);
     }
 

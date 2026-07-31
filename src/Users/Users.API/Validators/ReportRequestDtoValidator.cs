@@ -1,14 +1,15 @@
 using FluentValidation;
 using UserService.Users.API.DTOs;
+using UserService.Users.Domain.Enums;
 
 namespace UserService.Users.API.Validators;
 
-public class ReportDtoValidator : AbstractValidator<ReportReqestDto>
+public class ReportRequestDtoValidator : AbstractValidator<ReportRequestDto>
 {
-    public ReportDtoValidator()
+    public ReportRequestDtoValidator()
     {
         RuleFor(r => r.Type)
-            .IsInEnum();
+            .IsEnumName(typeof(ReportType));
         
         RuleFor(r => r.RequestConent)
             .NotEmpty()

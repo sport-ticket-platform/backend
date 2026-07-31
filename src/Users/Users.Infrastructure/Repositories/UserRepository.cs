@@ -510,8 +510,8 @@ public class UserRepository : IUserRepository
     public async Task<int> CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct)
     {
         const string sql = @"
-        INSERT INTO report (user_id, type, report, status)
-        VALUES (@UserId, @Type, @Request, @Status::report_status)
+        INSERT INTO report (user_id, type, request, status)
+        VALUES (@UserId, @Type::report_type, @Request, @Status::report_status)
         RETURNING report_id;";
 
         try
@@ -659,7 +659,7 @@ public class UserRepository : IUserRepository
             SELECT 
             city_id AS CityId,
             name AS Name
-            FROM table (city)
+            FROM city
             LIMIT @Limit OFFSET @Offset;";
             parameters = new { Limit = limit, Offset = offset };
         }

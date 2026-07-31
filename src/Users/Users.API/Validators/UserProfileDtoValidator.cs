@@ -7,10 +7,6 @@ public class UserProfileDtoValidator : AbstractValidator<UserProfileDto>
 {
     public UserProfileDtoValidator()
     {
-        RuleFor(userProfile => userProfile.UserId)
-            .NotEmpty()
-            .GreaterThan(0);
-
         RuleFor(userProfile => userProfile.FirstName)
             .NotEmpty()
             .NotEqual(userProfile => userProfile.LastName)

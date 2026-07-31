@@ -104,10 +104,14 @@ public class UserService : IUserService
         return await _userRepo.CreateUser(user, ct);
     }
     
-    public async Task<int> CreateReport(long userId, string requestContent, ReportType type, CancellationToken ct)
+    public async Task<int> CreateReport(long userId, string requestContent, string type, CancellationToken ct)
     {
-        _logger.LogInformation("creating a new report for user {userId}", userId);
-        var report = Report.Create(userId, type, requestContent);
+        _logger.LogInformation("creating a new report for user {userId} with report type {type}", userId,type);
+
+        if (!Enum.TryParse<ReportType>(type, out var reportType))
+            throw new InvalidOperationException("The report status is not in the correct format");
+        
+        var report = Report.Create(userId, reportType, requestContent);
 
         var reportId = await _userRepo.CreateReport(report.UserId, report.Request, report.Type, ct);
         return reportId;
