@@ -156,6 +156,40 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(validationType.getStatusCode()).body(response);
     }
 
+
+
+
+
+    // ======================================
+    //       Custom Business Exceptions
+    // ======================================
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<?>> handleCustomException(BusinessException ex) {
+        ApiMessage apiMessage = ex.getApiMessage();
+        Object data = ex.getData();
+
+        log.warn("Business exception occurred: [{}]", apiMessage.name());
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(apiMessage.getStatusCode())
+                .title(apiMessage.getTitle())
+                .message(apiMessage.getMessage())
+                .titleFa(apiMessage.getTitleFa())
+                .messageFa(apiMessage.getMessageFa())
+                .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity
+                .status(apiMessage.getStatusCode())
+                .body(response);
+    }
+
+
+
+
+
     // ======================================
     //     Malformed or Missing Request Body
     // ======================================

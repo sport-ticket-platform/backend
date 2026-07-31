@@ -12,8 +12,7 @@ grpc:
       message: |-
         {
           "config_ids": [
-            268,
-            268
+            2
           ]
         }
   auth: inherit

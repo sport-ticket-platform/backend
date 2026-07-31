@@ -31,7 +31,7 @@ public class ReservationGrpcService extends ReservationServiceGrpc.ReservationSe
             log.info("Received request to fetch reserved seats for configIds: {}", configIdsList);
 
             List<ReservedSeatDTO> reservedSeatDTOS =
-                    reservationRepository.getReservedSeats(configIdsList);
+                    reservationRepository.getReservedSeatsByConfigIds(configIdsList);
 
             List<ReservedSeat> grpcReservedSeats = reservedSeatDTOS.stream()
                     .map(seat -> ReservedSeat.newBuilder()
