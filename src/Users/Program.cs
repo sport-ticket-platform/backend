@@ -35,7 +35,6 @@ builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
 builder.Services.AddScoped<ExceptionInterceptor>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
-builder.Services.AddScoped<IValidator<UserFilterDto>, UserFilterDtoValidator>();
 
 
 builder.Services.AddGrpc(options =>

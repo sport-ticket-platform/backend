@@ -8,7 +8,7 @@ using UserService.Users.Domain.ReadModels;
 namespace UserService.Users.API.Controllers;
 
 [ApiController]
-[AllowAnonymous]
+[Authorize(policy:"RequireAdmin")]
 [Route("/api/[controller]")]
 public class AdminController : ControllerBase
 {
@@ -24,8 +24,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpGet("report")]
-    public async Task<IActionResult> GetAllOpenReports([FromQuery] int limit, [FromQuery] int offset,
-        CancellationToken ct)
+    public async Task<IActionResult> GetAllOpenReports(CancellationToken ct,[FromQuery] int limit = 20, [FromQuery] int offset = 0)
     {
         if (!long.TryParse(User.FindFirst("sub")?.Value, out var adminIdClaim))
             throw new UnauthorizedException("The admin must first log in");
@@ -42,7 +41,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpGet("report/{reportId}")]
-    public async Task<IActionResult> GetOpenReport([FromQuery] int reportId, CancellationToken ct)
+    public async Task<IActionResult> GetOpenReport([FromRoute] int reportId, CancellationToken ct)
     {
         if (!long.TryParse(User.FindFirst("sub")?.Value, out var adminIdClaim))
             throw new UnauthorizedException("The admin must first log in");
@@ -53,7 +52,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpPut("report/{reportId}")]
-    public async Task<IActionResult> AnswerReport([FromQuery] int reportId, [FromBody] ReportResponseDto responseDto,
+    public async Task<IActionResult> AnswerReport([FromRoute] int reportId, [FromBody] ReportResponseDto responseDto,
         CancellationToken ct)
     {
         _logger.LogInformation("answering the report {reportId}", reportId);

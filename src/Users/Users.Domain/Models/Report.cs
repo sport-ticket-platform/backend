@@ -89,6 +89,7 @@ public class Report
 
         Response = response;
         RespondedAt = respondedAt;
+        Status = ReportStatus.CLOSED;
     }
 
     private static void ValidateId(long id, string name)

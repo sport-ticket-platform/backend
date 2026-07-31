@@ -1,8 +1,10 @@
 using System.Text;
 using Dapper;
+using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using UserService.Users.API.DTOs;
 using UserService.Users.Domain.Enums;
+using UserService.Users.Domain.Exceptions;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
 using UserService.Users.Domain.Repositories;
@@ -30,8 +32,8 @@ public class AdminRepository : IAdminRepository
              report_id AS ReportId,
              status AS Status,
              reported_at AS ReportedAt
-        FROM TABLE (report)
-        WHERE status = @Status
+        FROM report
+        WHERE status = @Status::report_status
         LIMIT @Limit OFFSET @Offset;
         ";
 
@@ -39,7 +41,7 @@ public class AdminRepository : IAdminRepository
         {
             var command = new CommandDefinition(
                 sql,
-                new { Status = ReportStatus.OPEN },
+                new { Status = ReportStatus.OPEN.ToString(), Limit = limit, Offset = offset },
                 cancellationToken: ct
             );
             var reports = await _dbContext.DbConnection.QueryAsync<UserReports>(command);
@@ -74,7 +76,7 @@ public class AdminRepository : IAdminRepository
             response     AS ""Response"",
             responded_at AS ""RespondedAt"",
             status       AS ""Status""
-        FROM table (report)
+        FROM report
         WHERE report_id = @ReportId;";
 
         try
@@ -114,18 +116,27 @@ public class AdminRepository : IAdminRepository
         const string sql = @"
         UPDATE report
         SET
-            type = @Type,
+            type = @Type::report_type,
             reported_at = @ReportedAt,
             request = @Request,
             response = @Response,
             responded_at = @RespondedAt,
-            status = @Status
+            status = @Status::report_status
         WHERE report_id = @ReportId;";
         try
         {
             var command = new CommandDefinition(
                 sql,
-                report,
+                new
+                {
+                    Type = report.Type.ToString(),
+                    ReportedAt = report.ReportedAt,
+                    Request = report.Request,
+                    Response = report.Response,
+                    RespondedAt = report.RespondedAt,
+                    Status = report.Status.ToString(),
+                    ReportId = report.ReportId
+                },
                 cancellationToken: ct
             );
             return await _dbContext.DbConnection.ExecuteAsync(command);
@@ -157,9 +168,9 @@ public class AdminRepository : IAdminRepository
             u.first_name AS ""FirstName"",
             u.last_name  AS ""LastName"",
             u.email      AS ""Email"",
-            u.status     AS ""Status""
+            u.is_active     AS ""IsActive""
         FROM users u
-        WHERE 1 = 1
+        WHERE u.role = 'USER'
     ");
 
         var parameters = new DynamicParameters();
@@ -184,8 +195,8 @@ public class AdminRepository : IAdminRepository
 
         if (filter.Status.HasValue)
         {
-            sqlBuilder.Append(" AND u.status = @Status");
-            parameters.Add("Status", filter.Status.Value);
+            sqlBuilder.Append(" AND u.is_active = @IsActive");
+            parameters.Add("IsActive", filter.Status.Value);
         }
 
         sqlBuilder.Append(" ORDER BY u.user_id LIMIT @Limit OFFSET @Offset");
@@ -325,6 +336,28 @@ public class AdminRepository : IAdminRepository
             _logger.LogError(ex, "Database operation timed out while fetching user {UserId}", user.UserId);
             throw new InfrastructureException("Database operation timed out.", ex);
         }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            if (ex.ConstraintName is not null &&
+                ex.ConstraintName.Contains("email", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(ex, "Unique constraint violated while updating user with email {Email}.",
+                    user.Email);
+                throw new DomainException("A user with this email already exists.");
+            }
+
+            if (ex.ConstraintName is not null &&
+                ex.ConstraintName.Contains("phone", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(ex, "Unique constraint violated while updating user with phone number {Phone}.",
+                    user.PhoneNumber);
+                throw new DomainException("A user with this phone number already exists.");
+            }
+
+            _logger.LogWarning(ex, "Unique constraint violated: {ConstraintName}", ex.ConstraintName);
+            throw new DomainException("A unique field conflict occurred.");
+        }
+
         catch (PostgresException ex)
         {
             _logger.LogError(ex, "Database rejected the query while fetching the user {userId}.{state}", user.UserId,
