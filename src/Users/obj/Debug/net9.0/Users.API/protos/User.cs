@@ -27,36 +27,37 @@ namespace UserService.Grpc {
             "ChtVc2Vycy5BUEkvcHJvdG9zL3VzZXIucHJvdG8SBHVzZXIiLwoeR2V0VXNl",
             "ckxvZ2luSW5mb0J5RW1haWxSZXF1ZXN0Eg0KBWVtYWlsGAEgASgJIi8KHkdl",
             "dFVzZXJMb2dpbkluZm9CeVBob25lUmVxdWVzdBINCgVwaG9uZRgBIAEoCSIp",
-            "ChtHZXRVc2VyTG9naW5JbmZvQnlJZFJlcXVlc3QSCgoCaWQYASABKAMikAEK",
+            "ChtHZXRVc2VyTG9naW5JbmZvQnlJZFJlcXVlc3QSCgoCaWQYASABKAMinwEK",
             "FVVzZXJMb2dpbkluZm9SZXNwb25zZRIKCgJpZBgBIAEoAxIMCgRyb2xlGAIg",
-            "ASgJEg0KBWVtYWlsGAMgASgJEg0KBXBob25lGAQgASgJEhAKCHBhc3N3b3Jk",
-            "GAUgASgJEg4KBnN0YXR1cxgGIAEoCBIdChVpc190d29fZmFjdG9yX2VuYWJs",
-            "ZWQYByABKAgiKAoXQ2hlY2tFbWFpbEV4aXN0c1JlcXVlc3QSDQoFZW1haWwY",
-            "ASABKAkiJQoTRW1haWxFeGlzdHNSZXNwb25zZRIOCgZleGlzdHMYASABKAgi",
-            "WwoRQ3JlYXRlVXNlclJlcXVlc3QSDQoFZW1haWwYASABKAkSEgoKZmlyc3Rf",
-            "bmFtZRgCIAEoCRIRCglsYXN0X25hbWUYAyABKAkSEAoIcGFzc3dvcmQYBCAB",
-            "KAkiNgoSQ3JlYXRlVXNlclJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgSDwoH",
-            "dXNlcl9pZBgCIAEoAyI4ChRSZXNldFBhc3N3b3JkUmVxdWVzdBIKCgJpZBgB",
-            "IAEoAxIUCgxuZXdfcGFzc3dvcmQYAiABKAkiKAoVUmVzZXRQYXNzd29yZFJl",
-            "c3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgy5AMKC1VzZXJTZXJ2aWNlElMKDkdl",
-            "dFVzZXJCeUVtYWlsEiQudXNlci5HZXRVc2VyTG9naW5JbmZvQnlFbWFpbFJl",
-            "cXVlc3QaGy51c2VyLlVzZXJMb2dpbkluZm9SZXNwb25zZRJTCg5HZXRVc2Vy",
-            "QnlQaG9uZRIkLnVzZXIuR2V0VXNlckxvZ2luSW5mb0J5UGhvbmVSZXF1ZXN0",
-            "GhsudXNlci5Vc2VyTG9naW5JbmZvUmVzcG9uc2USTQoLR2V0VXNlckJ5SWQS",
-            "IS51c2VyLkdldFVzZXJMb2dpbkluZm9CeUlkUmVxdWVzdBobLnVzZXIuVXNl",
-            "ckxvZ2luSW5mb1Jlc3BvbnNlEkwKEENoZWNrRW1haWxFeGlzdHMSHS51c2Vy",
-            "LkNoZWNrRW1haWxFeGlzdHNSZXF1ZXN0GhkudXNlci5FbWFpbEV4aXN0c1Jl",
-            "c3BvbnNlEj8KCkNyZWF0ZVVzZXISFy51c2VyLkNyZWF0ZVVzZXJSZXF1ZXN0",
-            "GhgudXNlci5DcmVhdGVVc2VyUmVzcG9uc2USTQoSQ2hhbmdlVXNlclBhc3N3",
-            "b3JkEhoudXNlci5SZXNldFBhc3N3b3JkUmVxdWVzdBobLnVzZXIuUmVzZXRQ",
-            "YXNzd29yZFJlc3BvbnNlQhOqAhBVc2VyU2VydmljZS5HcnBjYgZwcm90bzM="));
+            "ASgJEg0KBWVtYWlsGAMgASgJEhIKBXBob25lGAQgASgJSACIAQESEAoIcGFz",
+            "c3dvcmQYBSABKAkSDgoGc3RhdHVzGAYgASgIEh0KFWlzX3R3b19mYWN0b3Jf",
+            "ZW5hYmxlZBgHIAEoCEIICgZfcGhvbmUiKAoXQ2hlY2tFbWFpbEV4aXN0c1Jl",
+            "cXVlc3QSDQoFZW1haWwYASABKAkiJQoTRW1haWxFeGlzdHNSZXNwb25zZRIO",
+            "CgZleGlzdHMYASABKAgiWwoRQ3JlYXRlVXNlclJlcXVlc3QSDQoFZW1haWwY",
+            "ASABKAkSEgoKZmlyc3RfbmFtZRgCIAEoCRIRCglsYXN0X25hbWUYAyABKAkS",
+            "EAoIcGFzc3dvcmQYBCABKAkiNgoSQ3JlYXRlVXNlclJlc3BvbnNlEg8KB3N1",
+            "Y2Nlc3MYASABKAgSDwoHdXNlcl9pZBgCIAEoAyI4ChRSZXNldFBhc3N3b3Jk",
+            "UmVxdWVzdBIKCgJpZBgBIAEoAxIUCgxuZXdfcGFzc3dvcmQYAiABKAkiKAoV",
+            "UmVzZXRQYXNzd29yZFJlc3BvbnNlEg8KB3N1Y2Nlc3MYASABKAgy5AMKC1Vz",
+            "ZXJTZXJ2aWNlElMKDkdldFVzZXJCeUVtYWlsEiQudXNlci5HZXRVc2VyTG9n",
+            "aW5JbmZvQnlFbWFpbFJlcXVlc3QaGy51c2VyLlVzZXJMb2dpbkluZm9SZXNw",
+            "b25zZRJTCg5HZXRVc2VyQnlQaG9uZRIkLnVzZXIuR2V0VXNlckxvZ2luSW5m",
+            "b0J5UGhvbmVSZXF1ZXN0GhsudXNlci5Vc2VyTG9naW5JbmZvUmVzcG9uc2US",
+            "TQoLR2V0VXNlckJ5SWQSIS51c2VyLkdldFVzZXJMb2dpbkluZm9CeUlkUmVx",
+            "dWVzdBobLnVzZXIuVXNlckxvZ2luSW5mb1Jlc3BvbnNlEkwKEENoZWNrRW1h",
+            "aWxFeGlzdHMSHS51c2VyLkNoZWNrRW1haWxFeGlzdHNSZXF1ZXN0GhkudXNl",
+            "ci5FbWFpbEV4aXN0c1Jlc3BvbnNlEj8KCkNyZWF0ZVVzZXISFy51c2VyLkNy",
+            "ZWF0ZVVzZXJSZXF1ZXN0GhgudXNlci5DcmVhdGVVc2VyUmVzcG9uc2USTQoS",
+            "Q2hhbmdlVXNlclBhc3N3b3JkEhoudXNlci5SZXNldFBhc3N3b3JkUmVxdWVz",
+            "dBobLnVzZXIuUmVzZXRQYXNzd29yZFJlc3BvbnNlQhOqAhBVc2VyU2Vydmlj",
+            "ZS5HcnBjYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::UserService.Grpc.GetUserLoginInfoByEmailRequest), global::UserService.Grpc.GetUserLoginInfoByEmailRequest.Parser, new[]{ "Email" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::UserService.Grpc.GetUserLoginInfoByPhoneRequest), global::UserService.Grpc.GetUserLoginInfoByPhoneRequest.Parser, new[]{ "Phone" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::UserService.Grpc.GetUserLoginInfoByIdRequest), global::UserService.Grpc.GetUserLoginInfoByIdRequest.Parser, new[]{ "Id" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::UserService.Grpc.UserLoginInfoResponse), global::UserService.Grpc.UserLoginInfoResponse.Parser, new[]{ "Id", "Role", "Email", "Phone", "Password", "Status", "IsTwoFactorEnabled" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::UserService.Grpc.UserLoginInfoResponse), global::UserService.Grpc.UserLoginInfoResponse.Parser, new[]{ "Id", "Role", "Email", "Phone", "Password", "Status", "IsTwoFactorEnabled" }, new[]{ "Phone" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::UserService.Grpc.CheckEmailExistsRequest), global::UserService.Grpc.CheckEmailExistsRequest.Parser, new[]{ "Email" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::UserService.Grpc.EmailExistsResponse), global::UserService.Grpc.EmailExistsResponse.Parser, new[]{ "Exists" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::UserService.Grpc.CreateUserRequest), global::UserService.Grpc.CreateUserRequest.Parser, new[]{ "Email", "FirstName", "LastName", "Password" }, null, null, null, null),
@@ -757,14 +758,28 @@ namespace UserService.Grpc {
 
     /// <summary>Field number for the "phone" field.</summary>
     public const int PhoneFieldNumber = 4;
-    private string phone_ = "";
+    private readonly static string PhoneDefaultValue = "";
+
+    private string phone_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string Phone {
-      get { return phone_; }
+      get { return phone_ ?? PhoneDefaultValue; }
       set {
         phone_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
+    }
+    /// <summary>Gets whether the "phone" field is set</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool HasPhone {
+      get { return phone_ != null; }
+    }
+    /// <summary>Clears the value of the "phone" field</summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void ClearPhone() {
+      phone_ = null;
     }
 
     /// <summary>Field number for the "password" field.</summary>
@@ -835,7 +850,7 @@ namespace UserService.Grpc {
       if (Id != 0L) hash ^= Id.GetHashCode();
       if (Role.Length != 0) hash ^= Role.GetHashCode();
       if (Email.Length != 0) hash ^= Email.GetHashCode();
-      if (Phone.Length != 0) hash ^= Phone.GetHashCode();
+      if (HasPhone) hash ^= Phone.GetHashCode();
       if (Password.Length != 0) hash ^= Password.GetHashCode();
       if (Status != false) hash ^= Status.GetHashCode();
       if (IsTwoFactorEnabled != false) hash ^= IsTwoFactorEnabled.GetHashCode();
@@ -869,7 +884,7 @@ namespace UserService.Grpc {
         output.WriteRawTag(26);
         output.WriteString(Email);
       }
-      if (Phone.Length != 0) {
+      if (HasPhone) {
         output.WriteRawTag(34);
         output.WriteString(Phone);
       }
@@ -907,7 +922,7 @@ namespace UserService.Grpc {
         output.WriteRawTag(26);
         output.WriteString(Email);
       }
-      if (Phone.Length != 0) {
+      if (HasPhone) {
         output.WriteRawTag(34);
         output.WriteString(Phone);
       }
@@ -942,7 +957,7 @@ namespace UserService.Grpc {
       if (Email.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Email);
       }
-      if (Phone.Length != 0) {
+      if (HasPhone) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Phone);
       }
       if (Password.Length != 0) {
@@ -975,7 +990,7 @@ namespace UserService.Grpc {
       if (other.Email.Length != 0) {
         Email = other.Email;
       }
-      if (other.Phone.Length != 0) {
+      if (other.HasPhone) {
         Phone = other.Phone;
       }
       if (other.Password.Length != 0) {

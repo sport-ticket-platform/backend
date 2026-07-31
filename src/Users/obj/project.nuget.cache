@@ -1,20 +1,22 @@
 {
   "version": 2,
-  "dgSpecHash": "O6PBWa7MzyI=",
+  "dgSpecHash": "9BQzCtIqoyo=",
   "success": true,
   "projectFilePath": "/home/mmdcj/RiderProjects/backend/src/Users/UserService.csproj",
   "expectedPackageFiles": [
     "/home/mmdcj/.nuget/packages/dapper/2.1.79/dapper.2.1.79.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/fluentvalidation/12.1.1/fluentvalidation.12.1.1.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/fluentvalidation.dependencyinjectionextensions/12.1.1/fluentvalidation.dependencyinjectionextensions.12.1.1.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/google.protobuf/3.30.2/google.protobuf.3.30.2.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/google.protobuf/3.31.1/google.protobuf.3.31.1.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.aspnetcore/2.71.0/grpc.aspnetcore.2.71.0.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/grpc.aspnetcore.server/2.71.0/grpc.aspnetcore.server.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.aspnetcore.server/2.80.0/grpc.aspnetcore.server.2.80.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.aspnetcore.server.clientfactory/2.71.0/grpc.aspnetcore.server.clientfactory.2.71.0.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/grpc.core.api/2.71.0/grpc.core.api.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.aspnetcore.server.reflection/2.80.0/grpc.aspnetcore.server.reflection.2.80.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.core.api/2.80.0/grpc.core.api.2.80.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.net.client/2.71.0/grpc.net.client.2.71.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.net.clientfactory/2.71.0/grpc.net.clientfactory.2.71.0.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/grpc.net.common/2.71.0/grpc.net.common.2.71.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.net.common/2.80.0/grpc.net.common.2.80.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/grpc.reflection/2.80.0/grpc.reflection.2.80.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/grpc.tools/2.71.0/grpc.tools.2.71.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/9.0.18/microsoft.aspnetcore.authentication.jwtbearer.9.0.18.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.aspnetcore.openapi/9.0.12/microsoft.aspnetcore.openapi.9.0.12.nupkg.sha512",
@@ -56,15 +58,5 @@
     "/home/mmdcj/.nuget/packages/system.diagnostics.diagnosticsource/10.0.0/system.diagnostics.diagnosticsource.10.0.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/system.identitymodel.tokens.jwt/8.19.2/system.identitymodel.tokens.jwt.8.19.2.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1900",
-      "level": "Warning",
-      "message": "Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.",
-      "projectPath": "/home/mmdcj/RiderProjects/backend/src/Users/UserService.csproj",
-      "warningLevel": 1,
-      "filePath": "/home/mmdcj/RiderProjects/backend/src/Users/UserService.csproj",
-      "targetGraphs": []
-    }
-  ]
+  "logs": []
 }

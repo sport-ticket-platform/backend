@@ -61,3 +61,5 @@
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.pdb
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.genruntimeconfig.cache
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/ref/UserService.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.AspNetCore.Server.Reflection.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.Reflection.dll

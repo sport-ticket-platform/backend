@@ -268,11 +268,11 @@ public class UserRepository : IUserRepository
             is_active          AS ""IsActive"",
             two_factor_enabled AS ""IsTwoFactorEnabled""
         FROM users
-        WHERE email = @email;
+        WHERE email = @Email;
         ";
             var command = new CommandDefinition(
                 sql,
-                email,
+                new { Email = email },
                 cancellationToken: ct
             );
             var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel?>(command);
@@ -325,11 +325,11 @@ public class UserRepository : IUserRepository
             is_active             AS ""IsActive"",
             two_factor_enabled AS ""IsTwoFactorEnabled""
         FROM users
-        WHERE phone_number = @phone;
+        WHERE phone_number = @Phone;
         ";
             var command = new CommandDefinition(
                 sql,
-                phone,
+                new { Phone = phone },
                 cancellationToken: ct
             );
             var user = await _dbContext.DbConnection.QueryFirstOrDefaultAsync<UserPersistenceModel?>(command);
@@ -432,10 +432,10 @@ public class UserRepository : IUserRepository
             const string sql = @"
         INSERT INTO users
             (first_name, last_name, role, email, email_verified, phone_number,
-             phone_verified, registration_date, password, balance, city_id, status, two_factor_enabled)
+             phone_verified, registration_date, password, balance, city_id, is_active, two_factor_enabled)
         VALUES
             (@FirstName, @LastName, @Role::user_role, @Email, @IsEmailVerified, @PhoneNumber,
-             @IsPhoneNumberVerified, @RegistrationDate, @PasswordHash, @Balance, @CityId, @Status, @IsTwoFactorEnabled)
+             @IsPhoneNumberVerified, @RegistrationDate, @PasswordHash, @Balance, @CityId, @IsActive, @IsTwoFactorEnabled)
         RETURNING
             user_id            AS ""UserId"",
             first_name         AS ""FirstName"",
@@ -493,6 +493,27 @@ public class UserRepository : IUserRepository
         {
             _logger.LogError(ex, "Database operation timed out while creating user with email {email}", user.Email);
             throw new InfrastructureException("Database operation timed out.", ex);
+        }
+        catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            if (ex.ConstraintName is not null &&
+                ex.ConstraintName.Contains("email", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(ex, "Unique constraint violated while updating user with email {Email}.",
+                    user.Email);
+                throw new DomainException("A user with this email already exists.");
+            }
+
+            if (ex.ConstraintName is not null &&
+                ex.ConstraintName.Contains("phone", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning(ex, "Unique constraint violated while updating user with phone number {Phone}.",
+                    user.PhoneNumber);
+                throw new DomainException("A user with this phone number already exists.");
+            }
+
+            _logger.LogWarning(ex, "Unique constraint violated: {ConstraintName}", ex.ConstraintName);
+            throw new DomainException("A unique field conflict occurred.");
         }
         catch (PostgresException ex) when (ex.SqlState == PostgresErrorCodes.UniqueViolation)
         {

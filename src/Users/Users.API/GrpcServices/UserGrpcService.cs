@@ -67,8 +67,8 @@ public class UserGrpcService : Grpc.UserService.UserServiceBase
     public override async Task<UserLoginInfoResponse> GetUserById(GetUserLoginInfoByIdRequest request,
         ServerCallContext context)
     {
-        _logger.LogInformation("fetching user by ID");
-
+        _logger.LogInformation("fetching user by ID {userId}",request.Id);
+        
         if (long.IsNegative(request.Id))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "user ID must be a positive number."));
 

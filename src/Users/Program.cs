@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenTelemetry.Logs;
@@ -26,6 +27,7 @@ using UserService.Users.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.AddScoped<ApplicationDbContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.UserService>();
@@ -36,7 +38,12 @@ builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IValidator<UserFilterDto>, UserFilterDtoValidator>();
 
 
-builder.Services.AddGrpc();
+builder.Services.AddGrpc(options =>
+{
+    options.Interceptors.Add<ExceptionInterceptor>(); 
+});
+
+builder.Services.AddGrpcReflection();
 
 builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>();
 builder.Services.AddControllers(options => { options.Filters.Add<GlobalValidationFilter>(); })
@@ -146,12 +153,17 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.MapGrpcService<UserGrpcService>();
-app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
-app.Run();
+app.MapGrpcService<UserGrpcService>();
 
+if (app.Environment.IsDevelopment())
+{
+    app.MapGrpcReflectionService(); 
+}
+
+app.MapControllers();
+app.Run();
 /*
  *
  *
