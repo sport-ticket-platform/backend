@@ -27,7 +27,7 @@ message GetUserLoginInfoByEmailRequest {
 }
 
 message GetUserLoginInfoByPhoneRequest {
-  string phone = 1;
+   string phone = 1;
 }
 
 message GetUserLoginInfoByIdRequest {

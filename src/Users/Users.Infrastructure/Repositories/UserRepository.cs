@@ -215,7 +215,7 @@ public class UserRepository : IUserRepository
               u.phone_number AS ""PhoneNumber"",
               c.name        AS ""City""
               FROM users u
-              JOIN city c ON c.city_id = u.city_id
+              LEFT JOIN city c ON c.city_id = u.city_id
               WHERE u.user_id = @UserId;
               ";
             var command = new CommandDefinition(

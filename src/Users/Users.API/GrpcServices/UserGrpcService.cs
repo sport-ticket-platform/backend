@@ -74,17 +74,18 @@ public class UserGrpcService : Grpc.UserService.UserServiceBase
 
         var ct = context.CancellationToken;
         var user = await _userService.GetUserById(request.Id, ct);
-
-        return new UserLoginInfoResponse()
+        var response = new UserLoginInfoResponse()
         {
             Id = user.UserId,
             Email = user.Email,
-            Phone = user.PhoneNumber,
             Password = user.PasswordHash,
             Role = user.Role.ToString(),
             IsTwoFactorEnabled = user.IsTwoFactorEnabled,
             Status = user.IsActive
         };
+        if (response.HasPhone)
+            response.Phone = user.PhoneNumber;
+        return response;
     }
 
     public override async Task<EmailExistsResponse> CheckEmailExists(CheckEmailExistsRequest request,

@@ -12,10 +12,12 @@
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Google.Protobuf.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.AspNetCore.Server.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.AspNetCore.Server.ClientFactory.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.AspNetCore.Server.Reflection.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.Core.Api.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.Net.Client.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.Net.ClientFactory.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.Net.Common.dll
+/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.Reflection.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Microsoft.AspNetCore.OpenApi.dll
 /home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Microsoft.Bcl.Cryptography.dll
@@ -61,5 +63,3 @@
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.pdb
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/UserService.genruntimeconfig.cache
 /home/mmdcj/RiderProjects/backend/src/Users/obj/Debug/net9.0/ref/UserService.dll
-/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.AspNetCore.Server.Reflection.dll
-/home/mmdcj/RiderProjects/backend/src/Users/bin/Debug/net9.0/Grpc.Reflection.dll
