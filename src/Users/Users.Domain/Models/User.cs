@@ -12,13 +12,13 @@ public class User
     public Role Role { get; private set; }
     public string Email { get; private set; }
     public bool IsEmailVerified { get; private set; } = false;
-    public string PhoneNumber { get; private set; }
+    public string? PhoneNumber { get; private set; }
     public bool IsPhoneNumberVerified { get; private set; } = false;
 
     public DateTimeOffset RegistrationDate { get; private set; } = DateTimeOffset.Now;
     public string PasswordHash { get; private set; }
     public decimal Balance { get; private set; } = default;
-    public int CityId { get; private set; } = default;
+    public int? CityId { get; private set; } = default;
     public bool IsActive { get; private set; } = true;
 
     public bool IsTwoFactorEnabled { get; private set; } = false;
@@ -28,15 +28,32 @@ public class User
         RegexOptions.Compiled);
 
 
-    private const int LeastChars = 5;
+    private const int LeastChars = 3;
     private const int MostChars = 50;
     private const string PhoneNumberPrefix = "09";
     private const int PhoneNumberLength = 11;
     private const int CurrencyDecimalPlaces = 2;
 
 
-    private User(string firstName, string lastName, Role role, string email, string phoneNumber,
-        string passwordHash, int cityId, bool isEmailVerified = false, bool isPhoneNumberVerified = false)
+    private User(long userId, string firstName, string lastName, Role role, string email, string? phoneNumber,
+        DateTimeOffset registrationDate, string passwordHash, int? cityId, bool isEmailVerified = false,
+        bool isPhoneNumberVerified = false)
+    {
+        UserId = userId;
+        FirstName = firstName;
+        LastName = lastName;
+        Role = role;
+        Email = email;
+        PhoneNumber = phoneNumber;
+        RegistrationDate = registrationDate;
+        PasswordHash = passwordHash;
+        CityId = cityId;
+        IsEmailVerified = isEmailVerified;
+        IsPhoneNumberVerified = isPhoneNumberVerified;
+    }
+
+    private User(string firstName, string lastName, Role role, string email, string? phoneNumber,
+        string passwordHash, int? cityId, bool isEmailVerified = false, bool isPhoneNumberVerified = false)
     {
         FirstName = firstName;
         LastName = lastName;
@@ -66,7 +83,7 @@ public class User
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length < LeastChars || value.Length > MostChars)
             throw new DomainException(
-                $"{fieldName} must be between {LeastChars} and {MostChars} characters.");
+                $"{fieldName}, {value}, must be between {LeastChars} and {MostChars} characters.");
     }
 
     private static void ValidatePhoneNumber(string phoneNumber)
@@ -104,18 +121,42 @@ public class User
     }
 
 
-    public static User Create(string firstName, string lastName, Role userRole, string email, string phoneNumber,
-        string passwordHash, int cityId, bool emailIsVerified = false, bool phoneNumberIsVerified = false)
+    public static User Create(long userId, string firstName, string lastName, Role userRole, string email,
+        string? phoneNumber,
+        DateTimeOffset registrationDate, string passwordHash, int? cityId, bool emailIsVerified = false,
+        bool phoneNumberIsVerified = false)
     {
         ValidateNameLength(firstName, nameof(firstName));
         ValidateNameLength(lastName, nameof(lastName));
         ValidateEmail(email);
-        ValidatePhoneNumber(phoneNumber);
+        
+        if(phoneNumber is not null) 
+            ValidatePhoneNumber(phoneNumber);
 
         if (string.IsNullOrEmpty(passwordHash))
             throw new DomainException("The password is required.");
 
-        if (cityId <= 0)
+        if (cityId is not null && cityId <= 0)
+            throw new DomainException("The city id must be positive.");
+
+        return new User(userId, firstName, lastName, userRole, email, phoneNumber, registrationDate, passwordHash,
+            cityId, emailIsVerified,
+            phoneNumberIsVerified);
+    }
+
+    public static User Create(string firstName, string lastName, Role userRole, string email, string? phoneNumber,
+        string passwordHash, int? cityId, bool emailIsVerified = false, bool phoneNumberIsVerified = false)
+    {
+        ValidateNameLength(firstName, nameof(firstName));
+        ValidateNameLength(lastName, nameof(lastName));
+        ValidateEmail(email);
+        if (phoneNumber is not null)
+            ValidatePhoneNumber(phoneNumber);
+        
+        if (string.IsNullOrEmpty(passwordHash))
+            throw new DomainException("The password is required.");
+
+        if (cityId is not null && cityId <= 0)
             throw new DomainException("The city id must be positive.");
 
         return new User(firstName, lastName, userRole, email, phoneNumber, passwordHash, cityId, emailIsVerified,
@@ -128,24 +169,26 @@ public class User
         ValidateNameLength(firstName, nameof(firstName));
         ValidateNameLength(lastName, nameof(lastName));
         ValidateEmail(email);
-       
+
         if (string.IsNullOrEmpty(passwordHash))
             throw new DomainException("The password is required.");
-        
-        return new User(firstName, lastName, userRole, email, passwordHash,  emailIsVerified,
+
+        return new User(firstName, lastName, userRole, email, passwordHash, emailIsVerified,
             phoneNumberIsVerified);
     }
 
 
-    public void Update(string firstName, string lastName, string email, string phoneNumber, int cityId)
+    public void Update(string firstName, string lastName, string email, string? phoneNumber, int? cityId)
     {
-        if (cityId <= 0)
+        if (cityId is not null && cityId <= 0)
             throw new DomainException("The city Id cannot be negative.");
 
         ValidateNameLength(firstName, nameof(firstName));
         ValidateNameLength(lastName, nameof(lastName));
         ValidateEmail(email);
-        ValidatePhoneNumber(phoneNumber);
+        
+        if(phoneNumber is not null) 
+            ValidatePhoneNumber(phoneNumber);
 
         FirstName = firstName;
         LastName = lastName;

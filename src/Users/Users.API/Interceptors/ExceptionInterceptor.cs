@@ -21,6 +21,10 @@ public class ExceptionInterceptor : Interceptor
         {
             return await continuation(request, context);
         }
+        catch (RpcException) 
+        {
+            throw; 
+        }
         catch (DomainException ex)
         {
             _logger.LogWarning(ex, "Domain validation failed");

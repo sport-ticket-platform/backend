@@ -12,6 +12,7 @@
         <PackageReference Include="FluentValidation" Version="12.1.1" />
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
         <PackageReference Include="Grpc.AspNetCore" Version="2.71.0" />
+        <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.80.0" />
         <PackageReference Include="Grpc.Tools" Version="2.71.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -33,7 +34,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Users.API\Controllers\Admin\" />
         <Folder Include="Users.Application\Results\" />
     </ItemGroup>
 

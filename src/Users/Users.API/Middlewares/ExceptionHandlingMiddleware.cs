@@ -31,9 +31,31 @@ public class ExceptionHandlingMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
+        if (ex is ValidationException validationEx)
+        {
+            _logger.LogWarning(ex, "Handled exception: {ExceptionType}", ex.GetType().Name);
+
+            var validationProblemDetails = new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Validation failed",
+                Instance = context.Request.Path,
+                Extensions =
+                {
+                    ["errors"] = validationEx.Errors
+                }
+            };
+
+            context.Response.ContentType = "application/problem+json";
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(validationProblemDetails);
+            return;
+        }
+
         var (statusCode, title) = ex switch
         {
             NotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
+            BusinessLogicException => (StatusCodes.Status409Conflict, "Business rule violation"),
             DomainException => (StatusCodes.Status400BadRequest, "Invalid request"),
             UnauthorizedException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
             InfrastructureException => (StatusCodes.Status503ServiceUnavailable, "Service unavailable"),
@@ -50,7 +72,7 @@ public class ExceptionHandlingMiddleware
             Status = statusCode,
             Title = title,
             Detail = statusCode == StatusCodes.Status500InternalServerError
-                ? "An unexpected error occurred." 
+                ? "An unexpected error occurred."
                 : ex.Message,
             Instance = context.Request.Path
         };

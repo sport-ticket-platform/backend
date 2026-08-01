@@ -27,7 +27,7 @@ message GetUserLoginInfoByEmailRequest {
 }
 
 message GetUserLoginInfoByPhoneRequest {
-  string phone = 1;
+   string phone = 1;
 }
 
 message GetUserLoginInfoByIdRequest {
@@ -38,7 +38,7 @@ message UserLoginInfoResponse {
   int64 id = 1;
   string role = 2;
   string email = 3;
-  string phone = 4;
+  optional string phone = 4;
   string password = 5;
   bool status = 6;
   bool is_two_factor_enabled = 7;

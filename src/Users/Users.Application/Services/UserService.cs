@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Mvc;
 using UserService.Users.Application.Exceptions;
 using UserService.Users.Application.Requests;
+using UserService.Users.Domain.Enums;
 using UserService.Users.Domain.Exceptions;
 using UserService.Users.Domain.Models;
 using UserService.Users.Domain.ReadModels;
@@ -46,12 +48,16 @@ public class UserService : IUserService
         if (user is null)
             throw new NotFoundException("User not found");
 
-        int? cityId = await _userRepo.GetCityIdByName(updateRequest.City, ct) ??
-                      throw new NotFoundException("The city not found");
 
+        int? cityId = null;
+        if(updateRequest.City is not null) 
+            cityId = await _userRepo.GetCityIdByName(updateRequest.City, ct) ??
+                                        throw new NotFoundException("The city not found");
+
+        _logger.LogInformation("{cityName} has ID {cityId}",updateRequest.City,cityId);
 
         user.Update(updateRequest.FirstName, updateRequest.LastName, updateRequest.Email, updateRequest.PhoneNumber,
-            cityId ?? 1);
+            cityId);
         await _userRepo.UpdateUser(user, ct);
     }
 
@@ -94,28 +100,42 @@ public class UserService : IUserService
 
         if (await _userRepo.CheckEmailExists(user.Email, ct))
             throw new DomainException("A user with this email already exists");
-        
+
         return await _userRepo.CreateUser(user, ct);
     }
-
-    public async Task ChangeAccountStatus(long userId, bool active, CancellationToken ct)
+    
+    public async Task<int> CreateReport(long userId, string requestContent, string type, CancellationToken ct)
     {
-        _logger.LogInformation("changing user's account status to {active} user account with ID {userId}", active,
-            userId);
-        var user = await _userRepo.GetUserById(userId, ct);
+        _logger.LogInformation("creating a new report for user {userId} with report type {type}", userId,type);
 
-        if (user is null)
-            throw new NotFoundException("User not found");
-
-        if (active)
-            user.ActivateAccount();
-        else
-            user.DeactivateAccount();
-
+        if (!Enum.TryParse<ReportType>(type, out var reportType))
+            throw new InvalidOperationException("The report status is not in the correct format");
         
-        await _userRepo.UpdateUser(user, ct);
+        var report = Report.Create(userId, reportType, requestContent);
+
+        var reportId = await _userRepo.CreateReport(report.UserId, report.Request, report.Type, ct);
+        return reportId;
     }
-    
-    
-    
+
+    public async Task<List<UserReports>> GetAllReports(long userId, CancellationToken ct)
+    {
+        _logger.LogInformation("getting the the reports created by {userId}", userId);
+        var reports = await _userRepo.GetAllReports(userId, ct);
+        return reports;
+    }
+
+    public async Task<Report> GetReportDetails(long reportId, CancellationToken ct)
+    {
+        _logger.LogInformation("fetching report details {reportId}", reportId);
+        var report = await _userRepo.GetReportDetails(reportId, ct);
+        if (report is null)
+            throw new ArgumentException("An invalid report ID was supplied.");
+        return report;
+    }
+
+    public async Task<List<City>> SearchCities(string? searchTerm, int limit, int offset, CancellationToken ct)
+    {
+        _logger.LogInformation("fetching cities like {searchTerm}", searchTerm);
+        return await _userRepo.SearchCities(searchTerm, limit, offset, ct);
+    }
 }

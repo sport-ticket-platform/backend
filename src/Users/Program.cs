@@ -1,8 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using OpenTelemetry.Logs;
@@ -12,7 +14,9 @@ using OpenTelemetry.Trace;
 using UserService.Users.API.ActionFilters;
 using UserService.Users.API.AuthorizationPolicies.Requirements;
 using UserService.Users.API.AuthorizationPolicies.RequirementsHandlers;
+using UserService.Users.API.DTOs;
 using UserService.Users.API.GrpcServices;
+using UserService.Users.API.Interceptors;
 using UserService.Users.API.Middlewares;
 using UserService.Users.API.Validators;
 using UserService.Users.Application.Services;
@@ -23,18 +27,27 @@ using UserService.Users.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.AddScoped<ApplicationDbContext>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService.Users.Application.Services.UserService>();
 builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
+builder.Services.AddScoped<ExceptionInterceptor>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
-builder.Services.AddGrpc();
 
-builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>(); 
-builder.Services.AddControllers(options =>
+builder.Services.AddGrpc(options =>
 {
-    options.Filters.Add<GlobalValidationFilter>();
+    options.Interceptors.Add<ExceptionInterceptor>(); 
 });
+
+builder.Services.AddGrpcReflection();
+
+builder.Services.AddValidatorsFromAssemblyContaining<UserProfileDtoValidator>();
+builder.Services.AddControllers(options => { options.Filters.Add<GlobalValidationFilter>(); })
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
+
 
 var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];
@@ -53,7 +66,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.MapInboundClaims = false;
-        
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -62,7 +75,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = audience,
 
-            ValidateLifetime = true,
+            ValidateLifetime = false,
             ClockSkew = TimeSpan.FromMinutes(1),
 
             ValidateIssuerSigningKey = true,
@@ -82,8 +95,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireSupportOrAdmin", policy =>
         policy.Requirements.Add(new RoleRequirement(Role.SUPPORT, Role.ADMIN)));
 });
-
-
 
 
 // var resourceBuilder = ResourceBuilder.CreateDefault()
@@ -141,9 +152,26 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.MapGrpcService<UserGrpcService>();
-app.MapControllers();
 app.UseAuthentication();
 app.UseAuthorization();
-app.Run();
+app.MapGrpcService<UserGrpcService>();
 
+if (app.Environment.IsDevelopment())
+{
+    app.MapGrpcReflectionService(); 
+}
+
+app.MapControllers();
+app.Run();
+/*
+ *
+ *
+ *
+ * consider solving the issue in which entering the phone number is after signing up, and it is fully arbitrary,
+ * which is useful for two factor authentication, so you must adjust the validators to not hinder the model binding if
+ * the phone number was not supplied
+ *
+ *
+ *
+ *
+ */
