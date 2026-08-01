@@ -1,16 +1,18 @@
 package com.reservation.service.reservation;
 
 import com.reservation.common.ApiMessage;
+import com.reservation.config.ApplicationProperties;
 import com.reservation.dto.reservation.ReservationRequest;
 import com.reservation.dto.reservation.ReservationResponse;
 import com.reservation.handler.BusinessException;
 import com.reservation.repository.ReservationRepository;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +31,7 @@ import java.util.Set;
 public class ReservationService {
 
     private final ReservationRepository reservationRepo;
+    private final ApplicationProperties appProperties;
 
     /**
      * Creates a new reservation for the specified seats.
@@ -50,58 +53,44 @@ public class ReservationService {
 
         log.info("Reserving {} seats...", request.seat_ids().size());
 
-        // check seat list size (1 till 15) and no duplicate in that
-        checkSeatIdsList(request.seat_ids());
+        // ============================
+        //         Validating
+        // ============================
+        validateSeatsForReserving(request);
 
-        // check all seats exist
-        List<Long> nonExistingSeats = reservationRepo.findNonExistSeatIds(request.seat_ids());
-        if (!nonExistingSeats.isEmpty()) {
-            record SeatsNotExist(List<Long> non_existing) {}
-            log.warn("{} seats not exist", nonExistingSeats.size());
-            throw new BusinessException(
-                    ApiMessage.SEATS_NOT_EXIST,
-                    new SeatsNotExist(nonExistingSeats)
-            );
+        // ============================
+        //         Reserving
+        // ============================
+        List<ReservationRepository.SeatConfigInfo> seatConfigInfos = reservationRepo.findAllSeatConfigInfo(request.seat_ids());
+        if (seatConfigInfos.isEmpty()) {
+            log.error("No seat config info found for seat IDs: {}", request.seat_ids());
+            throw new IllegalStateException("Failed to load configuration and pricing info for seats: " + request.seat_ids());
         }
+        BigDecimal totalPrice = seatConfigInfos.stream()
+                .map(ReservationRepository.SeatConfigInfo::price)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        log.info("Total amount calculated: {} for {} seats", totalPrice, seatConfigInfos.size());
 
-        // check all seats are from same match
-        Optional<Long> matchId = reservationRepo.findSingleMatchIdForSeats(request.seat_ids());
-        if (matchId.isEmpty()) {
-            log.warn("All seats not belong to the same match");
-            throw new BusinessException(ApiMessage.SEATS_NOT_FOR_ONE_MATCH);
-        }
+        OffsetDateTime expirationTime = OffsetDateTime.now().plusSeconds(
+                appProperties.getBusiness().getReservationActiveTimeSec()
+        );
+        Long reservationId = reservationRepo.createReservation(
+                userId,
+                expirationTime
+        );
+        // TODO: Add reminder for deactivating expired reservation
+        log.info("Successfully created reservation [ID: {}] for user [ID: {}]", reservationId, userId);
 
-        // check match available and payment is open
-        ReservationRepository.MatchStatus matchStatus = reservationRepo.getMatchStatus(matchId.get());
-        if (matchStatus == null) {
-            log.error("No match found for matchId {}", matchId.get());
-            throw new IllegalStateException("No match found for matchId: " + matchId.get());
-        } else if (!matchStatus.isAvailable()) {
-            log.warn("Match [id: {}] is not available for reserving ticket", matchId.get());
-            throw new BusinessException(ApiMessage.MATCH_NOT_AVAILABLE);
-        } else if (!matchStatus.isPaymentOpen()) {
-            log.warn("Match [id: {}] payment is not open for reserving ticket", matchId.get());
-            throw new BusinessException(ApiMessage.MATCH_PAYMENT_IS_NOT_OPEN);
-        }
+        reservationRepo.insertReservationSeats(reservationId, seatConfigInfos);
+        log.info("{} seats successfully reserved for reservation ID: {}", seatConfigInfos.size(), reservationId);
 
-        // check all seats available(not reserved or sold)
-        List<Long> nonAvailableSeats = reservationRepo.findNotAvailableSeatIds(request.seat_ids());
-        if (!nonAvailableSeats.isEmpty()) {
-            record SeatsNotAvailable(List<Long> non_available) {}
-            log.warn("{} seats not available", nonAvailableSeats.size());
-            throw new BusinessException(
-                    ApiMessage.SEATS_NOT_AVAILABLE,
-                    new SeatsNotAvailable(nonAvailableSeats)
-            );
-        }
+        Long orderId = reservationRepo.createTicketOrder(reservationId, userId, totalPrice);
+        log.info("Ticket order successfully created [Order ID: {}] for [Reservation ID: {}]", orderId, reservationId);
 
-        // ۳. ایجاد رکورد اصلی رزرو (در جدول reservation) و محاسبه زمان انقضا (مثلاً ۱۵ دقیقه)
-
-        // ۴. ثبت صندلی‌های انتخاب‌شده به نام این رزرو (در جدول reservation_seat)
-
-        // ۵. ساخت و برگرداندن DTO پاسخ (ReservationResponse)
-
-        return null; // فعلاً برای کامپایل شدن کد
+        return ReservationResponse.builder()
+                .order_id(orderId)
+                .expires_at(expirationTime)
+                .build();
     }
 
     private void checkSeatIdsList(List<Long> seatIds) {
@@ -128,6 +117,55 @@ public class ReservationService {
             throw new BusinessException(
                     ApiMessage.RESERVE_SEAT_IDS_REPEATED,
                     new  DuplicateSeat(duplicates)
+            );
+        }
+    }
+
+    private void validateSeatsForReserving(ReservationRequest request) {
+        // check seat list size (1 till 15) and no duplicate in that
+        checkSeatIdsList(request.seat_ids());
+
+        // check all seats exist
+        List<Long> nonExistingSeats = reservationRepo.findNonExistSeatIds(request.seat_ids());
+        if (!nonExistingSeats.isEmpty()) {
+            record SeatsNotExist(List<Long> non_existing) {}
+            log.warn("{} seats not exist", nonExistingSeats.size());
+            throw new BusinessException(
+                    ApiMessage.SEATS_NOT_EXIST,
+                    new SeatsNotExist(nonExistingSeats)
+            );
+        }
+
+        // check all seats are from same match
+        Optional<Long> matchId = reservationRepo.findSingleMatchIdForSeats(request.seat_ids());
+        if (matchId.isEmpty()) {
+            log.warn("All seats not belong to the same match");
+            throw new BusinessException(ApiMessage.SEATS_NOT_FOR_ONE_MATCH);
+        }
+
+        // check match available and payment is open
+        ReservationRepository.MatchStatus matchStatus = reservationRepo.getMatchStatus(matchId.get())
+                .orElseThrow(() -> {
+                    log.error("No match found for matchId {}", matchId.get());
+                    return new IllegalStateException("No match found for matchId: " + matchId.get());
+                });
+        if (!matchStatus.isAvailable()) {
+            log.warn("Match [id: {}] is not available for reserving ticket", matchId.get());
+            throw new BusinessException(ApiMessage.MATCH_NOT_AVAILABLE);
+        }
+        if (!matchStatus.isPaymentOpen()) {
+            log.warn("Match [id: {}] payment is not open for reserving ticket", matchId.get());
+            throw new BusinessException(ApiMessage.MATCH_PAYMENT_IS_NOT_OPEN);
+        }
+
+        // check all seats available(not reserved or sold)
+        List<Long> nonAvailableSeats = reservationRepo.findNotAvailableSeatIds(request.seat_ids());
+        if (!nonAvailableSeats.isEmpty()) {
+            record SeatsNotAvailable(List<Long> non_available) {}
+            log.warn("{} seats not available", nonAvailableSeats.size());
+            throw new BusinessException(
+                    ApiMessage.SEATS_NOT_AVAILABLE,
+                    new SeatsNotAvailable(nonAvailableSeats)
             );
         }
     }

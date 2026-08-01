@@ -1,14 +1,20 @@
 package com.reservation.repository;
 
 import com.reservation.dto.grpc.ReservedSeatDTO;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +59,9 @@ public class ReservationRepository {
 
 
     // ======================================================================
+    //                     Reserve Validation
+    // ======================================================================
 
-
-    // TODO
     /**
      * @param seatIds: list of seat ids in Long
      * @return a list of seat ids that not exist in db(in Long format)
@@ -100,18 +106,19 @@ public class ReservationRepository {
 
     public record MatchStatus(boolean isAvailable, boolean isPaymentOpen) {}
 
-    public MatchStatus getMatchStatus(Long matchId) {
+    public Optional<MatchStatus> getMatchStatus(Long matchId) {
         String sql = """
-                SELECT
-                    (match_time > CURRENT_TIMESTAMP) AS is_available,
-                    is_payment_open
-                FROM "match"
-                WHERE match_id = :match_id
-            """;
+            SELECT
+                (match_time > CURRENT_TIMESTAMP) AS is_available,
+                is_payment_open
+            FROM "match"
+            WHERE match_id = :match_id
+        """;
 
         Map<String, Object> params = Map.of("match_id", matchId);
+
         try {
-            return jdbcTemplate.queryForObject(
+            MatchStatus status = jdbcTemplate.queryForObject(
                     sql,
                     params,
                     (rs, rowNum) -> new MatchStatus(
@@ -119,8 +126,10 @@ public class ReservationRepository {
                             rs.getBoolean("is_payment_open")
                     )
             );
+            return Optional.ofNullable(status);
+
         } catch (EmptyResultDataAccessException e) {
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -154,5 +163,115 @@ public class ReservationRepository {
 
         Map<String, Object> params = Map.of("seat_ids", seatIds);
         return jdbcTemplate.queryForList(sql, params, Long.class);
+    }
+
+
+    // ======================================================================
+    //                     Reserve Process
+    // ======================================================================
+
+    public record SeatConfigInfo(Long seatId, Integer configId, BigDecimal price) {}
+
+    /**
+     * Returns config and price details for the specified seats.
+     *
+     * @param seatIds list of seat IDs
+     * @return list of seat configuration info
+     */
+    public List<SeatConfigInfo> findAllSeatConfigInfo(List<Long> seatIds) {
+        String sql = """
+            SELECT s.seat_id ,s.config_id, tc.price FROM seat s
+            JOIN ticket_config tc ON s.config_id = tc.config_id
+            WHERE s.seat_id IN (:seat_ids)
+            """;
+
+        return jdbcTemplate.query(
+                sql,
+                Map.of("seat_ids", seatIds),
+                (rs, rowNum) -> new SeatConfigInfo(
+                        rs.getLong("seat_id"),
+                        rs.getInt("config_id"),
+                        rs.getBigDecimal("price")
+                )
+        );
+    }
+
+    /**
+     * Creates a new reservation record and returns the generated reservation ID.
+     */
+    public Long createReservation(Long userId, OffsetDateTime expiresAt) {
+
+        String sql = """
+            INSERT INTO reservation (user_id, expires_at)
+            VALUES (:user_id, :expires_at)
+            """;
+
+        MapSqlParameterSource paramMap =  new MapSqlParameterSource()
+                .addValue("user_id", userId)
+                .addValue("expires_at", expiresAt);
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(
+                sql,
+                paramMap,
+                keyHolder,
+                new String[]{"reservation_id"}
+        );
+
+        Number key = keyHolder.getKey();
+        if (key == null) {
+            throw new IllegalStateException("Failed to retrieve generated reservation_id");
+        }
+
+        return key.longValue();
+    }
+
+    /**
+     * Inserts multiple seats into the reservation_seat table using a batch update.
+     */
+    public void insertReservationSeats(Long reservationId, List<SeatConfigInfo> seatInfos) {
+        String sql = """
+            INSERT INTO reservation_seat (reservation_id, config_id, seat_id)
+            VALUES (:reservation_id, :config_id, :seat_id)
+            """;
+
+        SqlParameterSource[] batchParams = seatInfos.stream()
+                .map(info -> new MapSqlParameterSource()
+                        .addValue("reservation_id", reservationId)
+                        .addValue("config_id", info.configId())
+                        .addValue("seat_id", info.seatId())
+                )
+                .toArray(SqlParameterSource[]::new);
+
+        jdbcTemplate.batchUpdate(sql, batchParams);
+    }
+
+    public Long createTicketOrder(Long reservationId, Long userId, BigDecimal totalPrice) {
+        String sql = """
+            INSERT INTO ticket_order (reservation_id, user_id, total_amount)
+            VALUES (:reservation_id, :user_id, :total_amount)
+            """;
+
+        MapSqlParameterSource paramMap = new MapSqlParameterSource()
+                .addValue("reservation_id", reservationId)
+                .addValue("user_id", userId)
+                .addValue("total_amount", totalPrice);
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+
+        jdbcTemplate.update(
+                sql,
+                paramMap,
+                keyHolder,
+                new String[]{"order_id"}
+        );
+
+        Number key = keyHolder.getKey();
+        if (key == null) {
+            throw new IllegalStateException("Failed to retrieve generated reservation_id");
+        }
+
+        return key.longValue();
     }
 }

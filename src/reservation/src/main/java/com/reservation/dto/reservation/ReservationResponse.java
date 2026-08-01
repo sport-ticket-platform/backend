@@ -6,7 +6,7 @@ import java.time.OffsetDateTime;
 
 @Builder
 public record ReservationResponse(
-        Long reservation_id,
+        Long order_id,
         OffsetDateTime expires_at
 ) {
 }

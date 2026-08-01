@@ -35,6 +35,8 @@ management:
       transport: grpc
 
 app:
+  business:
+    reservation-active-time-sec: 30
   security:
     public-paths:
       - /swagger-ui/**
