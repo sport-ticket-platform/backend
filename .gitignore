@@ -8,6 +8,8 @@ target/
 **/.DS_Store
 /src/Users/compose.yaml
 /src/Users/init.sql
+/src/Events/EventService/init.sql
+/src/Events/EventService/compose.yaml
 
 ### STS ###
 .apt_generated

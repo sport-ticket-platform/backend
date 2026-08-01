@@ -3,7 +3,7 @@ using EventService.Events.API.AuthorizationPolicies.Requirements;
 using Microsoft.AspNetCore.Authorization;
 using UserService.Users.Domain.Enums;
 
-namespace UserService.Users.API.AuthorizationPolicies.RequirementsHandlers;
+namespace EventService.Events.API.AuthorizationPolicies.RequirementsHandlers;
 
 public class RoleHandler : AuthorizationHandler<RoleRequirement>
 {

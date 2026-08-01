@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text.Json.Serialization;
 using EventService.Events.API.AuthorizationPolicies.Requirements;
+using EventService.Events.API.AuthorizationPolicies.RequirementsHandlers;
 using EventService.Events.API.Grpc.Interceptors;
 using EventService.Events.API.Middlewares;
 using EventService.Events.Application.Common.Behaviors;
@@ -15,18 +17,27 @@ using EventService.Reservations.Grpc;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using UserService.Users.Domain.Enums;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+
+
 builder.Services.AddScoped<ApplicationDbContext>();
 
 builder.Services.AddValidatorsFromAssembly(typeof(GetSeatsByConfigQueryValidator).Assembly);
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Services.AddScoped<IReservationServiceClient, GrpcReservationServiceClient>();
 builder.Services.AddScoped<IWriteRepository, WriteRepository>();
+builder.Services.AddScoped<IAuthorizationHandler, RoleHandler>();
+
 
 builder.Services.AddGrpcClient<ReservationService.ReservationServiceClient>(o =>
 {
@@ -37,7 +48,7 @@ var publicKey = builder.Configuration["Jwt:PublicKey"];
 var audience = builder.Configuration["Jwt:Audience"];
 var issuer = builder.Configuration["Jwt:Issuer"];
 
-const string serviceName = "UserService";
+const string serviceName = "EventService";
 const string serviceVersion = "1.0.0";
 var otlpEndpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"] ?? "http://localhost:4317";
 
@@ -59,7 +70,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidAudience = audience,
 
-            ValidateLifetime = true,
+            ValidateLifetime = false,
             ClockSkew = TimeSpan.FromMinutes(1),
 
             ValidateIssuerSigningKey = true,
@@ -131,7 +142,6 @@ builder.Services.AddAuthorization(options =>
 //         otlp.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
 //     });
 // });
-
 
 
 var app = builder.Build();

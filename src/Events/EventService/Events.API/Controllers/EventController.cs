@@ -19,7 +19,9 @@ public class EventController : ControllerBase
 {
     private readonly ILogger<EventController> _logger;
     private readonly ISender _sender;
-    
+    const int MaxLimit = 40;
+    const int DefaultLimit = 20;
+
     public EventController(ILogger<EventController> logger, ISender sender)
     {
         _logger = logger;
@@ -31,10 +33,7 @@ public class EventController : ControllerBase
     public async Task<IActionResult> GetAllMatches([FromQuery] GetAllMatchesQuery query)
     {
         _logger.LogInformation("fetching all matches");
-
-        const int MaxLimit = 40;
-        const int DefaultLimit = 20;
-
+        
         if (query.Limit <= 0)
             query.Limit = DefaultLimit;
         else if (query.Limit > MaxLimit)
@@ -53,9 +52,6 @@ public class EventController : ControllerBase
     {
         _logger.LogInformation("fetching the matches with filtered attributes.");
 
-        const int MaxLimit = 40;
-        const int DefaultLimit = 20;
-
         if (query.Limit <= 0)
             query.Limit = DefaultLimit;
         else if (query.Limit > MaxLimit)
@@ -70,7 +66,7 @@ public class EventController : ControllerBase
     }
 
     [Authorize(policy:"RequireUser")]
-    [HttpGet("match/{MatchId}")]
+    [HttpGet("match/{MatchId}/configs")]
     public async Task<IActionResult> GetTicketConfig([FromRoute] GetTicketConfigsByMatchQuery query)
     {
         _logger.LogInformation("fetching tickets of the match {matchId}",query.MatchId);
@@ -78,6 +74,8 @@ public class EventController : ControllerBase
        return Ok(ticketConfigs);
     }
 
+    [Authorize(policy:"RequireUser")]
+    [HttpGet("match/configs/seats")]
     public async Task<IActionResult> GetSeats(GetSeatsByConfigQuery query)
     {
         _logger.LogInformation("getting all the seats for the config ID {configId}",query.ConfigIds);
@@ -91,9 +89,6 @@ public class EventController : ControllerBase
     {
         
         _logger.LogInformation("getting all the venues");
-        const int MaxLimit = 40;
-        const int DefaultLimit = 20;
-
         if (query.Limit <= 0)
             query.Limit = DefaultLimit;
         else if (query.Limit > MaxLimit)
@@ -111,9 +106,6 @@ public class EventController : ControllerBase
     public async Task<IActionResult> GetAllLeagues([FromQuery] GetAllLeaguesQuery query)
     {
         _logger.LogInformation("getting all the leagues");
-        const int MaxLimit = 40;
-        const int DefaultLimit = 20;
-
         if (query.Limit <= 0)
             query.Limit = DefaultLimit;
         else if (query.Limit > MaxLimit)
@@ -128,7 +120,7 @@ public class EventController : ControllerBase
 
     [Authorize(policy:"RequireAdmin")]
     [HttpPost("new/match")]
-    public async Task<IActionResult> AddNewMatch(AddNewMatchCommand command,CancellationToken ct)
+    public async Task<IActionResult> AddNewMatch([FromBody] AddNewMatchCommand command,CancellationToken ct)
     {
         _logger.LogInformation("adding new match");
         var matchId = await _sender.Send(command,ct);
@@ -137,8 +129,8 @@ public class EventController : ControllerBase
     
     
     [Authorize(policy:"RequireAdmin")]
-    [HttpPost("new/match/{matchId}/ticket")]
-    public async Task<IActionResult> AddNewُTicketConfig(AddNewTicketConfigCommand command,CancellationToken ct)
+    [HttpPost("new/match/ticket")]
+    public async Task<IActionResult> AddNewُTicketConfig([FromBody] AddNewTicketConfigCommand command,CancellationToken ct)
     {
         _logger.LogInformation("adding new ticket");
         var matchId = await _sender.Send(command,ct);

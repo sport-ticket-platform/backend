@@ -12,7 +12,6 @@ COPY ["UserService.csproj", "."]
 RUN dotnet restore "UserService.csproj"
 
 COPY . .
-
 RUN dotnet build "UserService.csproj" \
     -c $BUILD_CONFIGURATION \
     -o /app/build
