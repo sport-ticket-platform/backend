@@ -5,6 +5,7 @@ import com.reservation.security.handler.CustomAccessDeniedHandler;
 import com.reservation.security.handler.CustomAuthEntryPointHandler;
 import com.reservation.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,6 +16,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.util.Arrays;
+
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -28,8 +32,10 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("Initializing SecurityFilterChain for Reservation Service...");
 
         String[] publicPaths = appPrp.getSecurity().getPublicPaths().toArray(new String[0]);
+        log.info("Loaded public paths: {}", Arrays.toString(publicPaths));
 
         http
                 .csrf(AbstractHttpConfigurer::disable)

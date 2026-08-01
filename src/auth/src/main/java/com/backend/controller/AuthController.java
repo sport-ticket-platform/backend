@@ -4,7 +4,7 @@ import com.backend.common.ApiMessage;
 import com.backend.dto.ApiResponse;
 import com.backend.dto.auth.VerifyRequest;
 import com.backend.dto.auth.login.*;
-import com.backend.dto.auth.logout.LogoutRequest;
+import com.backend.dto.auth.logout.*;
 import com.backend.dto.auth.refresh.RefreshRequest;
 import com.backend.dto.auth.refresh.RefreshResponse;
 import com.backend.dto.auth.reset_password.ResetPasswordCompleteRequest;

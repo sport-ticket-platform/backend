@@ -39,7 +39,11 @@ management:
 
 app:
   security:
-    public-paths: /api/auth/**,/error,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html
+    public-paths:
+      - /api/auth/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
 
     jwt:
       private-key: classpath:keys/private_key.pem

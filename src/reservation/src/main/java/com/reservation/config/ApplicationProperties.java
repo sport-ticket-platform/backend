@@ -12,7 +12,13 @@ import java.util.List;
 @ConfigurationProperties(prefix = "app")
 public class ApplicationProperties {
 
+    private Business business = new Business();
     private Security security = new Security();
+
+    @Data
+    public static class Business {
+        private Long reservationActiveTimeSec;
+    }
 
     @Data
     public static class Security {

@@ -35,9 +35,12 @@ management:
       transport: grpc
 
 app:
+  business:
+    reservation-active-time-sec: 600
   security:
-    public-paths: /error,/v3/api-docs/**,/swagger-ui/**,/swagger-ui.html,/api/test/public
-
+    public-paths:
+      - /swagger-ui/**
+      - /v3/api-docs/**
     jwt:
       public-key: classpath:keys/public_key.pem
       issuer: auth-service
