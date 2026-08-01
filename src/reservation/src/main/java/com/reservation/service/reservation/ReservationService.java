@@ -8,10 +8,12 @@ import com.reservation.handler.BusinessException;
 import com.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +34,7 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepo;
     private final ApplicationProperties appProperties;
+    private final StringRedisTemplate redisTemplate;
 
     /**
      * Creates a new reservation for the specified seats.
@@ -71,15 +74,14 @@ public class ReservationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         log.info("Total amount calculated: {} for {} seats", totalPrice, seatConfigInfos.size());
 
-        OffsetDateTime expirationTime = OffsetDateTime.now().plusSeconds(
-                appProperties.getBusiness().getReservationActiveTimeSec()
-        );
-        Long reservationId = reservationRepo.createReservation(
-                userId,
-                expirationTime
-        );
-        // TODO: Add reminder for deactivating expired reservation
+        long activeTimeSec = appProperties.getBusiness().getReservationActiveTimeSec();
+        OffsetDateTime expirationTime = OffsetDateTime.now().plusSeconds(activeTimeSec);
+
+        Long reservationId = reservationRepo.createReservation(userId, expirationTime);
         log.info("Successfully created reservation [ID: {}] for user [ID: {}]", reservationId, userId);
+
+        // set timer for release seats if user didn't pay
+        scheduleReservationExpiration(reservationId, activeTimeSec);
 
         reservationRepo.insertReservationSeats(reservationId, seatConfigInfos);
         log.info("{} seats successfully reserved for reservation ID: {}", seatConfigInfos.size(), reservationId);
@@ -91,6 +93,37 @@ public class ReservationService {
                 .order_id(orderId)
                 .expires_at(expirationTime)
                 .build();
+    }
+
+    /**
+     * Sets a key in Redis with a TTL. When this key expires, Redis will publish an expiration event.
+     * The listener will catch this event and trigger the expiration process in the database.
+     */
+    private void scheduleReservationExpiration(Long reservationId, long ttlSeconds) {
+        String redisKey = "reservation:expire:" + reservationId;
+        redisTemplate.opsForValue().set(redisKey, "PENDING", Duration.ofSeconds(ttlSeconds));
+        log.info("Scheduled expiration alarm in Redis for reservation ID: {} with TTL: {} seconds", reservationId, ttlSeconds);
+    }
+
+    /**
+     * <h6>Expire an active reservation</h6>
+     * <ul>
+     *   <li>reservation table status: EXPIRED</li>
+     *   <li>reservation_seat, each one: is_active = false</li>
+     *   <li>ticket_order, status: FAILED</li>
+     * </ul>
+     */
+    @Transactional
+    public void expireReservation(Long reservationId) {
+        log.info("Starting expiration process for reservation ID: {}", reservationId);
+
+        try {
+            reservationRepo.expireReservation(reservationId);
+            log.info("Successfully expired reservation ID: {} (Seats released, order failed).", reservationId);
+        } catch (Exception e) {
+            log.error("Failed to expire reservation ID: {}. Triggering rollback.", reservationId, e);
+            throw e;
+        }
     }
 
     private void checkSeatIdsList(List<Long> seatIds) {

@@ -36,7 +36,7 @@ management:
 
 app:
   business:
-    reservation-active-time-sec: 30
+    reservation-active-time-sec: 600
   security:
     public-paths:
       - /swagger-ui/**

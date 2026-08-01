@@ -274,4 +274,35 @@ public class ReservationRepository {
 
         return key.longValue();
     }
+
+
+    // ======================================================================
+    //                         Cancel Reservation
+    // ======================================================================
+
+    /**
+     * Expire an active reservation.
+     * <p>reservation table status: EXPIRED</p>
+     * <p>reservation_seat, each one: is_active = false</p>
+     * <p>ticket_order, status: FAILED</p>
+     */
+    public void expireReservation(Long reservationId) {
+        String sql = """
+        WITH release_seats AS (
+            UPDATE reservation_seat
+            SET is_active = false
+            WHERE reservation_id = :reservation_id
+        ),
+        expire_order AS (
+            UPDATE ticket_order
+            SET status = 'FAILED'
+            WHERE reservation_id = :reservation_id AND status = 'PENDING'
+        )
+        UPDATE reservation
+        SET status = 'EXPIRED'::reservation_status
+        WHERE reservation_id = :reservation_id AND status = 'ACTIVE'::reservation_status
+        """;
+
+        jdbcTemplate.update(sql, Map.of("reservation_id", reservationId));
+    }
 }
