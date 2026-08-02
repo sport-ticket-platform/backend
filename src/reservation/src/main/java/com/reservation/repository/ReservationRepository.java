@@ -1,10 +1,14 @@
 package com.reservation.repository;
 
+import com.reservation.dto.PageResult;
 import com.reservation.dto.grpc.ReservedSeatDTO;
+import com.reservation.model.Reservation;
+import com.reservation.model.ReservationStatus;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -304,5 +308,70 @@ public class ReservationRepository {
         """;
 
         jdbcTemplate.update(sql, Map.of("reservation_id", reservationId));
+    }
+
+    // ======================================================================
+    //                         History
+    // ======================================================================
+
+    public PageResult<Reservation> getUserReserveHistory(Long userId, int page, int pageSize, ReservationStatus status) {
+
+        String statusCondition = (status != null) ? " AND status = :status::reservation_status " : "";
+
+        String countSql = """
+            SELECT COUNT(*)
+            FROM reservation
+            WHERE user_id = :user_id
+            """ + statusCondition;
+
+        String dataSql = """
+            SELECT reservation_id, user_id, created_at, expires_at, status
+            FROM reservation
+            WHERE user_id = :user_id
+            """ + statusCondition + """
+            ORDER BY created_at DESC
+            LIMIT :limit OFFSET :offset
+            """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("user_id", userId)
+                .addValue("limit", pageSize)
+                .addValue("offset", page * pageSize);
+
+        if (status != null) {
+            params.addValue("status", status.name());
+        }
+
+        Long totalElements = jdbcTemplate.queryForObject(countSql, params, Long.class);
+
+        List<Reservation> content = Collections.emptyList();
+        if (totalElements > 0) {
+            content = jdbcTemplate.query(dataSql, params, (rs, rowNum) -> {
+                String rsStatus = rs.getString("status");
+
+                return Reservation.builder()
+                        .reservationId(rs.getLong("reservation_id"))
+                        .userId(rs.getLong("user_id"))
+                        .createdAt(rs.getObject("created_at", OffsetDateTime.class))
+                        .expiresAt(rs.getObject("expires_at", OffsetDateTime.class))
+                        .status(ReservationStatus.valueOf(rsStatus))
+                        .build();
+            });
+        }
+
+        int totalPages = (int) Math.ceil((double) totalElements / pageSize);
+
+        boolean isFirst = page == 0;
+        boolean isLast = totalPages == 0 || page >= totalPages - 1;
+
+        return new PageResult<>(
+                content,
+                page,
+                pageSize,
+                totalElements,
+                totalPages,
+                isFirst,
+                isLast
+        );
     }
 }

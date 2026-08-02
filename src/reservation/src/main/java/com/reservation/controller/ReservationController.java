@@ -1,8 +1,11 @@
 package com.reservation.controller;
 
 import com.reservation.dto.ApiResponse;
+import com.reservation.dto.PageResult;
 import com.reservation.dto.reservation.ReservationRequest;
 import com.reservation.dto.reservation.ReservationResponse;
+import com.reservation.dto.reservation.get.ReservesHistoryRequest;
+import com.reservation.model.Reservation;
 import com.reservation.service.reservation.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +45,33 @@ public class ReservationController {
                 .titleFa("رزرو با موفقیت انجام شد")
                 .messageFa(null)
                 .data(reservationData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<PageResult<Reservation>>> getReservationHistory(
+            @Valid @ModelAttribute ReservesHistoryRequest request,
+            Authentication authentication
+    ) {
+
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Fetch reservation history for user id: {}, [page: {} | page_size: {} | status: {}]",
+                userId, request.page(), request.page_size(), request.status());
+
+        PageResult<Reservation> historyData = reservationSer.getUserReservationHistory(userId, request);
+
+        ApiResponse<PageResult<Reservation>> responseBody = ApiResponse.<PageResult<Reservation>>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Reservation history fetched successfully")
+                .message(null)
+                .titleFa("تاریخچه رزروها با موفقیت دریافت شد")
+                .messageFa(null)
+                .data(historyData)
                 .timestamp(LocalDateTime.now())
                 .build();
 

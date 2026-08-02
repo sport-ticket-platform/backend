@@ -2,9 +2,12 @@ package com.reservation.service.reservation;
 
 import com.reservation.common.ApiMessage;
 import com.reservation.config.ApplicationProperties;
+import com.reservation.dto.PageResult;
 import com.reservation.dto.reservation.ReservationRequest;
 import com.reservation.dto.reservation.ReservationResponse;
+import com.reservation.dto.reservation.get.ReservesHistoryRequest;
 import com.reservation.handler.BusinessException;
+import com.reservation.model.Reservation;
 import com.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -124,6 +127,19 @@ public class ReservationService {
             log.error("Failed to expire reservation ID: {}. Triggering rollback.", reservationId, e);
             throw e;
         }
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<Reservation> getUserReservationHistory(Long userId, ReservesHistoryRequest request) {
+        log.debug("Processing reservation history fetch for userId: {}, page: {}, pageSize: {}, status: {}",
+                userId, request.page(), request.page_size(), request.status());
+
+        return reservationRepo.getUserReserveHistory(
+                userId,
+                request.page(),
+                request.page_size(),
+                request.status()
+        );
     }
 
     private void checkSeatIdsList(List<Long> seatIds) {

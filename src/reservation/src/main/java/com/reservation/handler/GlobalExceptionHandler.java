@@ -3,15 +3,19 @@ package com.reservation.handler;
 import com.reservation.common.ApiMessage;
 import com.reservation.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.BindException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,6 +100,29 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(msg.getStatusCode()).body(response);
+    }
+
+    // ======================================
+    //         405 Method Not Allowed
+    // ======================================
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<?>> handleHttpRequestMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException ex) {
+
+        log.warn("Method not allowed: {}", ex.getMessage());
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(405)
+                .title("Method Not Allowed")
+                .message("The requested HTTP method is not supported for this endpoint.")
+                .titleFa("متد HTTP مجاز نیست")
+                .messageFa("متد HTTP ارسال‌شده برای این آدرس API پشتیبانی نمی‌شود.")
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(405).body(response);
     }
 
     // ======================================

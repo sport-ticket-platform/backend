@@ -1,0 +1,28 @@
+info:
+  name: History
+  type: http
+  seq: 5
+
+http:
+  method: GET
+  url: localhost:8081/api/reservations/history?page=0&page_size=2
+  params:
+    - name: page
+      value: "0"
+      type: query
+    - name: page_size
+      value: "2"
+      type: query
+    - name: status
+      value: COMPLETED
+      type: query
+      disabled: true
+  auth:
+    type: bearer
+    token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9BRE1JTiJdLCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJhdWQiOlsiZnJvbnRlbmQiXSwiaWF0IjoxNzg1NDQ0ODE2LCJleHAiOjE3ODYzNDQ4MTZ9.oJsOr42N3LmpBVlP-CJ-U40Hd2C4AaAbJHm4whDTFNRZKZiZ78Qk50AxO6bZIc7EYhI-tHmvQF3jPKaLZ6YN1B3Jtetfqw3cUlwPmiozOSg_SBajMwhpD6omqGoCOj2kd7AvRaJOuBIsTh6rWXt9Ujw83ilflHAcngl_R8ueABKNQ-CCrgpyNq2V5JCTZDL8MvhEKmzcKX0OW628_yRypj6UBeimce5dDQpdzJ228YGbGE8UJE-Z3UuFsYgSQj1SlWTxaCHhbXaaAi3atXODM-tKpf4t6xM8KgetJcKb8KFyP33nIrsNABxf6FtTOx5g0ZuWJ6ujCKQd1GWNj3NV4A
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
