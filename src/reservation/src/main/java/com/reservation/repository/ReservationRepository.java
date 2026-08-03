@@ -2,8 +2,7 @@ package com.reservation.repository;
 
 import com.reservation.dto.PageResult;
 import com.reservation.dto.grpc.ReservedSeatDTO;
-import com.reservation.model.Reservation;
-import com.reservation.model.ReservationStatus;
+import com.reservation.model.*;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -311,7 +310,7 @@ public class ReservationRepository {
     }
 
     // ======================================================================
-    //                         History
+    //                         History And Details
     // ======================================================================
 
     public PageResult<Reservation> getUserReserveHistory(Long userId, int page, int pageSize, ReservationStatus status) {
@@ -373,5 +372,114 @@ public class ReservationRepository {
                 isFirst,
                 isLast
         );
+    }
+
+    /**
+     * Finds a reservation by its ID and User ID. Intended for user-facing endpoints.
+     */
+    public Optional<Reservation> findUserReservationById(Long reservationId, Long userId) {
+        String sql = """
+            SELECT reservation_id, user_id, created_at, expires_at, status
+            FROM reservation
+            WHERE reservation_id = :reservation_id AND user_id = :user_id
+            """;
+
+        Map<String, Object> params = Map.of(
+                "reservation_id", reservationId,
+                "user_id", userId
+        );
+
+        try {
+            Reservation reservation = jdbcTemplate.queryForObject(
+                    sql,
+                    params,
+                    (rs, rowNum) -> Reservation.builder()
+                            .reservationId(rs.getLong("reservation_id"))
+                            .userId(rs.getLong("user_id"))
+                            .createdAt(rs.getObject("created_at", OffsetDateTime.class))
+                            .expiresAt(rs.getObject("expires_at", OffsetDateTime.class))
+                            .status(ReservationStatus.valueOf(rs.getString("status")))
+                            .build()
+            );
+            return Optional.ofNullable(reservation);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Fetches limited seat and config details for a specific reservation. Intended for user-facing endpoints.
+     */
+    public List<ReservationSeat> findUserReservationSeatsDetails(Long reservationId) {
+        String sql = """
+            SELECT
+                rs.reservation_id,
+                s.seat_id, s.section, s.row_no, s.seat_no,
+                tc.config_id, tc.match_id, tc.price,
+                cat.category_id, cat.name as category_name
+            FROM reservation_seat rs
+            JOIN seat s ON rs.seat_id = s.seat_id
+            JOIN ticket_config tc ON s.config_id = tc.config_id
+            JOIN ticket_category cat ON tc.category_id = cat.category_id
+            WHERE rs.reservation_id = :reservation_id
+            """;
+
+        Map<String, Object> params = Map.of("reservation_id", reservationId);
+
+        return jdbcTemplate.query(
+                sql,
+                params,
+                (rs, rowNum) -> {
+                    // Mapping TicketCategory
+                    TicketCategory category = TicketCategory.builder()
+                            .categoryId(rs.getInt("category_id"))
+                            .name(rs.getString("category_name"))
+                            .build();
+
+                    // Mapping TicketConfig
+                    // Note: 'total_seats' and 'amenities' are omitted in this user-facing query
+                    TicketConfig config = TicketConfig.builder()
+                            .configId(rs.getInt("config_id"))
+                            .matchId(rs.getLong("match_id"))
+                            .price(rs.getBigDecimal("price"))
+                            .category(category)
+                            .build();
+
+                    // Mapping ReservationSeat
+                    return ReservationSeat.builder()
+                            .reservationId(rs.getLong("reservation_id"))
+                            .seatId(rs.getLong("seat_id"))
+                            .section(rs.getInt("section"))
+                            .rowNo(rs.getInt("row_no"))
+                            .seatNo(rs.getInt("seat_no"))
+                            .ticketConfig(config)
+                            .build();
+                }
+        );
+    }
+
+    /**
+     * Finds the associated order_id for a given reservation_id
+     */
+    public Optional<Long> findOrderIdByReservationId(Long reservationId, Long userId) {
+        String sql = """
+            SELECT order_id
+            FROM ticket_order
+            WHERE reservation_id = :reservation_id AND user_id = :user_id
+            """;
+
+        try {
+            Long orderId = jdbcTemplate.queryForObject(
+                    sql,
+                    Map.of(
+                            "reservation_id", reservationId,
+                            "user_id", userId
+                    ),
+                    Long.class
+            );
+            return Optional.ofNullable(orderId);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 }

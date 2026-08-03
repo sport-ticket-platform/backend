@@ -12,6 +12,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
@@ -123,6 +124,34 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(405).body(response);
+    }
+
+
+    // ======================================
+    //     400 Invalid Path/Query Variable
+    // ======================================
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentTypeMismatchException(
+            MethodArgumentTypeMismatchException ex
+    ) {
+
+        log.warn("Method argument type mismatch for parameter '{}': rejected value [{}]",
+                ex.getName(), ex.getValue());
+
+        String requiredType = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
+
+        ApiResponse<?> response = ApiResponse.builder()
+                .success(false)
+                .status(HttpStatus.BAD_REQUEST.value())
+                .title("Invalid Parameter Format")
+                .message(String.format("Parameter '%s' expects a valid %s format.", ex.getName(), requiredType))
+                .titleFa("فرمت پارامتر نامعتبر است")
+                .messageFa(String.format("پارامتر '%s' باید از نوع %s باشد.", ex.getName(), requiredType))
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     // ======================================
