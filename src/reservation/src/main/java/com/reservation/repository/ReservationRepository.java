@@ -459,6 +459,58 @@ public class ReservationRepository {
     }
 
     /**
+     * Fetches seat and config details for sold tickets of a specific reservation.
+     */
+    public List<ReservationSeat> findUserSoldTicketDetails(Long reservationId) {
+        String sql = """
+            SELECT
+                ord.reservation_id,
+                s.seat_id, s.section, s.row_no, s.seat_no,
+                tc.config_id, tc.match_id,
+                st.price,
+                cat.category_id, cat.name as category_name
+            FROM sold_ticket st
+                JOIN seat s ON st.seat_id = s.seat_id
+                JOIN ticket_config tc ON s.config_id = tc.config_id
+                JOIN ticket_category cat ON tc.category_id = cat.category_id
+                JOIN ticket_order ord ON st.order_id = ord.order_id
+            WHERE ord.reservation_id = :reservation_id
+            """;
+
+        Map<String, Object> params = Map.of("reservation_id", reservationId);
+
+        return jdbcTemplate.query(
+                sql,
+                params,
+                (rs, rowNum) -> {
+                    // Mapping TicketCategory
+                    TicketCategory category = TicketCategory.builder()
+                            .categoryId(rs.getInt("category_id"))
+                            .name(rs.getString("category_name"))
+                            .build();
+
+                    // Mapping TicketConfig
+                    TicketConfig config = TicketConfig.builder()
+                            .configId(rs.getInt("config_id"))
+                            .matchId(rs.getLong("match_id"))
+                            .price(rs.getBigDecimal("price"))
+                            .category(category)
+                            .build();
+
+                    // Mapping ReservationSeat
+                    return ReservationSeat.builder()
+                            .reservationId(rs.getObject("reservation_id", Long.class))
+                            .seatId(rs.getLong("seat_id"))
+                            .section(rs.getInt("section"))
+                            .rowNo(rs.getInt("row_no"))
+                            .seatNo(rs.getInt("seat_no"))
+                            .ticketConfig(config)
+                            .build();
+                }
+        );
+    }
+
+    /**
      * Finds the associated order_id for a given reservation_id
      */
     public Optional<Long> findOrderIdByReservationId(Long reservationId, Long userId) {

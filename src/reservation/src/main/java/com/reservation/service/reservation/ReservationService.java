@@ -11,6 +11,7 @@ import com.reservation.handler.BusinessException;
 import com.reservation.model.Reservation;
 import com.reservation.model.ReservationSeat;
 import com.reservation.model.ReservationStatus;
+import com.reservation.model.TicketConfig;
 import com.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -161,21 +162,19 @@ public class ReservationService {
             log.warn("Order not found or access denied for reservationId: {} and userId: {}", reservationId, userId);
         }
 
-        if (ReservationStatus.COMPLETED.equals(reservation.getStatus())) {
-            log.info("Reservation {} is COMPLETED. Redirecting to order details.", reservationId);
 
-            return ReservationDetailResponse.builder()
-                    .reservation(reservation)
-                    .orderId(orderId)
-                    .build();
+        List<ReservationSeat> seats;
+        if (ReservationStatus.COMPLETED.equals(reservation.getStatus())) {
+            log.info("Reservation {} is COMPLETED. Fetching seats from sold_ticket", reservationId);
+            seats = reservationRepo.findUserSoldTicketDetails(reservationId);
+        } else {
+            log.info("Reservation {} is not COMPLETED. Fetching seats from reservation_seat", reservationId);
+            seats = reservationRepo.findUserReservationSeatsDetails(reservationId);
         }
 
-        // If not 'COMPLETED'
-        List<com.reservation.model.ReservationSeat> seats = reservationRepo.findUserReservationSeatsDetails(reservationId);
-
         Long matchId = null;
-        if (seats != null && !seats.isEmpty()) {
-            com.reservation.model.TicketConfig config = seats.getFirst().getTicketConfig();
+        if (!seats.isEmpty()) {
+            TicketConfig config = seats.getFirst().getTicketConfig();
             if (config != null) {
                 matchId = config.getMatchId();
             }
