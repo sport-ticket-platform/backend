@@ -130,14 +130,14 @@ public enum ApiMessage {
             "این بخش نمیتواند خالی باشد",
             400
     ),
-    GET_RESERVES_PAGE_AMOUNT(
+    INVALID_PAGE_AMOUNT(
             "Page can't be smaller than zero",
             "Page can't be smaller than zero",
             "صفحه نمیتواند کوچکتر از صفر باشد",
             "صفحه نمیتواند کوچکتر از صفر باشد",
             400
     ),
-        GET_RESERVES_PAGE_SIZE_AMOUNT(
+    INVALID_PAGE_SIZE_AMOUNT(
             "Page Size should be between 1 and 50",
             "Page Size should be between 1 and 50",
             "مقدار سایز صفحه باید بین ۱ تا ۵۰ باشد",
