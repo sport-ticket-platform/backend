@@ -2,9 +2,16 @@ package com.reservation.service.reservation;
 
 import com.reservation.common.ApiMessage;
 import com.reservation.config.ApplicationProperties;
+import com.reservation.dto.PageResult;
 import com.reservation.dto.reservation.ReservationRequest;
 import com.reservation.dto.reservation.ReservationResponse;
+import com.reservation.dto.reservation.get.ReservationDetailResponse;
+import com.reservation.dto.reservation.get.ReservesHistoryRequest;
 import com.reservation.handler.BusinessException;
+import com.reservation.model.Reservation;
+import com.reservation.model.ReservationSeat;
+import com.reservation.model.ReservationStatus;
+import com.reservation.model.TicketConfig;
 import com.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -90,8 +97,9 @@ public class ReservationService {
         log.info("Ticket order successfully created [Order ID: {}] for [Reservation ID: {}]", orderId, reservationId);
 
         return ReservationResponse.builder()
-                .order_id(orderId)
-                .expires_at(expirationTime)
+                .reservationId(reservationId)
+                .orderId(orderId)
+                .expiresAt(expirationTime)
                 .build();
     }
 
@@ -124,6 +132,60 @@ public class ReservationService {
             log.error("Failed to expire reservation ID: {}. Triggering rollback.", reservationId, e);
             throw e;
         }
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<Reservation> getUserReservationHistory(Long userId, ReservesHistoryRequest request) {
+        log.debug("Processing reservation history fetch for userId: {}, page: {}, pageSize: {}, status: {}",
+                userId, request.page(), request.page_size(), request.status());
+
+        return reservationRepo.getUserReserveHistory(
+                userId,
+                request.page(),
+                request.page_size(),
+                request.status()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public ReservationDetailResponse getReservationById(Long userId, Long reservationId) {
+        log.info("Fetching reservation details for reservationId: {} and userId: {}", reservationId, userId);
+
+        Reservation reservation = reservationRepo.findUserReservationById(reservationId, userId)
+                .orElseThrow(() -> {
+                    log.warn("Reservation not found or access denied. reservationId: {}, userId: {}", reservationId, userId);
+                    return new BusinessException(ApiMessage.RESOURCE_NOT_FOUND);
+                });
+
+        Long orderId = reservationRepo.findOrderIdByReservationId(reservationId, userId).orElse(null);
+        if (orderId == null) {
+            log.warn("Order not found or access denied for reservationId: {} and userId: {}", reservationId, userId);
+        }
+
+
+        List<ReservationSeat> seats;
+        if (ReservationStatus.COMPLETED.equals(reservation.getStatus())) {
+            log.info("Reservation {} is COMPLETED. Fetching seats from sold_ticket", reservationId);
+            seats = reservationRepo.findUserSoldTicketDetails(reservationId);
+        } else {
+            log.info("Reservation {} is not COMPLETED. Fetching seats from reservation_seat", reservationId);
+            seats = reservationRepo.findUserReservationSeatsDetails(reservationId);
+        }
+
+        Long matchId = null;
+        if (!seats.isEmpty()) {
+            TicketConfig config = seats.getFirst().getTicketConfig();
+            if (config != null) {
+                matchId = config.getMatchId();
+            }
+        }
+
+        return ReservationDetailResponse.builder()
+                .reservation(reservation)
+                .orderId(orderId)
+                .matchId(matchId)
+                .reservationSeats(seats)
+                .build();
     }
 
     private void checkSeatIdsList(List<Long> seatIds) {

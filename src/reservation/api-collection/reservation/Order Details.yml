@@ -1,17 +1,11 @@
 info:
-  name: Reserve
+  name: Order Details
   type: http
-  seq: 3
+  seq: 8
 
 http:
-  method: POST
-  url: localhost:8081/api/reservations/reserve
-  body:
-    type: json
-    data: |-
-      {
-        "seat_ids": [18, 20] 
-      }
+  method: GET
+  url: localhost:8081/api/reservations/order/500
   auth:
     type: bearer
     token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9BRE1JTiJdLCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJhdWQiOlsiZnJvbnRlbmQiXSwiaWF0IjoxNzg1NDQ0ODE2LCJleHAiOjE3ODYzNDQ4MTZ9.oJsOr42N3LmpBVlP-CJ-U40Hd2C4AaAbJHm4whDTFNRZKZiZ78Qk50AxO6bZIc7EYhI-tHmvQF3jPKaLZ6YN1B3Jtetfqw3cUlwPmiozOSg_SBajMwhpD6omqGoCOj2kd7AvRaJOuBIsTh6rWXt9Ujw83ilflHAcngl_R8ueABKNQ-CCrgpyNq2V5JCTZDL8MvhEKmzcKX0OW628_yRypj6UBeimce5dDQpdzJ228YGbGE8UJE-Z3UuFsYgSQj1SlWTxaCHhbXaaAi3atXODM-tKpf4t6xM8KgetJcKb8KFyP33nIrsNABxf6FtTOx5g0ZuWJ6ujCKQd1GWNj3NV4A

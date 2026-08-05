@@ -1,18 +1,20 @@
-package com.reservation.dto.reservation;
+package com.reservation.dto.reservation.get;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.reservation.model.Reservation;
+import com.reservation.model.ReservationSeat;
 import lombok.Builder;
 
-import java.time.OffsetDateTime;
+import java.util.List;
 
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record ReservationResponse(
-        Long reservationId,
+public record ReservationDetailResponse(
+        Reservation reservation,
         Long orderId,
-        OffsetDateTime expiresAt
-) {
-}
+        Long matchId,
+        List<ReservationSeat> reservationSeats
+) {}
