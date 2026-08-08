@@ -1,5 +1,8 @@
-using System.Net.Http.Headers;
-using System.Text;
+using System.Net.Sockets;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Options;
+using MimeKit;
 using NotificationService.Exceptions;
 
 namespace NotificationService.Services.EmailService;
@@ -7,77 +10,75 @@ namespace NotificationService.Services.EmailService;
 public class EmailService : IEmailService
 {
     private readonly ILogger<EmailService> _logger;
-    private readonly IConfiguration _configuration;
-    private readonly HttpClient _httpClient;
-    private const string EmailServerUrl = "https://api.eu.mailgun.net/v3/";
-    private const string DomainName = "sport-ticket-platform.com";
+    private readonly EmailSenderOptions _options;
 
-    public EmailService(ILogger<EmailService> logger, IConfiguration configuration, HttpClient httpClient)
+    public EmailService(ILogger<EmailService> logger, IOptions<EmailSenderOptions> options)
     {
         _logger = logger;
-        _configuration = configuration;
-        _httpClient = httpClient;
+        _options = options.Value;
     }
 
-    public async Task SendTextEmail(string from, string to, string subject, string textBody)
+    public async Task SendTextEmail(string to, string subject, string textBody, CancellationToken ct = default)
     {
-        var postData = new MultipartFormDataContent
-        {
-            { new StringContent(from), "from" },
-            { new StringContent(to), "to" },
-            { new StringContent(subject), "subject" },
-            { new StringContent(textBody), "text" }
-        };
-
-        await SendAsync(from, to, postData);
+        await SendAsync(to, subject, textBody, isHtml: false, ct);
     }
 
-    public async Task SendHtmlEmail(string from, string to, string subject, string htmlBody)
+    public async Task SendHtmlEmail(string to, string subject, string htmlBody, CancellationToken ct = default)
     {
-        var postData = new MultipartFormDataContent
-        {
-            { new StringContent(from), "from" },
-            { new StringContent(to), "to" },
-            { new StringContent(subject), "subject" },
-            { new StringContent(htmlBody), "html" }
-        };
-
-        await SendAsync(from, to, postData);
+        await SendAsync(to, subject, htmlBody, isHtml: true, ct);
     }
 
-    private async Task SendAsync(string from, string to, MultipartFormDataContent postData)
+    private async Task SendAsync(string to, string subject, string body, bool isHtml, CancellationToken ct)
     {
-        _logger.LogInformation("Sending email from {From} to {To}", from, to);
+        _logger.LogInformation("Sending email from {From} to {To}", _options.SenderEmail, to);
+
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_options.SenderName, _options.SenderEmail));
+        message.To.Add(MailboxAddress.Parse(to));
+        message.Subject = subject;
+        message.Body = isHtml
+            ? new TextPart("html") { Text = body }
+            : new TextPart("plain") { Text = body };
+
+        using var client = new SmtpClient();
 
         try
         {
-            var base64String = Convert.ToBase64String(Encoding.ASCII.GetBytes($"api:{_configuration["APIKey"]}"));
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", base64String);
+            await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, SecureSocketOptions.StartTls, ct);
+            await client.AuthenticateAsync(_options.SenderEmail, _options.AppPassword, ct);
+            await client.SendAsync(message, ct);
 
-            using var response = await _httpClient.PostAsync(EmailServerUrl + DomainName + "/messages", postData);
-            var responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                _logger.LogError(
-                    "Mailgun rejected the email from {From} to {To}. Status: {StatusCode}. Body: {Body}",
-                    from, to, (int)response.StatusCode, responseBody);
-
-                throw new EmailDeliveryException(
-                    $"Email provider rejected the request with status {(int)response.StatusCode}.");
-            }
-
-            _logger.LogInformation("Email sent successfully from {From} to {To}", from, to);
+            _logger.LogInformation("Email sent to {To}", to);
         }
-        catch (HttpRequestException ex)
+        catch (AuthenticationException ex)
         {
-            _logger.LogError(ex, "Network error while sending email from {From} to {To}", from, to);
+            _logger.LogError(ex, "Gmail SMTP authentication failed for sender {Sender}", _options.SenderEmail);
+            throw new EmailDeliveryException("Failed to authenticate with the email provider.", ex);
+        }
+        catch (SmtpCommandException ex)
+        {
+            _logger.LogError(ex, "SMTP server rejected the email to {To}. Status: {StatusCode}", to, ex.StatusCode);
+            throw new EmailDeliveryException($"Email provider rejected the request: {ex.Message}", ex);
+        }
+        catch (SmtpProtocolException ex)
+        {
+            _logger.LogError(ex, "SMTP protocol error while sending email to {To}", to);
+            throw new EmailDeliveryException("Unexpected error communicating with the email provider.", ex);
+        }
+        catch (SocketException ex)
+        {
+            _logger.LogError(ex, "Network error while connecting to SMTP server for {To}", to);
             throw new EmailDeliveryException("Unable to reach the email provider.", ex);
         }
-        catch (TaskCanceledException ex) when (!ex.CancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException ex) when (!ct.IsCancellationRequested)
         {
-            _logger.LogError(ex, "Email request to provider timed out from {From} to {To}", from, to);
+            _logger.LogError(ex, "SMTP operation timed out while sending email to {To}", to);
             throw new EmailDeliveryException("Email provider did not respond in time.", ex);
+        }
+        finally
+        {
+            if (client.IsConnected)
+                await client.DisconnectAsync(true, CancellationToken.None);
         }
     }
 }

@@ -43,6 +43,16 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
+          "dependencies": {
+            "MailKit": {
+              "target": "Package",
+              "version": "[4.17.0, )"
+            },
+            "Resend": {
+              "target": "Package",
+              "version": "[0.8.0, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
