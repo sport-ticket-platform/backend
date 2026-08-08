@@ -41,6 +41,7 @@ app:
     public-paths:
       - /swagger-ui/**
       - /v3/api-docs/**
+      - /api/reservations/mock-gateway/info/**
     jwt:
       public-key: classpath:keys/public_key.pem
       issuer: auth-service

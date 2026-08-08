@@ -1,9 +1,6 @@
 package com.reservation.repository;
 
-import com.reservation.model.Order;
-import com.reservation.model.OrderStatus;
-import com.reservation.model.Reservation;
-import com.reservation.model.ReservationStatus;
+import com.reservation.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -90,16 +87,13 @@ public class PaymentRepository {
         log.info("Inserted payment record for orderId: {} with token: {}", orderId, token);
     }
 
-    /**
-     * پیدا کردن توکن پرداخت فعال (PENDING) برای یک سفارش، با اعتبارسنجی مالکیت کاربر
-     */
     public Optional<String> getPendingPaymentTokenByOrderId(Long orderId, Long userId) {
         String sql = """
-            SELECT p.token 
+            SELECT p.token
             FROM payment p
             JOIN ticket_order o ON p.order_id = o.order_id
-            WHERE p.order_id = :orderId 
-              AND o.user_id = :userId 
+            WHERE p.order_id = :orderId
+              AND o.user_id = :userId
               AND p.status = 'PENDING'::payment_status
             LIMIT 1
         """;
@@ -111,6 +105,50 @@ public class PaymentRepository {
         try {
             String token = jdbcTemplate.queryForObject(sql, params, String.class);
             return Optional.ofNullable(token);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Mock Payment Gateway
+     */
+    public Optional<Payment> getPaymentByToken(String token) {
+        String sql = """
+            SELECT
+                p.payment_id, p.order_id, p.amount, p.token, p.ref_id, p.paid_at, p.status,
+                pm.method_id, pm.name AS method_name, pm.fee_percentage, pm.is_active
+            FROM payment p
+            JOIN payment_methods pm ON p.method_id = pm.method_id
+            WHERE p.token = :token
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("token", token);
+
+        try {
+            Payment payment = jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+
+                PaymentMethod paymentMethod = PaymentMethod.builder()
+                        .methodId(rs.getInt("method_id"))
+                        .name(rs.getString("method_name"))
+                        .feePercentage(rs.getBigDecimal("fee_percentage"))
+                        .isActive(rs.getBoolean("is_active"))
+                        .build();
+
+                return Payment.builder()
+                        .paymentId(rs.getLong("payment_id"))
+                        .orderId(rs.getLong("order_id"))
+                        .method(paymentMethod)
+                        .amount(rs.getBigDecimal("amount"))
+                        .token(rs.getString("token"))
+                        .refId(rs.getString("ref_id"))
+                        .paidAt(rs.getObject("paid_at", OffsetDateTime.class))
+                        .status(PaymentStatus.valueOf(rs.getString("status")))
+                        .build();
+            });
+
+            return Optional.ofNullable(payment);
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }

@@ -1,0 +1,15 @@
+info:
+  name: Get Mock Payment Info
+  type: http
+  seq: 9
+
+http:
+  method: GET
+  url: localhost:8081/api/reservations/mock-gateway/info/dc0bf9a3-afd6-4f75-bdd9-ffe437d3571c
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

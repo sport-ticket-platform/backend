@@ -176,6 +176,14 @@ public enum ApiMessage {
             400 // Bad Request
     ),
 
+    INVALID_PAYMENT_TOKEN(
+            "Invalid Token",
+            "The provided payment token is invalid or does not exist.",
+            "توکن نامعتبر",
+            "توکن پرداخت وارد شده نامعتبر است.",
+            404
+    ),
+
 
 
 
