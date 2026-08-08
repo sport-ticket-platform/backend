@@ -1,4 +1,4 @@
-package com.reservation.service.reservation;
+package com.reservation.service.order;
 
 import com.reservation.common.ApiMessage;
 import com.reservation.dto.PageResult;
