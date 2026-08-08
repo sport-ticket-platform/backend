@@ -44,6 +44,20 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Grpc.AspNetCore": {
+              "target": "Package",
+              "version": "[2.71.0, )"
+            },
+            "Grpc.AspNetCore.Server.Reflection": {
+              "target": "Package",
+              "version": "[2.80.0, )"
+            },
+            "Grpc.Tools": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.71.0, )"
+            },
             "MailKit": {
               "target": "Package",
               "version": "[4.17.0, )"

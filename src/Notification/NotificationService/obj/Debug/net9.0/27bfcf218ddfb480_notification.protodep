@@ -1,0 +1,3 @@
+obj/Debug/net9.0/Services/GrpcService/protos/Notification.cs \
+obj/Debug/net9.0/Services/GrpcService/protos/NotificationGrpc.cs: /home/mmdcj/.nuget/packages/grpc.tools/2.71.0/build/native/include/google/protobuf/empty.proto\
+ Services/GrpcService/protos/notification.proto

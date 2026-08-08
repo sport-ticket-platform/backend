@@ -9,14 +9,25 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\..\..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MailKit" Version="4.17.0" />
-      <PackageReference Include="Resend" Version="0.8.0" />
+        <PackageReference Include="MailKit" Version="4.17.0"/>
+        <PackageReference Include="Resend" Version="0.8.0"/>
+        <PackageReference Include="Grpc.AspNetCore" Version="2.71.0"/>
+        <PackageReference Include="Grpc.AspNetCore.Server.Reflection" Version="2.80.0"/>
+        <PackageReference Include="Grpc.Tools" Version="2.71.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="Services/GrpcService/protos/notification.proto" GrpcServices="Server"/>
+    </ItemGroup>
+
 
 </Project>
