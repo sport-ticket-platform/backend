@@ -138,6 +138,24 @@ public class ReservationService {
         }
     }
 
+    /**
+     * Bulk-expires all reservations that are still {@code ACTIVE} but whose
+     * expiration time has already passed. Designed to be called once on
+     * application startup to recover reservations missed during downtime.
+     *
+     * @return the number of reservations expired
+     */
+    @Transactional
+    public int expireAllStaleReservations() {
+        int count = reservationRepo.expireAllStaleReservations();
+        if (count > 0) {
+            log.info("Startup sweep expired {} stale reservation(s).", count);
+        } else {
+            log.info("Startup sweep: no stale reservations found.");
+        }
+        return count;
+    }
+
     @Transactional(readOnly = true)
     public PageResult<Reservation> getUserReservationHistory(Long userId, ReservesHistoryRequest request) {
         log.debug("Processing reservation history fetch for userId: {}, page: {}, pageSize: {}, status: {}",

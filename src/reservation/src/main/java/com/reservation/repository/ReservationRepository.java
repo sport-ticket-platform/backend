@@ -306,6 +306,44 @@ public class ReservationRepository {
         return jdbcTemplate.update(sql, Map.of("reservation_id", reservationId));
     }
 
+    /**
+     * Bulk-expires all reservations that are still {@code ACTIVE} but whose
+     * {@code expires_at} timestamp has already passed. Intended to run once
+     * on application startup to recover from any downtime during which Redis
+     * expiration events were missed.
+     *
+     * <p>The operation is atomic: seats are deactivated, pending orders are
+     * failed, and reservations are marked {@code EXPIRED} in a single CTE.
+     *
+     * @return the number of reservations that were expired
+     */
+    public int expireAllStaleReservations() {
+        String sql = """
+            WITH stale AS (
+                SELECT reservation_id
+                FROM reservation
+                WHERE status = 'ACTIVE'::reservation_status
+                  AND expires_at < NOW()
+            ),
+            release_seats AS (
+                UPDATE reservation_seat
+                SET is_active = false
+                WHERE reservation_id IN (SELECT reservation_id FROM stale)
+            ),
+            expire_orders AS (
+                UPDATE ticket_order
+                SET status = 'FAILED'
+                WHERE reservation_id IN (SELECT reservation_id FROM stale)
+                  AND status = 'PENDING'
+            )
+            UPDATE reservation
+            SET status = 'EXPIRED'::reservation_status
+            WHERE reservation_id IN (SELECT reservation_id FROM stale)
+            """;
+
+        return jdbcTemplate.update(sql, Map.of());
+    }
+
     // ======================================================================
     //                         History And Details
     // ======================================================================
