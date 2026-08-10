@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: localhost:8081/api/reservations/mock-gateway/info/dc0bf9a3-afd6-4f75-bdd9-ffe437d3571c
+  url: localhost:8081/api/reservations/mock-gateway/info/a71a68c8-84bc-44bd-bb7d-a31b86c4d427
   auth: inherit
 
 settings:
