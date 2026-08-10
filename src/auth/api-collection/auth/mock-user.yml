@@ -5,11 +5,15 @@ info:
 
 grpc:
   url: localhost:9090
-  method: /UserService/ChangeUserPassword
+  method: /UserService/CreateUser
   methodType: unary
-  message: |-
-    {
-      "id": 1,
-      "new_password": "aaa"
-    }
+  message:
+    - title: message 1
+      message: |-
+        {
+          "email": "taha3@gmail.com",
+          "first_name": "taha",
+          "last_name": "amini",
+          "password": "hash"
+        }
   auth: inherit
