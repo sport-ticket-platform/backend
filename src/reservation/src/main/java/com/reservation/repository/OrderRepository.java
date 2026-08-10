@@ -227,4 +227,18 @@ public class OrderRepository {
                 }
         );
     }
+
+    public void updateOrderStatus(Long orderId, OrderStatus status) {
+        String sql = """
+            UPDATE ticket_order
+            SET status = :status::order_status
+            WHERE order_id = :orderId
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("status", status.name())
+                .addValue("orderId", orderId);
+
+        jdbcTemplate.update(sql, params);
+    }
 }

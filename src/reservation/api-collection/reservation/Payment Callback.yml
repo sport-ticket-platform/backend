@@ -1,16 +1,17 @@
 info:
-  name: Payment Request
+  name: Payment Callback
   type: http
-  seq: 8
+  seq: 11
 
 http:
   method: POST
-  url: localhost:8081/api/reservations/payment/request
+  url: localhost:8081/api/reservations/payment/callback
   body:
     type: json
     data: |-
       {
-        "order_id": 5
+        "token": "b1b4d7b9-de4a-4464-a0bc-ceeabe25f299",
+        "status": "SUCCESS"
       }
   auth:
     type: bearer

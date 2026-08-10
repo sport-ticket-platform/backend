@@ -79,6 +79,11 @@ public class OrderService {
                 .reservationSeats(reservationSeats)
                 .build();
     }
+
+    @Transactional
+    public void markOrderAsPaid(Long orderId) {
+        orderRepository.updateOrderStatus(orderId, OrderStatus.PAID);
+    }
 }
 
 

@@ -153,4 +153,92 @@ public class PaymentRepository {
             return Optional.empty();
         }
     }
+
+    public record PaymentWithOrderAndReservation(
+            Payment payment,
+            Order order,
+            Reservation reservation
+    ) {}
+
+    public Optional<PaymentWithOrderAndReservation> getPaymentWithOrderAndReservation(String token, Long userId) {
+        String sql = """
+            SELECT
+                p.payment_id, p.order_id, p.amount, p.token, p.ref_id, p.paid_at, p.status AS payment_status,
+                pm.method_id, pm.name AS method_name, pm.fee_percentage, pm.is_active,
+                o.reservation_id, o.user_id AS order_user_id, o.total_amount, o.status AS order_status, o.created_at AS order_created_at,
+                r.user_id AS res_user_id, r.created_at AS res_created_at, r.expires_at, r.status AS res_status
+            FROM payment p
+            JOIN payment_methods pm ON p.method_id = pm.method_id
+            JOIN ticket_order o ON p.order_id = o.order_id
+            JOIN reservation r ON o.reservation_id = r.reservation_id
+            WHERE p.token = :token AND o.user_id = :userId
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("token", token)
+                .addValue("userId", userId);
+
+        try {
+            PaymentWithOrderAndReservation result = jdbcTemplate.queryForObject(sql, params, (rs, rowNum) -> {
+
+                PaymentMethod paymentMethod = PaymentMethod.builder()
+                        .methodId(rs.getInt("method_id"))
+                        .name(rs.getString("method_name"))
+                        .feePercentage(rs.getBigDecimal("fee_percentage"))
+                        .isActive(rs.getBoolean("is_active"))
+                        .build();
+
+                Payment payment = Payment.builder()
+                        .paymentId(rs.getLong("payment_id"))
+                        .orderId(rs.getLong("order_id"))
+                        .method(paymentMethod)
+                        .amount(rs.getBigDecimal("amount"))
+                        .token(rs.getString("token"))
+                        .refId(rs.getString("ref_id"))
+                        .paidAt(rs.getObject("paid_at", OffsetDateTime.class))
+                        .status(PaymentStatus.valueOf(rs.getString("payment_status")))
+                        .build();
+
+                Order order = Order.builder()
+                        .orderId(rs.getLong("order_id"))
+                        .reservationId(rs.getLong("reservation_id"))
+                        .userId(rs.getLong("order_user_id"))
+                        .totalAmount(rs.getBigDecimal("total_amount"))
+                        .status(OrderStatus.valueOf(rs.getString("order_status")))
+                        .createdAt(rs.getObject("order_created_at", OffsetDateTime.class))
+                        .build();
+
+                Reservation reservation = Reservation.builder()
+                        .reservationId(rs.getLong("reservation_id"))
+                        .userId(rs.getLong("res_user_id"))
+                        .createdAt(rs.getObject("res_created_at", OffsetDateTime.class))
+                        .expiresAt(rs.getObject("expires_at", OffsetDateTime.class))
+                        .status(ReservationStatus.valueOf(rs.getString("res_status")))
+                        .build();
+
+                return new PaymentWithOrderAndReservation(payment, order, reservation);
+            });
+
+            return Optional.ofNullable(result);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
+
+    public void updatePaymentStatus(String token, PaymentStatus status, String refId) {
+        String sql = """
+            UPDATE payment
+            SET status = :status::payment_status,
+                ref_id = :refId,
+                paid_at = CURRENT_TIMESTAMP
+            WHERE token = :token
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("status", status.name())
+                .addValue("refId", refId)
+                .addValue("token", token);
+
+        jdbcTemplate.update(sql, params);
+    }
 }
