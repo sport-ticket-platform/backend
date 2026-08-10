@@ -154,12 +154,19 @@ public enum ApiMessage {
             "سفارش درخواستی یافت نشد یا متعلق به حساب کاربری شما نیست.",
             404 // Not Found
     ),
-    ORDER_NOT_PENDING(
+    ORDER_NOT_PENDING_FOR_PAYMENT(
             "Invalid Order Status",
             "This order is not in a payable status. It might have already been paid or cancelled.",
             "وضعیت نامعتبر سفارش",
             "این سفارش در وضعیت قابل پرداخت نیست. ممکن است قبلاً پرداخت شده یا لغو شده باشد.",
             400 // Bad Request
+    ),
+    ORDER_NOT_PENDING_FOR_CALLBACK(
+            "Order Processing Failed",
+            "Cannot process payment callback for this order. If the payment was successful, the amount will be credited to your wallet.",
+            "عدم امکان ثبت نتیجه پرداخت",
+            "امکان ثبت مستقیم این خرید وجود ندارد. در صورت کسر وجه و موفقیت‌آمیز بودن پرداخت، این مبلغ در کیف پول شما شارژ می‌شود.",
+            400
     ),
     RESERVATION_NOT_ACTIVE(
             "Reservation Not Active",
@@ -183,7 +190,20 @@ public enum ApiMessage {
             "توکن پرداخت وارد شده نامعتبر است.",
             404
     ),
-
+    PAYMENT_STATUS_INVALID(
+            "Invalid payment status",
+            "The payment status must be either SUCCESS or FAILED.",
+            "وضعیت پرداخت نامعتبر است",
+            "وضعیت پرداخت باید یکی از مقادیر SUCCESS یا FAILED باشد.",
+            400
+    ),
+    PAYMENT_ALREADY_PROCESSED(
+            "Payment Already Processed",
+            null,
+            "تراکنش قبلاً پردازش شده است",
+            null,
+            400
+    ),
 
 
 

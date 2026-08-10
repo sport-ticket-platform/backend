@@ -1,6 +1,8 @@
 package com.reservation.controller;
 
 import com.reservation.dto.ApiResponse;
+import com.reservation.dto.payment.PaymentCallbackRequest;
+import com.reservation.dto.payment.PaymentCallbackResponse;
 import com.reservation.dto.payment.PaymentRequest;
 import com.reservation.dto.payment.PaymentResponse;
 import com.reservation.service.payment.PaymentService;
@@ -38,6 +40,30 @@ public class PaymentController {
                 .status(HttpStatus.OK.value())
                 .title("Payment request initiated")
                 .titleFa("درخواست پرداخت با موفقیت ایجاد شد")
+                .data(response)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @PostMapping("/callback")
+    public ResponseEntity<ApiResponse<PaymentCallbackResponse>> processPaymentCallback(
+            @Valid @RequestBody PaymentCallbackRequest request,
+            Authentication authentication) {
+
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Processing payment callback for token: {} with status: {} by userId: {}",
+                request.token(), request.status(), userId);
+
+        PaymentCallbackResponse response = paymentService.processCallback(request, userId);
+
+        ApiResponse<PaymentCallbackResponse> responseBody = ApiResponse.<PaymentCallbackResponse>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Payment callback processed")
+                .titleFa("نتيجه پرداخت با موفقیت ثبت شد")
                 .data(response)
                 .timestamp(LocalDateTime.now())
                 .build();

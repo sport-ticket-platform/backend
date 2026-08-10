@@ -10,11 +10,11 @@ http:
     type: json
     data: |-
       {
-        "seat_ids": [18, 20] 
+        "seat_ids": [5, 6, 7] 
       }
   auth:
     type: bearer
-    token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9BRE1JTiJdLCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJhdWQiOlsiZnJvbnRlbmQiXSwiaWF0IjoxNzg2MzcxODc0LCJleHAiOjE3ODcyNzE4NzR9.reElPIFCQ7qJWUJ6-X0rhZMIz_DIZ6yLkalobw8tyPOM8h9mSkM823s2se4A3z1rFPn3EJecRlmdi8OOnPPqDw9RM-BBpeW99czgIspPBRekRqkIA2-Wn1m56ZgZysFwoDF3PysWH2NmstCx2PWtRw5-abTmtnadL1HYPDr2xgRdYuJc6aDscDOqu7EjVIkpN7W1OO4LTa5SpzmlBk8j7bFLWFWuirS1zQkXZRbeR9Ve0uVgCLzTdZhW95q1Rpo8jUc8vlwtPX-pEbIy6aY7mA5CW7TJF7m1fVfH6xM0c_Z8GHOknssKi7qL78mJseCQEbIVEM0mect3gbEHvkNgNQ
+    token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9BRE1JTiJdLCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJhdWQiOlsiZnJvbnRlbmQiXSwiaWF0IjoxNzg2Mzc1OTUyLCJleHAiOjE3ODcyNzU5NTJ9.tuiNRa0hDenjgoyASEfdlkezBeGq50_IBdidM_KXE4-hrgeI-V-RAuLfCBY18ZcPUpBuTubN_rSdvy0Y4Z9_ycMRPXPvKmTJHpAXsGnUfY1ZwkVV_ITjSUNrH0LwQiK52DkHD6Fv8H7gruM4gRMzW_xADUmKt2k7G6qEC3u3td7pm4CopDVaqi0b2DWjK4OYwQGYLl68wh-gr6ShGE1CYp8VRqYUJpoZS-9gYYF03nv1qVrsK0Z3CSsyaZmy6lndniUDYlxY5Z1xF_uVY3cVpbHp_4MK7zCIxoBWT_-LqZzlYAcj1AnrvczzO6kHKwbW6Qvdqyw2LkW_tvlUT-B1kw
 
 settings:
   encodeUrl: true
