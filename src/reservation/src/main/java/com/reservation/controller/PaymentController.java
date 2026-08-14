@@ -5,6 +5,7 @@ import com.reservation.dto.payment.PaymentCallbackRequest;
 import com.reservation.dto.payment.PaymentCallbackResponse;
 import com.reservation.dto.payment.PaymentRequest;
 import com.reservation.dto.payment.PaymentResponse;
+import com.reservation.dto.wallet.WalletPaymentRequest;
 import com.reservation.service.payment.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,29 @@ public class PaymentController {
                 .title("Payment callback processed")
                 .titleFa("نتيجه پرداخت با موفقیت ثبت شد")
                 .data(response)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @PostMapping("/pay-with-wallet")
+    public ResponseEntity<ApiResponse<Void>> payWithWallet(
+            @Valid @RequestBody WalletPaymentRequest request,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Received wallet payment request for orderId: {} by userId: {}", request.order_id(), userId);
+
+        paymentService.payWithWallet(request.order_id(), userId);
+
+        ApiResponse<Void> responseBody = ApiResponse.<Void>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Paid successfully with wallet")
+                .titleFa("پرداخت با کیف پول با موفقیت انجام شد")
+                .data(null)
                 .timestamp(LocalDateTime.now())
                 .build();
 
