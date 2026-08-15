@@ -19,6 +19,11 @@ spring:
   output:
     ansi:
       enabled: always
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
 
   # Connect to redis
   data:
@@ -54,6 +59,8 @@ app:
       audience: frontend
 
     mfa_token_ttl_min: 2
+  rabbitmq:
+    email-queue: emailQueue
 
 grpc:
   client:
