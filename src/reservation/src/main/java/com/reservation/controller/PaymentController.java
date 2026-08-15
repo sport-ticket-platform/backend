@@ -10,6 +10,7 @@ import com.reservation.dto.payment.get.PaymentHistoryRequest;
 import com.reservation.dto.payment.get.PaymentHistoryResponse;
 import com.reservation.dto.wallet.WalletPaymentRequest;
 import com.reservation.dto.wallet.WalletPaymentResponse;
+import com.reservation.model.Payment;
 import com.reservation.service.payment.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -119,6 +120,31 @@ public class PaymentController {
                 .titleFa("تاریخچه پرداخت‌ها با موفقیت دریافت شد")
                 .messageFa(null)
                 .data(historyData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @GetMapping("/{payment_id}")
+    public ResponseEntity<ApiResponse<Payment>> getPaymentDetail(
+            @PathVariable("payment_id") Long paymentId,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Fetch payment detail for payment_id: {} by user_id: {}", paymentId, userId);
+
+        Payment detailData = paymentService.getPaymentDetail(paymentId, userId);
+
+        ApiResponse<Payment> responseBody = ApiResponse.<Payment>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Payment details fetched successfully")
+                .message(null)
+                .titleFa("جزئیات پرداخت با موفقیت دریافت شد")
+                .messageFa(null)
+                .data(detailData)
                 .timestamp(LocalDateTime.now())
                 .build();
 

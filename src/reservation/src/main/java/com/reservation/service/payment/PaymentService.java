@@ -223,4 +223,12 @@ public class PaymentService {
                 request.status()
         );
     }
+
+    @Transactional(readOnly = true)
+    public Payment getPaymentDetail(Long paymentId, Long userId) {
+        log.info("Fetching payment detail for paymentId: {} by userId: {}", paymentId, userId);
+
+        return paymentRepository.findUserPaymentById(paymentId, userId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.PAYMENT_NOT_FOUND_OR_NOT_YOURS));
+    }
 }

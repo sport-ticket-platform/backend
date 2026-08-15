@@ -218,6 +218,13 @@ public enum ApiMessage {
             null,
             400
     ),
+    PAYMENT_NOT_FOUND_OR_NOT_YOURS(
+            "Payment not found or you don't have access to it",
+            null,
+            "تراکنش یافت نشد یا شما به آن دسترسی ندارید",
+            null,
+            404
+    ),
 
 
 

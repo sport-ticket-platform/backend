@@ -310,4 +310,50 @@ public class PaymentRepository {
                 isLast
         );
     }
+
+    /**
+     * Finds detailed payment information mapping to the Payment model.
+     * Inner joins with ticket_order to verify user ownership.
+     */
+    public Optional<Payment> findUserPaymentById(Long paymentId, Long userId) {
+        String sql = """
+            SELECT p.payment_id, p.order_id, p.amount, p.ref_id, p.paid_at, p.status,
+                   pm.method_id, pm.name as method_name, pm.fee_percentage
+            FROM payment p
+            INNER JOIN ticket_order o ON p.order_id = o.order_id
+            INNER JOIN payment_methods pm ON p.method_id = pm.method_id
+            WHERE p.payment_id = :payment_id AND o.user_id = :user_id
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("payment_id", paymentId)
+                .addValue("user_id", userId);
+
+        try {
+            Payment payment = jdbcTemplate.queryForObject(
+                    sql,
+                    params,
+                    (rs, rowNum) -> {
+                        PaymentMethod method = PaymentMethod.builder()
+                                .methodId(rs.getInt("method_id"))
+                                .name(rs.getString("method_name"))
+                                .feePercentage(rs.getBigDecimal("fee_percentage"))
+                                .build();
+
+                        return Payment.builder()
+                                .paymentId(rs.getLong("payment_id"))
+                                .orderId(rs.getLong("order_id"))
+                                .amount(rs.getBigDecimal("amount"))
+                                .refId(rs.getString("ref_id"))
+                                .status(PaymentStatus.valueOf(rs.getString("status")))
+                                .paidAt(rs.getObject("paid_at", OffsetDateTime.class))
+                                .method(method)
+                                .build();
+                    }
+            );
+            return Optional.ofNullable(payment);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
 }
