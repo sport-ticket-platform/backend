@@ -10,8 +10,8 @@ http:
     type: json
     data: |-
       {
-        "mfa": "0NKp_f8LrDNm0_eo7XQHW1qkSx4iBe1_tIeZa_UdplA",
-        "otp": "48173"
+        "mfa": "KjMFUs6QGToJd1H0fhWi3W7z1x7a9WQ8ehaE11sFJRE",
+        "otp": "50746"
       }
   auth: inherit
 

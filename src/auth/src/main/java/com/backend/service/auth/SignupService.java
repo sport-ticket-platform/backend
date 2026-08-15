@@ -10,12 +10,14 @@ import com.backend.grpc.*;
 import com.backend.handler.AuthException;
 import com.backend.handler.CustomLockedException;
 
+import com.backend.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class SignupService {
     private final TwoFactorService twoFactorSer;
     private final StringRedisTemplate redisTemplate;
     private final PasswordEncoder passwordEncoder;
+    private final WalletRepository walletRepository;
 
     @GrpcClient("user-service")
     private UserServiceGrpc.UserServiceBlockingStub userServiceStub;
@@ -80,6 +83,7 @@ public class SignupService {
                 .build();
     }
 
+    @Transactional
     public void signupComplete(SignupCompleteRequest request) {
         String tempTokenKey = "signup:temp:" + request.temp_token();
 
@@ -93,6 +97,8 @@ public class SignupService {
         log.info("Completing registration for email: [{}]", email);
 
         String hashedPassword = passwordEncoder.encode(request.password());
+
+        long newUserId;
 
         try {
             CreateUserRequest createUserReq = CreateUserRequest.newBuilder()
@@ -109,15 +115,20 @@ public class SignupService {
                 throw new AuthException(ApiMessage.SIGNUP_FAILED);
             }
 
+            newUserId = userServiceResponse.getUserId();
+
         } catch (io.grpc.StatusRuntimeException e) {
             log.error("gRPC error while creating user for email [{}]: {}", email, e.getStatus());
             throw new AuthException(ApiMessage.SIGNUP_FAILED);
         }
 
-        // single use (delete only after successful user creation)
+        log.info("Initializing wallet for new user ID: [{}]", newUserId);
+        walletRepository.createWallet(newUserId);
+        // ------------------------------------------------
+
         redisTemplate.delete(tempTokenKey);
 
-        log.info("User successfully registered for email: [{}]", email);
+        log.info("User and wallet successfully registered for email: [{}]", email);
     }
 
     private void checkUserMFALocked(String identifier) {

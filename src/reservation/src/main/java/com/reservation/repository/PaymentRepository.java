@@ -1,5 +1,7 @@
 package com.reservation.repository;
 
+import com.reservation.dto.PageResult;
+import com.reservation.dto.payment.get.PaymentHistoryResponse;
 import com.reservation.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,8 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -240,5 +244,116 @@ public class PaymentRepository {
                 .addValue("token", token);
 
         jdbcTemplate.update(sql, params);
+    }
+
+    /**
+     * Fetch user payment history with pagination and optional status filter.
+     */
+    public PageResult<PaymentHistoryResponse> getUserPaymentHistory(
+            Long userId, int page, int pageSize, PaymentStatus status) {
+
+        String statusCondition = (status != null) ? " AND p.status = :status::payment_status " : "";
+
+        String countSql = """
+        SELECT COUNT(p.payment_id)
+        FROM payment p
+        INNER JOIN ticket_order o ON p.order_id = o.order_id
+        WHERE o.user_id = :user_id
+        """ + statusCondition;
+
+        String dataSql = """
+        SELECT p.payment_id, p.order_id, p.amount, p.status, p.paid_at
+        FROM payment p
+        INNER JOIN ticket_order o ON p.order_id = o.order_id
+        WHERE o.user_id = :user_id
+        """ + statusCondition + """
+        ORDER BY p.paid_at DESC NULLS LAST, p.payment_id DESC
+        LIMIT :limit OFFSET :offset
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("user_id", userId)
+                .addValue("limit", pageSize)
+                .addValue("offset", page * pageSize);
+
+        if (status != null) {
+            params.addValue("status", status.name());
+        }
+
+        Long totalElements = jdbcTemplate.queryForObject(countSql, params, Long.class);
+
+        List<PaymentHistoryResponse> content = Collections.emptyList();
+        if (totalElements != null && totalElements > 0) {
+            content = jdbcTemplate.query(dataSql, params, (rs, rowNum) ->
+                    PaymentHistoryResponse.builder()
+                            .paymentId(rs.getLong("payment_id"))
+                            .orderId(rs.getLong("order_id"))
+                            .amount(rs.getBigDecimal("amount"))
+                            .status(rs.getString("status"))
+                            .paidAt(rs.getObject("paid_at", OffsetDateTime.class))
+                            .build()
+            );
+        }
+
+        int totalPages = (int) Math.ceil((double) (totalElements != null ? totalElements : 0) / pageSize);
+
+        boolean isFirst = page == 0;
+        boolean isLast = totalPages == 0 || page >= totalPages - 1;
+
+        return new PageResult<>(
+                content,
+                page,
+                pageSize,
+                totalElements != null ? totalElements : 0L,
+                totalPages,
+                isFirst,
+                isLast
+        );
+    }
+
+    /**
+     * Finds detailed payment information mapping to the Payment model.
+     * Inner joins with ticket_order to verify user ownership.
+     */
+    public Optional<Payment> findUserPaymentById(Long paymentId, Long userId) {
+        String sql = """
+            SELECT p.payment_id, p.order_id, p.amount, p.ref_id, p.paid_at, p.status,
+                   pm.method_id, pm.name as method_name, pm.fee_percentage
+            FROM payment p
+            INNER JOIN ticket_order o ON p.order_id = o.order_id
+            INNER JOIN payment_methods pm ON p.method_id = pm.method_id
+            WHERE p.payment_id = :payment_id AND o.user_id = :user_id
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("payment_id", paymentId)
+                .addValue("user_id", userId);
+
+        try {
+            Payment payment = jdbcTemplate.queryForObject(
+                    sql,
+                    params,
+                    (rs, rowNum) -> {
+                        PaymentMethod method = PaymentMethod.builder()
+                                .methodId(rs.getInt("method_id"))
+                                .name(rs.getString("method_name"))
+                                .feePercentage(rs.getBigDecimal("fee_percentage"))
+                                .build();
+
+                        return Payment.builder()
+                                .paymentId(rs.getLong("payment_id"))
+                                .orderId(rs.getLong("order_id"))
+                                .amount(rs.getBigDecimal("amount"))
+                                .refId(rs.getString("ref_id"))
+                                .status(PaymentStatus.valueOf(rs.getString("status")))
+                                .paidAt(rs.getObject("paid_at", OffsetDateTime.class))
+                                .method(method)
+                                .build();
+                    }
+            );
+            return Optional.ofNullable(payment);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 }

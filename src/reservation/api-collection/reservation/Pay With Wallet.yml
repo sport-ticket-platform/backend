@@ -1,16 +1,16 @@
 info:
-  name: Reserve
+  name: "Pay With Wallet "
   type: http
-  seq: 3
+  seq: 12
 
 http:
   method: POST
-  url: localhost:8081/api/reservations/reserve
+  url: localhost:8081/api/reservations/payment/pay-with-wallet
   body:
     type: json
     data: |-
       {
-        "seat_ids": [6]
+        "order_id": 7
       }
   auth:
     type: bearer

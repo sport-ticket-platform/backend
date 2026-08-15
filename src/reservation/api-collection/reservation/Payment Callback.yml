@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "token": "b1b4d7b9-de4a-4464-a0bc-ceeabe25f299",
+        "token": "63f1a29a-3644-4891-934d-8e3dd164f3c3",
         "status": "SUCCESS"
       }
   auth:

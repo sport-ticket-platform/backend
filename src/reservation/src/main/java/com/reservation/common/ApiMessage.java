@@ -204,10 +204,34 @@ public enum ApiMessage {
             null,
             400
     ),
-
-
-
-
+    WALLET_NOT_ACTIVE(
+            "Wallet is not active",
+            null,
+            "کیف پول شما غیرفعال است",
+            null,
+            400
+    ),
+    INSUFFICIENT_WALLET_BALANCE(
+            "Insufficient wallet balance",
+            null,
+            "موجودی کیف پول شما کافی نیست",
+            null,
+            400
+    ),
+    PAYMENT_NOT_FOUND_OR_NOT_YOURS(
+            "Payment not found or you don't have access to it",
+            null,
+            "تراکنش یافت نشد یا شما به آن دسترسی ندارید",
+            null,
+            404
+    ),
+    WALLET_NOT_FOUND(
+            "Wallet not found for this user",
+            null,
+            "کیف پول برای این کاربر یافت نشد",
+            null,
+            404
+    ),
 
 
     TEMP(

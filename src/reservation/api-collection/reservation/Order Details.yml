@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: localhost:8081/api/reservations/order/500
+  url: localhost:8081/api/reservations/order/1
   auth:
     type: bearer
     token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9BRE1JTiJdLCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJhdWQiOlsiZnJvbnRlbmQiXSwiaWF0IjoxNzg2Mzc1OTUyLCJleHAiOjE3ODcyNzU5NTJ9.tuiNRa0hDenjgoyASEfdlkezBeGq50_IBdidM_KXE4-hrgeI-V-RAuLfCBY18ZcPUpBuTubN_rSdvy0Y4Z9_ycMRPXPvKmTJHpAXsGnUfY1ZwkVV_ITjSUNrH0LwQiK52DkHD6Fv8H7gruM4gRMzW_xADUmKt2k7G6qEC3u3td7pm4CopDVaqi0b2DWjK4OYwQGYLl68wh-gr6ShGE1CYp8VRqYUJpoZS-9gYYF03nv1qVrsK0Z3CSsyaZmy6lndniUDYlxY5Z1xF_uVY3cVpbHp_4MK7zCIxoBWT_-LqZzlYAcj1AnrvczzO6kHKwbW6Qvdqyw2LkW_tvlUT-B1kw
