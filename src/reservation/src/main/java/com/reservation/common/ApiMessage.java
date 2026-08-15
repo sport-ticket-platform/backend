@@ -232,6 +232,28 @@ public enum ApiMessage {
             null,
             404
     ),
+    RESERVATION_NOT_FOUND_OR_NOT_YOURS(
+            "Reservation not found or you don't have access to it",
+            null,
+            "رزرو یافت نشد یا شما به آن دسترسی ندارید",
+            null,
+            404
+    ),
+    ORDER_NOT_PAID_FOR_CALCULATE_CANCELLATION(
+            "Only paid orders can be used to calculate the cancellation penalty",
+            null,
+            "فقط سفارش‌های پرداخت‌شده قابل محاسبه برای جریمه لغو هستند",
+            null,
+            400
+    ),
+    ORDER_CANNOT_BE_CANCELLED(
+            "Order cannot be cancelled in its current status",
+            null,
+            "سفارش در وضعیت فعلی قابل لغو نیست",
+            null,
+            400
+    ),
+
 
 
     TEMP(

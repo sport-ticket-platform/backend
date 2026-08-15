@@ -241,4 +241,31 @@ public class OrderRepository {
 
         jdbcTemplate.update(sql, params);
     }
+
+    /**
+     * Fetches the match time for a specific order.
+     */
+    public Optional<OffsetDateTime> findMatchTimeByOrderId(Long orderId) {
+        String sql = """
+            SELECT m.match_time
+            FROM ticket_order o
+            JOIN sold_ticket st ON o.order_id = st.order_id
+            JOIN seat s ON st.seat_id = s.seat_id
+            JOIN ticket_config tc ON s.config_id = tc.config_id
+            JOIN "match" m ON tc.match_id = m.match_id
+            WHERE o.order_id = :order_id
+            LIMIT 1
+            """;
+
+        try {
+            OffsetDateTime matchTime = jdbcTemplate.queryForObject(
+                    sql,
+                    Map.of("order_id", orderId),
+                    (rs, rowNum) -> rs.getObject("match_time", OffsetDateTime.class)
+            );
+            return Optional.ofNullable(matchTime);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
+    }
 }

@@ -2,6 +2,7 @@ package com.reservation.service.order;
 
 import com.reservation.common.ApiMessage;
 import com.reservation.dto.PageResult;
+import com.reservation.dto.order.OrderCancelPenaltyResponse;
 import com.reservation.dto.order.OrderDetailResponse;
 import com.reservation.dto.order.OrderHistoryRequest;
 import com.reservation.handler.BusinessException;
@@ -12,6 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -83,6 +88,55 @@ public class OrderService {
     @Transactional
     public void markOrderAsPaid(Long orderId) {
         orderRepository.updateOrderStatus(orderId, OrderStatus.PAID);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderCancelPenaltyResponse calculateCancelPenalty(Long orderId, Long userId) {
+        log.info("Calculating cancellation penalty for orderId: {} by userId: {}", orderId, userId);
+
+        Order order = orderRepository.findUserOrderById(orderId, userId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.ORDER_NOT_FOUND_OR_NOT_YOURS));
+
+        if (order.getStatus() != OrderStatus.PAID) {
+            log.warn("Cannot calculate penalty for order {} with status {}", orderId, order.getStatus());
+            throw new BusinessException(ApiMessage.ORDER_NOT_PAID_FOR_CALCULATE_CANCELLATION);
+        }
+
+        OffsetDateTime matchTime = orderRepository.findMatchTimeByOrderId(orderId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.RESOURCE_NOT_FOUND));
+
+        long hoursUntilMatch = Duration.between(OffsetDateTime.now(), matchTime).toHours();
+
+        int penaltyPercentage;
+        boolean isCancellable = true;
+
+        if (hoursUntilMatch >= 72) {
+            penaltyPercentage = 10;
+        } else if (hoursUntilMatch >= 24) {
+            penaltyPercentage = 30;
+        } else if (hoursUntilMatch >= 5) {
+            penaltyPercentage = 50;
+        } else {
+            penaltyPercentage = 100;
+            isCancellable = false;
+        }
+
+        BigDecimal totalAmount = order.getTotalAmount();
+        BigDecimal penaltyAmount = totalAmount
+                .multiply(BigDecimal.valueOf(penaltyPercentage))
+                .divide(BigDecimal.valueOf(100), RoundingMode.CEILING);
+        BigDecimal refundableAmount = totalAmount.subtract(penaltyAmount);
+
+        log.info("Calculated penalty is {}({} %). hours until match is: {}", penaltyAmount, penaltyPercentage, hoursUntilMatch);
+
+        return OrderCancelPenaltyResponse.builder()
+                .orderId(orderId)
+                .totalAmount(totalAmount)
+                .penaltyAmount(penaltyAmount)
+                .refundableAmount(refundableAmount)
+                .penaltyPercentage(penaltyPercentage)
+                .isCancellable(isCancellable)
+                .build();
     }
 }
 
