@@ -104,4 +104,29 @@ public class ReservationController {
 
         return ResponseEntity.ok(responseBody);
     }
+
+    @PutMapping("/reserve/{reservation_id}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelReservation(
+            @PathVariable("reservation_id") Long reservationId,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Received cancel request for reservation_id: {} by user_id: {}", reservationId, userId);
+
+        reservationSer.cancelUserReservation(reservationId, userId);
+
+        ApiResponse<Void> responseBody = ApiResponse.<Void>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Reservation cancelled successfully")
+                .message(null)
+                .titleFa("رزرو با موفقیت لغو شد")
+                .messageFa(null)
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
 }

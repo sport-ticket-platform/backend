@@ -2,6 +2,7 @@ package com.reservation.controller;
 
 import com.reservation.dto.ApiResponse;
 import com.reservation.dto.PageResult;
+import com.reservation.dto.order.OrderCancelPenaltyResponse;
 import com.reservation.dto.order.OrderDetailResponse;
 import com.reservation.dto.order.OrderHistoryRequest;
 import com.reservation.model.Order;
@@ -71,6 +72,56 @@ public class OrderController {
                 .titleFa("جزئیات سفارش با موفقیت دریافت شد")
                 .messageFa(null)
                 .data(orderData)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @GetMapping("/{order_id}/cancel-penalty")
+    public ResponseEntity<ApiResponse<OrderCancelPenaltyResponse>> getCancelPenalty(
+            @PathVariable("order_id") Long orderId,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Fetching cancellation penalty for order_id: {} by user_id: {}", orderId, userId);
+
+        OrderCancelPenaltyResponse penaltyInfo = orderService.calculateCancelPenalty(orderId, userId);
+
+        ApiResponse<OrderCancelPenaltyResponse> responseBody = ApiResponse.<OrderCancelPenaltyResponse>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Penalty calculated successfully")
+                .message(null)
+                .titleFa("مبلغ جریمه با موفقیت محاسبه شد")
+                .messageFa(null)
+                .data(penaltyInfo)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @PutMapping("/{order_id}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelOrder(
+            @PathVariable("order_id") Long orderId,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Received request to cancel order_id: {} by user_id: {}", orderId, userId);
+
+        orderService.cancelOrder(orderId, userId);
+
+        ApiResponse<Void> responseBody = ApiResponse.<Void>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Order cancellation processed")
+                .message(null)
+                .titleFa("درخواست لغو سفارش پردازش شد")
+                .messageFa(null)
+                .data(null)
                 .timestamp(LocalDateTime.now())
                 .build();
 

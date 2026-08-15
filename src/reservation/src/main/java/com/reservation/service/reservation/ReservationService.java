@@ -302,4 +302,28 @@ public class ReservationService {
                     issuedTicketsCount, orderId, deletedSeatsCount, reservationId);
         }
     }
+
+    /**
+     * Cancels an active reservation requested by the user.
+     * Updates reservation status to CANCELLED, frees seats, and fails the pending order.
+     */
+    @Transactional
+    public void cancelUserReservation(Long reservationId, Long userId) {
+        log.info("User {} requested to cancel reservation {}", userId, reservationId);
+
+        Reservation reservation = reservationRepo.findUserReservationById(reservationId, userId)
+                .orElseThrow(() -> {
+                    log.warn("Cancel failed: Reservation not found or access denied. reservationId: {}, userId: {}", reservationId, userId);
+                    return new BusinessException(ApiMessage.RESERVATION_NOT_FOUND_OR_NOT_YOURS);
+                });
+
+        if (reservation.getStatus() != ReservationStatus.ACTIVE) {
+            log.warn("Cancellation failed: Reservation {} is not ACTIVE (Status: {})", reservationId, reservation.getStatus());
+            throw new BusinessException(ApiMessage.RESERVATION_NOT_ACTIVE);
+        }
+
+        reservationRepo.cancelReservationAndFreeSeats(reservationId);
+
+        log.info("Successfully cancelled reservation ID: {} for user ID: {}", reservationId, userId);
+    }
 }

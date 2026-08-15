@@ -2,16 +2,25 @@ package com.reservation.service.order;
 
 import com.reservation.common.ApiMessage;
 import com.reservation.dto.PageResult;
+import com.reservation.dto.order.OrderCancelPenaltyResponse;
 import com.reservation.dto.order.OrderDetailResponse;
 import com.reservation.dto.order.OrderHistoryRequest;
 import com.reservation.handler.BusinessException;
 import com.reservation.model.*;
+import com.reservation.model.wallet.TransactionReferenceType;
 import com.reservation.repository.OrderRepository;
+import com.reservation.repository.ReservationRepository;
+import com.reservation.service.reservation.ReservationService;
+import com.reservation.service.wallet.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -27,6 +36,8 @@ import java.util.List;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final ReservationService reservationService;
+    private final WalletService walletService;
 
     /**
      * Retrieve a paginated list of user's orders, optionally filtered by status.
@@ -83,6 +94,105 @@ public class OrderService {
     @Transactional
     public void markOrderAsPaid(Long orderId) {
         orderRepository.updateOrderStatus(orderId, OrderStatus.PAID);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderCancelPenaltyResponse calculateCancelPenalty(Long orderId, Long userId) {
+        log.info("Calculating cancellation penalty for orderId: {} by userId: {}", orderId, userId);
+
+        Order order = orderRepository.findUserOrderById(orderId, userId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.ORDER_NOT_FOUND_OR_NOT_YOURS));
+
+        if (order.getStatus() != OrderStatus.PAID) {
+            log.warn("Cannot calculate penalty for order {} with status {}", orderId, order.getStatus());
+            throw new BusinessException(ApiMessage.ORDER_NOT_PAID_FOR_CALCULATE_CANCELLATION);
+        }
+
+        OffsetDateTime matchTime = orderRepository.findMatchTimeByOrderId(orderId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.RESOURCE_NOT_FOUND));
+
+        long hoursUntilMatch = Duration.between(OffsetDateTime.now(), matchTime).toHours();
+
+        int penaltyPercentage;
+        boolean isCancellable = true;
+
+        if (hoursUntilMatch >= 72) {
+            penaltyPercentage = 10;
+        } else if (hoursUntilMatch >= 24) {
+            penaltyPercentage = 30;
+        } else if (hoursUntilMatch >= 5) {
+            penaltyPercentage = 50;
+        } else {
+            penaltyPercentage = 100;
+            isCancellable = false;
+        }
+
+        BigDecimal totalAmount = order.getTotalAmount();
+        BigDecimal penaltyAmount = totalAmount
+                .multiply(BigDecimal.valueOf(penaltyPercentage))
+                .divide(BigDecimal.valueOf(100), RoundingMode.CEILING);
+        BigDecimal refundableAmount = totalAmount.subtract(penaltyAmount);
+
+        log.info("Calculated penalty is {}({} %). hours until match is: {}", penaltyAmount, penaltyPercentage, hoursUntilMatch);
+
+        return OrderCancelPenaltyResponse.builder()
+                .orderId(orderId)
+                .totalAmount(totalAmount)
+                .penaltyAmount(penaltyAmount)
+                .refundableAmount(refundableAmount)
+                .penaltyPercentage(penaltyPercentage)
+                .isCancellable(isCancellable)
+                .build();
+    }
+
+    @Transactional
+    public void cancelOrder(Long orderId, Long userId) {
+        log.info("User {} requested to cancel order {}", userId, orderId);
+
+        Order order = orderRepository.findUserOrderById(orderId, userId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.ORDER_NOT_FOUND_OR_NOT_YOURS));
+
+        switch (order.getStatus()) {
+            case FAILED, REFUNDED -> {
+                log.warn("Cannot cancel order {} because it is already {}", orderId, order.getStatus());
+                throw new BusinessException(ApiMessage.ORDER_CANNOT_BE_CANCELLED);
+            }
+            case PAID -> {
+                log.info("Order {} is PAID. Proceeding to calculate penalty and refund...", orderId);
+
+                OrderCancelPenaltyResponse penaltyInfo = calculateCancelPenalty(orderId, userId);
+
+                if (!penaltyInfo.isCancellable()) {
+                    log.warn("Order {} is not cancellable because it is too close to match time.", orderId);
+                    throw new BusinessException(ApiMessage.ORDER_CANNOT_BE_CANCELLED);
+                }
+
+                orderRepository.updateSoldTicketsStatus(orderId, TicketStatus.CANCELED_BY_USER);
+
+                orderRepository.updateOrderStatus(orderId, OrderStatus.REFUNDED);
+
+                BigDecimal refundableAmount = penaltyInfo.refundableAmount();
+                if (refundableAmount.compareTo(BigDecimal.ZERO) > 0) {
+                    String description = String.format("Refund for ticket cancellation of order #%d (%d%% penalty applied)",
+                            orderId, penaltyInfo.penaltyPercentage());
+
+                    walletService.deposit(
+                            userId,
+                            refundableAmount,
+                            TransactionReferenceType.TICKET_ORDER,
+                            orderId,
+                            description
+                    );
+                    log.info("Refunded {} to wallet for user {} against order {}", refundableAmount, userId, orderId);
+                }
+            }
+            case PENDING -> {
+                log.info("Order {} is PENDING. Cancelling associated reservation and freeing seats...", orderId);
+                reservationService.cancelUserReservation(order.getReservationId(), userId);
+            }
+        }
+
+        log.info("Cancel operation completed for order {}", orderId);
     }
 }
 
