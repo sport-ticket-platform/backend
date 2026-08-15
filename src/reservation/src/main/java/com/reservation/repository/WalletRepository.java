@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -136,73 +137,79 @@ public class WalletRepository {
             TransactionType type,
             TransactionStatus status,
             int page,
-            int pageSize) {
+            int pageSize
+    ) {
 
-        int limit = pageSize;
-        int offset = page * pageSize;
+        String typeCondition = (type != null) ? " AND type = :type::transaction_type " : "";
+        String statusCondition = (status != null) ? " AND status = :status::transaction_status " : "";
 
-        // کوئری شمارش کل رکوردها (برای صفحه‌بندی) با کست کردن ENUMهای دیتابیس
         String countSql = """
-            SELECT COUNT(*) FROM wallet_transaction
+            SELECT COUNT(*)
+            FROM wallet_transaction
             WHERE wallet_id = :wallet_id
-              AND (:type IS NULL OR type = CAST(:type AS transaction_type))
-              AND (:status IS NULL OR status = CAST(:status AS transaction_status))
-        """;
+            """ + typeCondition + statusCondition;
 
-        // کوئری واکشی اطلاعات
-        String fetchSql = """
+        String dataSql = """
             SELECT transaction_id, wallet_id, type, status, amount, balance_after, description,
                    reference_type, reference_id, created_at, updated_at
             FROM wallet_transaction
             WHERE wallet_id = :wallet_id
-              AND (:type IS NULL OR type = CAST(:type AS transaction_type))
-              AND (:status IS NULL OR status = CAST(:status AS transaction_status))
+            """ + typeCondition + statusCondition + """
             ORDER BY created_at DESC
             LIMIT :limit OFFSET :offset
-        """;
+            """;
 
-        // از null بودن فیلترها پشتیبانی می‌کنیم
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("wallet_id", walletId)
-                .addValue("type", type != null ? type.name() : null)
-                .addValue("status", status != null ? status.name() : null)
-                .addValue("limit", limit)
-                .addValue("offset", offset);
+                .addValue("limit", pageSize)
+                .addValue("offset", page * pageSize);
 
-        Integer totalElements = jdbcTemplate.queryForObject(countSql, params, Integer.class);
-        totalElements = totalElements != null ? totalElements : 0;
+        if (type != null) {
+            params.addValue("type", type.name());
+        }
 
-        List<WalletTransaction> transactions = jdbcTemplate.query(fetchSql, params, (rs, rowNum) -> {
-            // چون reference_type در دیتابیس می‌تواند null باشد (برای شارژهای دستی و ...)
-            String refTypeStr = rs.getString("reference_type");
-            TransactionReferenceType refType = refTypeStr != null ? TransactionReferenceType.valueOf(refTypeStr) : null;
-            Long refId = rs.getObject("reference_id") != null ? rs.getLong("reference_id") : null;
+        if (status != null) {
+            params.addValue("status", status.name());
+        }
 
-            return WalletTransaction.builder()
-                    .transactionId(rs.getLong("transaction_id"))
-                    .walletId(rs.getLong("wallet_id"))
-                    .type(TransactionType.valueOf(rs.getString("type")))
-                    .status(TransactionStatus.valueOf(rs.getString("status")))
-                    .amount(rs.getBigDecimal("amount"))
-                    .balanceAfter(rs.getBigDecimal("balance_after"))
-                    .description(rs.getString("description"))
-                    .referenceType(refType)
-                    .referenceId(refId)
-                    .createdAt(rs.getObject("created_at", OffsetDateTime.class))
-                    .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
-                    .build();
-        });
+        Long totalElements = jdbcTemplate.queryForObject(countSql, params, Long.class);
 
-        int totalPages = (int) Math.ceil((double) totalElements / pageSize);
+        List<WalletTransaction> content = Collections.emptyList();
+        if (totalElements != null && totalElements > 0) {
+            content = jdbcTemplate.query(dataSql, params, (rs, rowNum) -> {
+                String refTypeStr = rs.getString("reference_type");
+                TransactionReferenceType refType = refTypeStr != null ? TransactionReferenceType.valueOf(refTypeStr) : null;
+                Long refId = rs.getObject("reference_id") != null ? rs.getLong("reference_id") : null;
+
+                return WalletTransaction.builder()
+                        .transactionId(rs.getLong("transaction_id"))
+                        .walletId(rs.getLong("wallet_id"))
+                        .type(TransactionType.valueOf(rs.getString("type")))
+                        .status(TransactionStatus.valueOf(rs.getString("status")))
+                        .amount(rs.getBigDecimal("amount"))
+                        .balanceAfter(rs.getBigDecimal("balance_after"))
+                        .description(rs.getString("description"))
+                        .referenceType(refType)
+                        .referenceId(refId)
+                        .createdAt(rs.getObject("created_at", OffsetDateTime.class))
+                        .updatedAt(rs.getObject("updated_at", OffsetDateTime.class))
+                        .build();
+            });
+        }
+
+        int totalPages = (int) Math.ceil((double) (totalElements != null ? totalElements : 0) / pageSize);
+
+        boolean isFirst = page == 0;
+        boolean isLast = totalPages == 0 || page >= totalPages - 1;
 
         return new PageResult<>(
-                transactions,
-                totalElements,
-                totalPages,
+                content,
                 page,
                 pageSize,
-                page < totalPages - 1, // has_next
-                page > 0               // has_previous
+                totalElements != null ? totalElements : 0L,
+                totalPages,
+                isFirst,
+                isLast
         );
     }
 }
