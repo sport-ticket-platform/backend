@@ -5,13 +5,13 @@ info:
 
 http:
   method: GET
-  url: localhost:8081/api/reservations/order/history?page=0&page_size=10
+  url: localhost:8081/api/reservations/order/history?page=0&page_size=3
   params:
     - name: page
       value: "0"
       type: query
     - name: page_size
-      value: "10"
+      value: "3"
       type: query
     - name: status
       value: PENDING

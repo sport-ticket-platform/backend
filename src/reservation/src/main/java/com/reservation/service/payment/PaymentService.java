@@ -1,14 +1,20 @@
 package com.reservation.service.payment;
 
 import com.reservation.common.ApiMessage;
+import com.reservation.dto.PageResult;
 import com.reservation.dto.payment.PaymentCallbackRequest;
 import com.reservation.dto.payment.PaymentCallbackResponse;
 import com.reservation.dto.payment.PaymentResponse;
+import com.reservation.dto.payment.get.PaymentHistoryRequest;
+import com.reservation.dto.payment.get.PaymentHistoryResponse;
+import com.reservation.dto.wallet.WalletPaymentResponse;
 import com.reservation.handler.BusinessException;
 import com.reservation.model.*;
+import com.reservation.model.wallet.TransactionReferenceType;
 import com.reservation.repository.PaymentRepository;
 import com.reservation.service.order.OrderService;
 import com.reservation.service.reservation.ReservationService;
+import com.reservation.service.wallet.WalletService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +39,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderService orderService;
     private final ReservationService reservationService;
+    private final WalletService walletService;
 
     @Transactional
     public PaymentResponse initiatePayment(Long orderId, Long userId) {
@@ -99,6 +106,7 @@ public class PaymentService {
             paymentRepository.updatePaymentStatus(request.token(), PaymentStatus.FAILED, null);
             return PaymentCallbackResponse.builder()
                     .refId(null)
+                    .orderId(order.getOrderId())
                     .build();
         }
 
@@ -120,13 +128,22 @@ public class PaymentService {
                     userId
             );
 
-            // TODO: 1. Increase user balance
+            // 1. Increase user balance (Refund to wallet)
+            Long transactionId = walletService.deposit(
+                    userId,
+                    payment.getAmount(),
+                    TransactionReferenceType.PAYMENT,
+                    payment.getPaymentId(),
+                    "Refund for expired reservation of order: " + order.getOrderId()
+            );
+            log.info("Refund deposit processed successfully. Deposit Transaction ID: {}", transactionId);
 
             // 2. Update payment status to REFUNDED
             paymentRepository.updatePaymentStatus(request.token(), PaymentStatus.REFUNDED, refId);
 
             return PaymentCallbackResponse.builder()
                     .refId(refId)
+                    .orderId(order.getOrderId())
                     .build();
         }
 
@@ -140,6 +157,79 @@ public class PaymentService {
 
         return PaymentCallbackResponse.builder()
                 .refId(refId)
+                .orderId(order.getOrderId())
                 .build();
+    }
+
+    @Transactional
+    public WalletPaymentResponse payWithWallet(Long orderId, Long userId) {
+        log.info("Initiating wallet payment for orderId: {} by userId: {}", orderId, userId);
+
+        PaymentRepository.OrderWithReservation info = paymentRepository.getOrderWithReservation(orderId, userId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.ORDER_NOT_FOUND_OR_NOT_YOURS));
+
+        Order order = info.order();
+        Reservation reservation = info.reservation();
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            log.warn("Wallet payment failed: Order {} is not PENDING (Status: {})", orderId, order.getStatus());
+            throw new BusinessException(ApiMessage.ORDER_NOT_PENDING_FOR_PAYMENT);
+        }
+        if (reservation.getStatus() != ReservationStatus.ACTIVE) {
+            log.warn("Wallet payment failed: Reservation {} is not ACTIVE", reservation.getReservationId());
+            throw new BusinessException(ApiMessage.RESERVATION_NOT_ACTIVE);
+        }
+        if (reservation.getExpiresAt().isBefore(OffsetDateTime.now())) {
+            log.warn("Wallet payment failed: Reservation {} is expired", reservation.getReservationId());
+            throw new BusinessException(ApiMessage.RESERVATION_EXPIRED);
+        }
+
+        Long transactionId = walletService.withdraw(
+                userId,
+                order.getTotalAmount(),
+                TransactionReferenceType.TICKET_ORDER,
+                orderId,
+                "payment for order: " + orderId
+        );
+
+        // Payment method for wallet is 2 in db initial data
+        Integer walletMethodId = 2;
+        String token = UUID.randomUUID().toString();
+        String refId = "TRX-" + transactionId;
+
+        paymentRepository.createPayment(orderId, walletMethodId, order.getTotalAmount(), token);
+        paymentRepository.updatePaymentStatus(token, PaymentStatus.SUCCEEDED, refId);
+
+        orderService.markOrderAsPaid(order.getOrderId());
+        reservationService.completeReservationAndIssueTickets(reservation.getReservationId(), order.getOrderId());
+
+        log.info("Wallet payment successful for orderId: {}. Tickets issued.", orderId);
+
+        return WalletPaymentResponse.builder()
+                .refId(refId)
+                .orderId(order.getOrderId())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<PaymentHistoryResponse> getUserPaymentHistory(Long userId, PaymentHistoryRequest request) {
+
+        log.info("Fetching payment history for userId: {}, page: {}, pageSize: {}",
+                userId, request.page(), request.page_size());
+
+        return paymentRepository.getUserPaymentHistory(
+                userId,
+                request.page(),
+                request.page_size(),
+                request.status()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Payment getPaymentDetail(Long paymentId, Long userId) {
+        log.info("Fetching payment detail for paymentId: {} by userId: {}", paymentId, userId);
+
+        return paymentRepository.findUserPaymentById(paymentId, userId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.PAYMENT_NOT_FOUND_OR_NOT_YOURS));
     }
 }
