@@ -11,7 +11,7 @@ public class ReportRequestDtoValidator : AbstractValidator<ReportRequestDto>
         RuleFor(r => r.Type)
             .IsEnumName(typeof(ReportType));
         
-        RuleFor(r => r.RequestConent)
+        RuleFor(r => r.RequestContent)
             .NotEmpty()
             .MaximumLength(500)
             .MinimumLength(10);

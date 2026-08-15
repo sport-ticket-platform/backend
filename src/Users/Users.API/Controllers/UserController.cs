@@ -98,7 +98,7 @@ public class UserController : ControllerBase
 
         _logger.LogInformation("creating a new report for user {userId}", userIdClaim);
         var reportId =
-            await _userService.CreateReport(userIdClaim, reportRequestDto.RequestConent, reportRequestDto.Type, ct);
+            await _userService.CreateReport(userIdClaim, reportRequestDto.RequestContent, reportRequestDto.Type, ct);
         return Ok(reportId);
     }
 

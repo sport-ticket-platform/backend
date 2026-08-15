@@ -1,0 +1,29 @@
+apiVersion: 1
+
+datasources:
+  # 1. Metrics
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+
+  # 2. Logs
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    url: http://loki:3100
+
+  # 3. Traces
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      # This magic block allows you to click a Trace ID and instantly jump to its associated logs!
+      tracesToLogsV2:
+        datasourceUid: 'loki'
+        tags: [{ key: 'service.name', value: 'service_name' }]

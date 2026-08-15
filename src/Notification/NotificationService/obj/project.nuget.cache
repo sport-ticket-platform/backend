@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "nTQgZ0ZxdiA=",
+  "dgSpecHash": "jDLL98Z1gTM=",
   "success": true,
   "projectFilePath": "/home/mmdcj/RiderProjects/backend/src/Notification/NotificationService/NotificationService.csproj",
   "expectedPackageFiles": [
@@ -33,11 +33,13 @@
     "/home/mmdcj/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/microsoft.net.http.headers/8.0.20/microsoft.net.http.headers.8.0.20.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/mimekit/4.17.0/mimekit.4.17.0.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/rabbitmq.client/7.2.2/rabbitmq.client.7.2.2.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/resend/0.8.0/resend.0.8.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/system.diagnostics.diagnosticsource/8.0.0/system.diagnostics.diagnosticsource.8.0.0.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/system.formats.asn1/8.0.1/system.formats.asn1.8.0.1.nupkg.sha512",
     "/home/mmdcj/.nuget/packages/system.io.pipelines/8.0.0/system.io.pipelines.8.0.0.nupkg.sha512",
-    "/home/mmdcj/.nuget/packages/system.security.cryptography.pkcs/8.0.1/system.security.cryptography.pkcs.8.0.1.nupkg.sha512"
+    "/home/mmdcj/.nuget/packages/system.security.cryptography.pkcs/8.0.1/system.security.cryptography.pkcs.8.0.1.nupkg.sha512",
+    "/home/mmdcj/.nuget/packages/system.threading.ratelimiting/8.0.0/system.threading.ratelimiting.8.0.0.nupkg.sha512"
   ],
   "logs": []
 }
