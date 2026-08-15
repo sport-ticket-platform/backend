@@ -1,9 +1,13 @@
 package com.reservation.service.payment;
 
 import com.reservation.common.ApiMessage;
+import com.reservation.dto.PageResult;
 import com.reservation.dto.payment.PaymentCallbackRequest;
 import com.reservation.dto.payment.PaymentCallbackResponse;
 import com.reservation.dto.payment.PaymentResponse;
+import com.reservation.dto.payment.get.PaymentHistoryRequest;
+import com.reservation.dto.payment.get.PaymentHistoryResponse;
+import com.reservation.dto.wallet.WalletPaymentResponse;
 import com.reservation.handler.BusinessException;
 import com.reservation.model.*;
 import com.reservation.model.wallet.TransactionReferenceType;
@@ -102,6 +106,7 @@ public class PaymentService {
             paymentRepository.updatePaymentStatus(request.token(), PaymentStatus.FAILED, null);
             return PaymentCallbackResponse.builder()
                     .refId(null)
+                    .orderId(order.getOrderId())
                     .build();
         }
 
@@ -137,6 +142,7 @@ public class PaymentService {
 
             return PaymentCallbackResponse.builder()
                     .refId(refId)
+                    .orderId(order.getOrderId())
                     .build();
         }
 
@@ -150,11 +156,12 @@ public class PaymentService {
 
         return PaymentCallbackResponse.builder()
                 .refId(refId)
+                .orderId(order.getOrderId())
                 .build();
     }
 
     @Transactional
-    public void payWithWallet(Long orderId, Long userId) {
+    public WalletPaymentResponse payWithWallet(Long orderId, Long userId) {
         log.info("Initiating wallet payment for orderId: {} by userId: {}", orderId, userId);
 
         PaymentRepository.OrderWithReservation info = paymentRepository.getOrderWithReservation(orderId, userId)
@@ -187,7 +194,7 @@ public class PaymentService {
         // Payment method for wallet is 2 in db initial data
         Integer walletMethodId = 2;
         String token = UUID.randomUUID().toString();
-        String refId = "WALLET-" + transactionId;
+        String refId = "TRX-" + transactionId;
 
         paymentRepository.createPayment(orderId, walletMethodId, order.getTotalAmount(), token);
         paymentRepository.updatePaymentStatus(token, PaymentStatus.SUCCEEDED, refId);
@@ -196,5 +203,24 @@ public class PaymentService {
         reservationService.completeReservationAndIssueTickets(reservation.getReservationId(), order.getOrderId());
 
         log.info("Wallet payment successful for orderId: {}. Tickets issued.", orderId);
+
+        return WalletPaymentResponse.builder()
+                .refId(refId)
+                .orderId(order.getOrderId())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResult<PaymentHistoryResponse> getUserPaymentHistory(Long userId, PaymentHistoryRequest request) {
+
+        log.info("Fetching payment history for userId: {}, page: {}, pageSize: {}",
+                userId, request.page(), request.page_size());
+
+        return paymentRepository.getUserPaymentHistory(
+                userId,
+                request.page(),
+                request.page_size(),
+                request.status()
+        );
     }
 }

@@ -1,17 +1,21 @@
 info:
-  name: "Pay With Wallet "
+  name: Payment History
   type: http
-  seq: 12
+  seq: 13
 
 http:
-  method: POST
-  url: localhost:8081/api/reservations/payment/pay-with-wallet
-  body:
-    type: json
-    data: |-
-      {
-        "order_id": 2
-      }
+  method: GET
+  url: localhost:8081/api/reservations/payment/history?page=0&page_size=3&status=SUCCEEDED
+  params:
+    - name: page
+      value: "0"
+      type: query
+    - name: page_size
+      value: "3"
+      type: query
+    - name: status
+      value: SUCCEEDED
+      type: query
   auth:
     type: bearer
     token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9BRE1JTiJdLCJpc3MiOiJhdXRoLXNlcnZpY2UiLCJhdWQiOlsiZnJvbnRlbmQiXSwiaWF0IjoxNzg2Mzc1OTUyLCJleHAiOjE3ODcyNzU5NTJ9.tuiNRa0hDenjgoyASEfdlkezBeGq50_IBdidM_KXE4-hrgeI-V-RAuLfCBY18ZcPUpBuTubN_rSdvy0Y4Z9_ycMRPXPvKmTJHpAXsGnUfY1ZwkVV_ITjSUNrH0LwQiK52DkHD6Fv8H7gruM4gRMzW_xADUmKt2k7G6qEC3u3td7pm4CopDVaqi0b2DWjK4OYwQGYLl68wh-gr6ShGE1CYp8VRqYUJpoZS-9gYYF03nv1qVrsK0Z3CSsyaZmy6lndniUDYlxY5Z1xF_uVY3cVpbHp_4MK7zCIxoBWT_-LqZzlYAcj1AnrvczzO6kHKwbW6Qvdqyw2LkW_tvlUT-B1kw

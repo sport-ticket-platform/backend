@@ -1,11 +1,15 @@
 package com.reservation.controller;
 
 import com.reservation.dto.ApiResponse;
+import com.reservation.dto.PageResult;
 import com.reservation.dto.payment.PaymentCallbackRequest;
 import com.reservation.dto.payment.PaymentCallbackResponse;
 import com.reservation.dto.payment.PaymentRequest;
 import com.reservation.dto.payment.PaymentResponse;
+import com.reservation.dto.payment.get.PaymentHistoryRequest;
+import com.reservation.dto.payment.get.PaymentHistoryResponse;
 import com.reservation.dto.wallet.WalletPaymentRequest;
+import com.reservation.dto.wallet.WalletPaymentResponse;
 import com.reservation.service.payment.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -73,7 +77,7 @@ public class PaymentController {
     }
 
     @PostMapping("/pay-with-wallet")
-    public ResponseEntity<ApiResponse<Void>> payWithWallet(
+    public ResponseEntity<ApiResponse<WalletPaymentResponse>> payWithWallet(
             @Valid @RequestBody WalletPaymentRequest request,
             Authentication authentication
     ) {
@@ -81,14 +85,40 @@ public class PaymentController {
 
         log.info("Received wallet payment request for orderId: {} by userId: {}", request.order_id(), userId);
 
-        paymentService.payWithWallet(request.order_id(), userId);
+        WalletPaymentResponse response = paymentService.payWithWallet(request.order_id(), userId);
 
-        ApiResponse<Void> responseBody = ApiResponse.<Void>builder()
+        ApiResponse<WalletPaymentResponse> responseBody = ApiResponse.<WalletPaymentResponse>builder()
                 .success(true)
                 .status(HttpStatus.OK.value())
                 .title("Paid successfully with wallet")
                 .titleFa("پرداخت با کیف پول با موفقیت انجام شد")
-                .data(null)
+                .data(response)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<PageResult<PaymentHistoryResponse>>> getPaymentHistory(
+            @Valid @ModelAttribute PaymentHistoryRequest request,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Fetch payment history for user id: {}, [page: {} | page_size: {} | status: {}]",
+                userId, request.page(), request.page_size(), request.status());
+
+        PageResult<PaymentHistoryResponse> historyData = paymentService.getUserPaymentHistory(userId, request);
+
+        ApiResponse<PageResult<PaymentHistoryResponse>> responseBody = ApiResponse.<PageResult<PaymentHistoryResponse>>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Payment history fetched successfully")
+                .message(null)
+                .titleFa("تاریخچه پرداخت‌ها با موفقیت دریافت شد")
+                .messageFa(null)
+                .data(historyData)
                 .timestamp(LocalDateTime.now())
                 .build();
 

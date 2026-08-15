@@ -1,4 +1,4 @@
-package com.reservation.dto.payment;
+package com.reservation.dto.wallet;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
@@ -8,7 +8,7 @@ import lombok.Builder;
 @Builder
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record PaymentCallbackResponse(
+public record WalletPaymentResponse(
         String refId,
         Long orderId
 ) {}
