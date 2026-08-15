@@ -102,4 +102,29 @@ public class OrderController {
 
         return ResponseEntity.ok(responseBody);
     }
+
+    @PutMapping("/{order_id}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelOrder(
+            @PathVariable("order_id") Long orderId,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+
+        log.info("Received request to cancel order_id: {} by user_id: {}", orderId, userId);
+
+        orderService.cancelOrder(orderId, userId);
+
+        ApiResponse<Void> responseBody = ApiResponse.<Void>builder()
+                .success(true)
+                .status(HttpStatus.OK.value())
+                .title("Order cancellation processed")
+                .message(null)
+                .titleFa("درخواست لغو سفارش پردازش شد")
+                .messageFa(null)
+                .data(null)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.ok(responseBody);
+    }
 }

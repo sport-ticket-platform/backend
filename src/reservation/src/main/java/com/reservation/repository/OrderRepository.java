@@ -268,4 +268,22 @@ public class OrderRepository {
             return Optional.empty();
         }
     }
+
+    /**
+     * Updates all sold tickets of an order to a specific status.
+     */
+    public void updateSoldTicketsStatus(Long orderId, TicketStatus status) {
+        String sql = """
+            UPDATE sold_ticket
+            SET status = :status::ticket_status,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE order_id = :order_id
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("status", status.name())
+                .addValue("order_id", orderId);
+
+        jdbcTemplate.update(sql, params);
+    }
 }
