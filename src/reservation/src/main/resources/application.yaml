@@ -1,19 +1,19 @@
 server:
   address: 0.0.0.0
-  port: 8081
+  port: ${SERVER_PORT:8081}
 
 grpc:
   server:
-    port: 9091
+    port: ${GRPC_SERVER_PORT:9091}
 
 spring:
   application:
     name: reservation-service
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sportik-backend}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:taha1111}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sportik-backend}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:taha1111}
 
   jpa:
     hibernate:
@@ -25,13 +25,18 @@ spring:
     ansi:
       enabled: always
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
 management:
   tracing:
     sampling:
       probability: 1.0
   otlp:
     tracing:
-      endpoint: http://localhost:4317
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4317}
       transport: grpc
 
 app:
