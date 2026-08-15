@@ -147,6 +147,65 @@ public enum ApiMessage {
 
 
 
+    ORDER_NOT_FOUND_OR_NOT_YOURS(
+            "Order Not Found",
+            "The requested order does not exist or does not belong to your account.",
+            "سفارش یافت نشد",
+            "سفارش درخواستی یافت نشد یا متعلق به حساب کاربری شما نیست.",
+            404 // Not Found
+    ),
+    ORDER_NOT_PENDING_FOR_PAYMENT(
+            "Invalid Order Status",
+            "This order is not in a payable status. It might have already been paid or cancelled.",
+            "وضعیت نامعتبر سفارش",
+            "این سفارش در وضعیت قابل پرداخت نیست. ممکن است قبلاً پرداخت شده یا لغو شده باشد.",
+            400 // Bad Request
+    ),
+    ORDER_NOT_PENDING_FOR_CALLBACK(
+            "Order Processing Failed",
+            "Cannot process payment callback for this order. If the payment was successful, the amount will be credited to your wallet.",
+            "عدم امکان ثبت نتیجه پرداخت",
+            "امکان ثبت مستقیم این خرید وجود ندارد. در صورت کسر وجه و موفقیت‌آمیز بودن پرداخت، این مبلغ در کیف پول شما شارژ می‌شود.",
+            400
+    ),
+    RESERVATION_NOT_ACTIVE(
+            "Reservation Not Active",
+            "Your reservation is no longer active. It might have been completed or cancelled.",
+            "رزرو غیرفعال است",
+            "رزرو شما فعال نیست (ممکن است لغو یا تکمیل شده باشد).",
+            400 // Bad Request
+    ),
+    RESERVATION_EXPIRED(
+            "Reservation Expired",
+            "The time limit for this reservation has expired. Please try booking again.",
+            "انقضای مهلت رزرو",
+            "مهلت پرداخت این رزرو به پایان رسیده است. لطفاً مجدداً اقدام به رزرو نمایید.",
+            400 // Bad Request
+    ),
+
+    INVALID_PAYMENT_TOKEN(
+            "Invalid Token",
+            "The provided payment token is invalid or does not exist.",
+            "توکن نامعتبر",
+            "توکن پرداخت وارد شده نامعتبر است.",
+            404
+    ),
+    PAYMENT_STATUS_INVALID(
+            "Invalid payment status",
+            "The payment status must be either SUCCESS or FAILED.",
+            "وضعیت پرداخت نامعتبر است",
+            "وضعیت پرداخت باید یکی از مقادیر SUCCESS یا FAILED باشد.",
+            400
+    ),
+    PAYMENT_ALREADY_PROCESSED(
+            "Payment Already Processed",
+            null,
+            "تراکنش قبلاً پردازش شده است",
+            null,
+            400
+    ),
+
+
 
 
 

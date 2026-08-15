@@ -30,7 +30,7 @@ public class ReservationExpirationService extends KeyExpirationEventMessageListe
                 String idStr = parts[parts.length - 1];
                 Long reservationId = Long.parseLong(idStr);
 
-                log.info("Reservation {} canceled due to payment timeout (Redis TTL expired).", reservationId);
+                log.info("Starting expiration check for reservation ID: {}", reservationId);
 
                 reservationService.expireReservation(reservationId);
 

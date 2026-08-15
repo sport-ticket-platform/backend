@@ -148,20 +148,17 @@ public class ReservationRepository {
         }
 
         String sql = """
-        SELECT rs.seat_id
-        FROM reservation_seat rs
-        JOIN reservation r ON rs.reservation_id = r.reservation_id
-        WHERE rs.seat_id IN (:seat_ids)
-          AND rs.is_active = TRUE
-          AND r.status = 'ACTIVE'::reservation_status
-          AND r.expires_at > CURRENT_TIMESTAMP
+        SELECT seat_id
+        FROM reservation_seat
+        WHERE seat_id IN (:seat_ids)
+          AND is_active = TRUE
 
         UNION
 
-        SELECT st.seat_id
-        FROM sold_ticket st
-        WHERE st.seat_id IN (:seat_ids)
-          AND st.status = 'VALID'::ticket_status
+        SELECT seat_id
+        FROM sold_ticket
+        WHERE seat_id IN (:seat_ids)
+          AND status = 'VALID'::ticket_status
         """;
 
         Map<String, Object> params = Map.of("seat_ids", seatIds);
@@ -289,7 +286,7 @@ public class ReservationRepository {
      * <p>reservation_seat, each one: is_active = false</p>
      * <p>ticket_order, status: FAILED</p>
      */
-    public void expireReservation(Long reservationId) {
+    public int expireReservation(Long reservationId) {
         String sql = """
         WITH release_seats AS (
             UPDATE reservation_seat
@@ -306,7 +303,45 @@ public class ReservationRepository {
         WHERE reservation_id = :reservation_id AND status = 'ACTIVE'::reservation_status
         """;
 
-        jdbcTemplate.update(sql, Map.of("reservation_id", reservationId));
+        return jdbcTemplate.update(sql, Map.of("reservation_id", reservationId));
+    }
+
+    /**
+     * Bulk-expires all reservations that are still {@code ACTIVE} but whose
+     * {@code expires_at} timestamp has already passed. Intended to run once
+     * on application startup to recover from any downtime during which Redis
+     * expiration events were missed.
+     *
+     * <p>The operation is atomic: seats are deactivated, pending orders are
+     * failed, and reservations are marked {@code EXPIRED} in a single CTE.
+     *
+     * @return the number of reservations that were expired
+     */
+    public int expireAllStaleReservations() {
+        String sql = """
+            WITH stale AS (
+                SELECT reservation_id
+                FROM reservation
+                WHERE status = 'ACTIVE'::reservation_status
+                  AND expires_at < NOW()
+            ),
+            release_seats AS (
+                UPDATE reservation_seat
+                SET is_active = false
+                WHERE reservation_id IN (SELECT reservation_id FROM stale)
+            ),
+            expire_orders AS (
+                UPDATE ticket_order
+                SET status = 'FAILED'
+                WHERE reservation_id IN (SELECT reservation_id FROM stale)
+                  AND status = 'PENDING'
+            )
+            UPDATE reservation
+            SET status = 'EXPIRED'::reservation_status
+            WHERE reservation_id IN (SELECT reservation_id FROM stale)
+            """;
+
+        return jdbcTemplate.update(sql, Map.of());
     }
 
     // ======================================================================
@@ -533,5 +568,54 @@ public class ReservationRepository {
         } catch (EmptyResultDataAccessException e) {
             return Optional.empty();
         }
+    }
+
+
+    public void updateReservationStatus(Long reservationId, ReservationStatus status) {
+        String sql = """
+            UPDATE reservation
+            SET status = :status::reservation_status
+            WHERE reservation_id = :reservation_id
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("status", status.name())
+                .addValue("reservation_id", reservationId);
+
+        jdbcTemplate.update(sql, params);
+    }
+
+    public int insertSoldTicketsFromReservation(Long reservationId, Long orderId) {
+        String sql = """
+            INSERT INTO sold_ticket (seat_id, order_id, price, status)
+            SELECT rs.seat_id, :order_id, tc.price, 'VALID'::ticket_status
+            FROM reservation_seat rs
+            JOIN ticket_config tc ON rs.config_id = tc.config_id
+            WHERE rs.reservation_id = :reservation_id
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("reservation_id", reservationId)
+                .addValue("order_id", orderId);
+
+        return jdbcTemplate.update(sql, params);
+    }
+
+    public int deleteReservationSeats(Long reservationId) {
+        String sql = """
+            DELETE FROM reservation_seat
+            WHERE reservation_id = :reservation_id
+              AND EXISTS (
+                  SELECT 1
+                  FROM reservation
+                  WHERE reservation_id = :reservation_id
+                    AND status = 'COMPLETED'::reservation_status
+              )
+        """;
+
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("reservation_id", reservationId);
+
+        return jdbcTemplate.update(sql, params);
     }
 }

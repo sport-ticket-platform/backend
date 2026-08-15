@@ -123,15 +123,37 @@ public class ReservationService {
      */
     @Transactional
     public void expireReservation(Long reservationId) {
-        log.info("Starting expiration process for reservation ID: {}", reservationId);
 
         try {
-            reservationRepo.expireReservation(reservationId);
-            log.info("Successfully expired reservation ID: {} (Seats released, order failed).", reservationId);
+            int updatedRows = reservationRepo.expireReservation(reservationId);
+
+            if (updatedRows > 0) {
+                log.info("Successfully expired reservation ID: {} (Seats released, order failed).", reservationId);
+            } else {
+                log.info("Reservation ID: {} is not ACTIVE. Expiration ignored.", reservationId);
+            }
         } catch (Exception e) {
             log.error("Failed to expire reservation ID: {}. Triggering rollback.", reservationId, e);
             throw e;
         }
+    }
+
+    /**
+     * Bulk-expires all reservations that are still {@code ACTIVE} but whose
+     * expiration time has already passed. Designed to be called once on
+     * application startup to recover reservations missed during downtime.
+     *
+     * @return the number of reservations expired
+     */
+    @Transactional
+    public int expireAllStaleReservations() {
+        int count = reservationRepo.expireAllStaleReservations();
+        if (count > 0) {
+            log.info("Startup sweep expired {} stale reservation(s).", count);
+        } else {
+            log.info("Startup sweep: no stale reservations found.");
+        }
+        return count;
     }
 
     @Transactional(readOnly = true)
@@ -262,6 +284,22 @@ public class ReservationService {
                     ApiMessage.SEATS_NOT_AVAILABLE,
                     new SeatsNotAvailable(nonAvailableSeats)
             );
+        }
+    }
+
+    @Transactional
+    public void completeReservationAndIssueTickets(Long reservationId, Long orderId) {
+
+        reservationRepo.updateReservationStatus(reservationId, ReservationStatus.COMPLETED);
+        int issuedTicketsCount = reservationRepo.insertSoldTicketsFromReservation(reservationId, orderId);
+        int deletedSeatsCount = reservationRepo.deleteReservationSeats(reservationId);
+
+        if (issuedTicketsCount == deletedSeatsCount) {
+            log.info("Successfully issued {} tickets for order {} and deleted {} seats for COMPLETED reservation {}",
+                    issuedTicketsCount, orderId, deletedSeatsCount, reservationId);
+        } else {
+            log.warn("Mismatch detected! Issued {} tickets for order {}, but deleted {} seats for reservation {}",
+                    issuedTicketsCount, orderId, deletedSeatsCount, reservationId);
         }
     }
 }

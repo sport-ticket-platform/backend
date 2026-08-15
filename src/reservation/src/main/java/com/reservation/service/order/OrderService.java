@@ -1,4 +1,4 @@
-package com.reservation.service.reservation;
+package com.reservation.service.order;
 
 import com.reservation.common.ApiMessage;
 import com.reservation.dto.PageResult;
@@ -78,6 +78,11 @@ public class OrderService {
                 .soldSeats(soldSeats)
                 .reservationSeats(reservationSeats)
                 .build();
+    }
+
+    @Transactional
+    public void markOrderAsPaid(Long orderId) {
+        orderRepository.updateOrderStatus(orderId, OrderStatus.PAID);
     }
 }
 

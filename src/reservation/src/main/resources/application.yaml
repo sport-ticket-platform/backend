@@ -36,11 +36,12 @@ management:
 
 app:
   business:
-    reservation-active-time-sec: 600
+    reservation-active-time-sec: 20
   security:
     public-paths:
       - /swagger-ui/**
       - /v3/api-docs/**
+      - /api/reservations/mock-gateway/info/**
     jwt:
       public-key: classpath:keys/public_key.pem
       issuer: auth-service
