@@ -129,13 +129,14 @@ public class PaymentService {
             );
 
             // 1. Increase user balance (Refund to wallet)
-            walletService.deposit(
+            Long transactionId = walletService.deposit(
                     userId,
                     payment.getAmount(),
                     TransactionReferenceType.PAYMENT,
                     payment.getPaymentId(),
                     "Refund for expired reservation of order: " + order.getOrderId()
             );
+            log.info("Refund deposit processed successfully. Deposit Transaction ID: {}", transactionId);
 
             // 2. Update payment status to REFUNDED
             paymentRepository.updatePaymentStatus(request.token(), PaymentStatus.REFUNDED, refId);

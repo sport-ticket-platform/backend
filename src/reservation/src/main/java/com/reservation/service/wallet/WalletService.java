@@ -1,11 +1,11 @@
 package com.reservation.service.wallet;
 
 import com.reservation.common.ApiMessage;
+import com.reservation.dto.PageResult;
+import com.reservation.dto.wallet.get.WalletInfoRequest;
+import com.reservation.dto.wallet.get.WalletInfoResponse;
 import com.reservation.handler.BusinessException;
-import com.reservation.model.wallet.TransactionReferenceType;
-import com.reservation.model.wallet.TransactionStatus;
-import com.reservation.model.wallet.TransactionType;
-import com.reservation.model.wallet.Wallet;
+import com.reservation.model.wallet.*;
 import com.reservation.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -106,5 +106,28 @@ public class WalletService {
                 refType,
                 refId
         );
+    }
+
+
+    @Transactional(readOnly = true)
+    public WalletInfoResponse getWalletInfoWithHistory(Long userId, WalletInfoRequest request) {
+        log.info("Fetching wallet info for userId: {}", userId);
+
+        Wallet wallet = walletRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ApiMessage.WALLET_NOT_FOUND));
+
+        PageResult<WalletTransaction> transactions = walletRepository.getWalletTransactions(
+                wallet.getWalletId(),
+                request.type(),
+                request.status(),
+                request.page(),
+                request.page_size()
+        );
+
+        return WalletInfoResponse.builder()
+                .balance(wallet.getBalance())
+                .isActive(wallet.getIsActive())
+                .transactions(transactions)
+                .build();
     }
 }

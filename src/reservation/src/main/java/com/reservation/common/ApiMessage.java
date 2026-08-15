@@ -225,8 +225,13 @@ public enum ApiMessage {
             null,
             404
     ),
-
-
+    WALLET_NOT_FOUND(
+            "Wallet not found for this user",
+            null,
+            "کیف پول برای این کاربر یافت نشد",
+            null,
+            404
+    ),
 
 
     TEMP(
