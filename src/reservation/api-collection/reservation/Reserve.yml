@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "seat_ids": [6]
+        "seat_ids": [1]
       }
   auth:
     type: bearer
