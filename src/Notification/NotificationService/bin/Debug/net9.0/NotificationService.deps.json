@@ -12,6 +12,7 @@
           "Grpc.AspNetCore.Server.Reflection": "2.80.0",
           "Grpc.Tools": "2.71.0",
           "MailKit": "4.17.0",
+          "RabbitMQ.Client": "7.2.2",
           "Resend": "0.8.0"
         },
         "runtime": {
@@ -242,6 +243,18 @@
           }
         }
       },
+      "RabbitMQ.Client/7.2.2": {
+        "dependencies": {
+          "System.IO.Pipelines": "8.0.0",
+          "System.Threading.RateLimiting": "8.0.0"
+        },
+        "runtime": {
+          "lib/net8.0/RabbitMQ.Client.dll": {
+            "assemblyVersion": "7.0.0.0",
+            "fileVersion": "7.2.2.0"
+          }
+        }
+      },
       "Resend/0.8.0": {
         "dependencies": {
           "Microsoft.AspNetCore.WebUtilities": "8.0.20",
@@ -258,7 +271,8 @@
       "System.Diagnostics.DiagnosticSource/8.0.0": {},
       "System.Formats.Asn1/8.0.1": {},
       "System.IO.Pipelines/8.0.0": {},
-      "System.Security.Cryptography.Pkcs/8.0.1": {}
+      "System.Security.Cryptography.Pkcs/8.0.1": {},
+      "System.Threading.RateLimiting/8.0.0": {}
     }
   },
   "libraries": {
@@ -470,6 +484,13 @@
       "path": "mimekit/4.17.0",
       "hashPath": "mimekit.4.17.0.nupkg.sha512"
     },
+    "RabbitMQ.Client/7.2.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-k4b6RnTXpLbsF96V93ooNYxgPMnoA2tEm24B6AXNJr1mG8wwNYdA1XJtgU66L5xqeGyveS7SJriRzlX3cbqQNA==",
+      "path": "rabbitmq.client/7.2.2",
+      "hashPath": "rabbitmq.client.7.2.2.nupkg.sha512"
+    },
     "Resend/0.8.0": {
       "type": "package",
       "serviceable": true,
@@ -504,6 +525,13 @@
       "sha512": "sha512-CoCRHFym33aUSf/NtWSVSZa99dkd0Hm7OCZUxORBjRB16LNhIEOf8THPqzIYlvKM0nNDAPTRBa1FxEECrgaxxA==",
       "path": "system.security.cryptography.pkcs/8.0.1",
       "hashPath": "system.security.cryptography.pkcs.8.0.1.nupkg.sha512"
+    },
+    "System.Threading.RateLimiting/8.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7mu9v0QDv66ar3DpGSZHg9NuNcxDaaAcnMULuZlaTpP9+hwXhrxNGsF5GmLkSHxFdb5bBc1TzeujsRgTrPWi+Q==",
+      "path": "system.threading.ratelimiting/8.0.0",
+      "hashPath": "system.threading.ratelimiting.8.0.0.nupkg.sha512"
     }
   }
 }

@@ -40,3 +40,4 @@
 /home/mmdcj/RiderProjects/backend/src/Notification/NotificationService/obj/Debug/net9.0/NotificationService.pdb
 /home/mmdcj/RiderProjects/backend/src/Notification/NotificationService/obj/Debug/net9.0/NotificationService.genruntimeconfig.cache
 /home/mmdcj/RiderProjects/backend/src/Notification/NotificationService/obj/Debug/net9.0/ref/NotificationService.dll
+/home/mmdcj/RiderProjects/backend/src/Notification/NotificationService/bin/Debug/net9.0/RabbitMQ.Client.dll
