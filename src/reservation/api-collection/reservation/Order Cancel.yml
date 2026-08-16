@@ -1,5 +1,5 @@
 info:
-  name: Order Cancel Penalty (1)
+  name: Order Cancel
   type: http
   seq: 18
 
