@@ -4,17 +4,16 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-
 COPY . .
 
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:21-jre-jammy
 
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
-COPY --from=builder /app/target/auth-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /app/target/reservation-0.0.1-SNAPSHOT.jar app.jar
 
-EXPOSE 8080
+EXPOSE 8081 9091
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

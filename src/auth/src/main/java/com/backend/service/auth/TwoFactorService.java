@@ -4,6 +4,7 @@ import com.backend.common.ApiMessage;
 import com.backend.config.ApplicationProperties;
 import com.backend.handler.AuthException;
 import com.backend.handler.CustomLockedException;
+import com.backend.service.notif.NotificationService;
 import com.backend.service.system.RateLimitService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,14 +26,12 @@ public class TwoFactorService {
     private final SecureRandom secureRandom = new SecureRandom();
     private final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
 
-    // پیشوند ثابت حذف شد و به صورت داینامیک تولید می‌شود
     private final String REDIS_MFA_COOLDOWN_PREFIX = "mfa:cooldown:";
     private static final String GUEST_USER_MARKER = "GUEST"; // for signup
+    private final NotificationService notificationService;
 
-    // رکورد خروجی دیگر نیازی به برگرداندن purpose ندارد، چون خودش ورودی است
     public record MfaVerificationResult(Long userId, String identifier) {}
 
-    // متد کمکی برای ساخت کلید یکتا
     private String buildMfaKey(String purpose, String token) {
         return "mfa:" + purpose.toLowerCase() + ":" + token;
     }
@@ -78,12 +77,10 @@ public class TwoFactorService {
         String mfaToken = generateSecureToken();
         String otpCode = generateOtpCode();
 
-        // ساخت کلید با فرمت mfa:purpose:token
         String redisKey = buildMfaKey(purpose, mfaToken);
 
         String userIdStr = (userId != null) ? userId.toString() : GUEST_USER_MARKER;
 
-        // ذخیره در ردیس (دیگر نیازی به ذخیره purpose در Value نیست)
         redisTemplate.opsForValue().set(
                 redisKey,
                 userIdStr + ":" + identifier + ":" + otpCode,
@@ -105,7 +102,6 @@ public class TwoFactorService {
      */
     public MfaVerificationResult verify2FA(String mfaToken, String enteredCode, String expectedPurpose) {
 
-        // جستجوی مستقیم کلید با استفاده از Purpose ای که سرویس فراخوان درخواست کرده
         String redisKey = buildMfaKey(expectedPurpose, mfaToken);
         String value = redisTemplate.opsForValue().get(redisKey);
 
@@ -157,7 +153,11 @@ public class TwoFactorService {
         return String.valueOf(number);
     }
 
-    private void sendOtpToUser(String email, String code, boolean isEmail) {
-        // TODO: call the notif service
+    private void sendOtpToUser(String identifier, String code, boolean isEmail) {
+        if (isEmail) {
+            notificationService.sendEmailOtp(identifier, code);
+        } else {
+            log.warn("SMS sending is not supported yet for identifier: {}", identifier);
+        }
     }
 }
