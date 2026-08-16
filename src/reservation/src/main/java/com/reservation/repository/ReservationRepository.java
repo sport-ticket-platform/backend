@@ -618,4 +618,35 @@ public class ReservationRepository {
 
         return jdbcTemplate.update(sql, params);
     }
+
+    /**
+     * Cancels the reservation, frees the reserved seats, and fails the pending order.
+     */
+    public void cancelReservationAndFreeSeats(Long reservationId) {
+        MapSqlParameterSource params = new MapSqlParameterSource("reservation_id", reservationId);
+
+        // change status to CANCELLED
+        String updateReservationSql = """
+            UPDATE reservation
+            SET status = 'CANCELLED'::reservation_status
+            WHERE reservation_id = :reservation_id
+            """;
+        jdbcTemplate.update(updateReservationSql, params);
+
+        // free seats
+        String freeSeatsSql = """
+            UPDATE reservation_seat
+            SET is_active = false
+            WHERE reservation_id = :reservation_id
+            """;
+        jdbcTemplate.update(freeSeatsSql, params);
+
+        // change order status failed
+        String failOrderSql = """
+            UPDATE ticket_order
+            SET status = 'FAILED'::order_status
+            WHERE reservation_id = :reservation_id AND status = 'PENDING'::order_status
+            """;
+        jdbcTemplate.update(failOrderSql, params);
+    }
 }
