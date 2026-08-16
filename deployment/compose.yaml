@@ -29,12 +29,11 @@ services:
       - sportik-network
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ReservationService__GrpcUrl: "reservation:9091"
+      ReservationService__GrpcUrl: "http://reservation:9091"
       ConnectionStrings__PostgresConnection: "Host=postgres;Port=5432;Database=sportik-backend;Username=postgres;Password=postgres"
     ports:
       - "5270:8080"   # REST
       - "5271:8081"   # gRPC
-  
   
   notification-service:
     image: mmdcj/notification-service:latest
@@ -122,6 +121,27 @@ services:
       postgres:
         condition: service_healthy
   
+  
+  frontend:
+    image: mmdcj/frontend-service:latest
+    container_name: frontend
+    ports:
+      - "400:80"
+    environment:
+      AUTH_UPSTREAM: "http://authentication:8080"
+      USER_UPSTREAM: "http://user-service:8080"
+      EVENT_UPSTREAM: "http://event-service:8080"
+      RESERVATION_UPSTREAM: "http://reservation:8081"
+    restart: unless-stopped
+    networks:
+      - sportik-network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1/health" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -204,19 +224,6 @@ services:
       - "9090:9090"
     networks:
       - sportik-network
-
-  promtail:
-    image: grafana/promtail:latest
-    container_name: promtail
-    volumes:
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data/promtail-config.yaml:/etc/promtail/config.yml
-    command: -config.file=/etc/promtail/config.yml
-    networks:
-      - sportik-network
-    depends_on:
-      - loki
 
   grafana:
     image: grafana/grafana:latest
