@@ -29,7 +29,7 @@ services:
       - sportik-network
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ReservationService__GrpcUrl: "reservation:9091"
+      ReservationService__GrpcUrl: "http://reservation:9091"
       ConnectionStrings__PostgresConnection: "Host=postgres;Port=5432;Database=sportik-backend;Username=postgres;Password=postgres"
     ports:
       - "5270:8080"   # REST
@@ -128,21 +128,20 @@ services:
     ports:
       - "400:80"
     environment:
-      AUTH_API_UPSTREAM: "http://authentication:8080"
-      USER_API_UPSTREAM: "http://user-service:8080"
-      EVENT_API_UPSTREAM: "http://event-service:8080"
-      RESERVATION_API_UPSTREAM: "http://reservation:8081"
+      AUTH_UPSTREAM: "http://authentication:8080"
+      USER_UPSTREAM: "http://user-service:8080"
+      EVENT_UPSTREAM: "http://event-service:8080"
+      RESERVATION_UPSTREAM: "http://reservation:8081"
     restart: unless-stopped
     networks:
       - sportik-network
     healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1/healthz" ]
+      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1/health" ]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 5s
-      
-      
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
