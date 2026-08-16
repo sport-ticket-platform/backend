@@ -10,7 +10,7 @@ target/
 /src/Users/init.sql
 /src/Events/EventService/init.sql
 /src/Events/EventService/compose.yaml
-/src/Notification/NotificationService/secrets
+/deployment/secrets/gmail_app_password.txt
 ### STS ###
 .apt_generated
 .classpath

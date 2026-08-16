@@ -1,0 +1,262 @@
+services:
+  user-service:
+    image: mmdcj/user-service:latest
+    container_name: user-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sportik-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__PostgresConnection: "Host=postgres;Port=5432;Database=sportik-backend;Username=postgres;Password=postgres"
+      Kestrel__Endpoints__Rest__Url: "http://0.0.0.0:8080"
+      Kestrel__Endpoints__Rest__Protocols: "Http1"
+      Kestrel__Endpoints__Grpc__Url: "http://0.0.0.0:8081"
+      Kestrel__Endpoints__Grpc__Protocols: "Http2"
+      OpenTelemetry__OtlpEndpoint: http://otel-collector:4317
+    ports:
+      - "5268:8080"  # REST
+      - "5269:8081"  # gRPC
+  
+  event-service:
+    image: mmdcj/event-service:latest
+    container_name: event-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sportik-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ReservationService__GrpcUrl: "reservation:9091"
+      ConnectionStrings__PostgresConnection: "Host=postgres;Port=5432;Database=sportik-backend;Username=postgres;Password=postgres"
+    ports:
+      - "5270:8080"   # REST
+      - "5271:8081"   # gRPC
+  
+  notification-service:
+    image: mmdcj/notification-service:latest
+    container_name: notification-service
+    ports:
+      - "8080:8080"
+    secrets:
+      - gmail_app_password
+    networks:
+      - sportik-network
+    environment:
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: guest
+      RabbitMq__Password: guest
+      RabbitMq__VirtualHost: /
+      RabbitMq__EmailQueueName: emailQueue
+      Email__AppPasswordFile: /run/secrets/gmail_app_password
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+  
+  
+  postgres:
+    image: postgres:17
+    container_name: sport-ticket-platform-psg
+    restart: unless-stopped
+    networks:
+      - sportik-network
+    environment:
+      POSTGRES_DB: sportik-backend
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d sportik-backend" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  authentication:
+    image: mmdcj/authentication-service:latest
+    container_name: authentication-service
+    ports:
+      - "7070:8080"
+    networks:
+      - sportik-network
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/sportik-backend
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      USER_SERVICE_ADDRESS: static://user-service:8081
+      OTLP_ENDPOINT: http://otel-collector:4317
+    depends_on:
+      postgres:
+        condition: service_healthy
+  
+  reservation:
+    image: mmdcj/reservation-service:latest
+    container_name: reservation-service
+    ports:
+      - "8000:8081"
+    networks:
+      - sportik-network
+    environment:
+      SERVER_PORT: 8081
+      GRPC_SERVER_PORT: 9091
+      DB_URL: jdbc:postgresql://postgres:5432/sportik-backend
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      OTLP_ENDPOINT: http://otel-collector:4317
+    depends_on:
+      postgres:
+        condition: service_healthy
+  
+  
+  frontend:
+    image: mmdcj/frontend-service:latest
+    container_name: frontend
+    ports:
+      - "400:80"
+    environment:
+      AUTH_API_UPSTREAM: "http://authentication:8080"
+      USER_API_UPSTREAM: "http://user-service:8080"
+      EVENT_API_UPSTREAM: "http://event-service:8080"
+      RESERVATION_API_UPSTREAM: "http://reservation:8081"
+    restart: unless-stopped
+    networks:
+      - sportik-network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://127.0.0.1/healthz" ]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+      
+      
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - sportik-network
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  redis:
+    image: redis:7
+    container_name: sportik-redis
+    networks:
+      - sportik-network
+    command: redis-server --notify-keyspace-events Ex
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./data/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"
+    networks:
+      - sportik-network
+    depends_on:
+      - tempo
+      - loki
+      - prometheus
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./data/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200"
+      - "4318:4317"
+    networks:
+      - sportik-network
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    command: [ "-config.file=/etc/loki-config.yaml" ]
+    volumes:
+      - ./data/loki-config.yaml:/etc/loki-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - sportik-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
+    volumes:
+      - ./data/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - sportik-network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - sportik-network
+
+
+
+secrets:
+  gmail_app_password:
+    file: ./secrets/gmail_app_password.txt
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+    
+networks:
+  sportik-network:
+    driver: bridge
+
+  
+  
