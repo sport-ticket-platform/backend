@@ -6,13 +6,11 @@ spring:
   application:
     name: auth-service
   datasource:
-    # TODO: change this part when it wants to run in container
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/sportik-backend}
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/sportik-backend}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:taha1111}
+    password: ${DB_PASSWORD:postgres}
   jpa:
     hibernate:
-      # TODO: Change it in server
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
@@ -20,7 +18,7 @@ spring:
     ansi:
       enabled: always
   rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
+    host: ${RABBITMQ_HOST:rabbitmq}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
@@ -28,8 +26,7 @@ spring:
   # Connect to redis
   data:
     redis:
-      # TODO: change this part when it wants to run in container
-      host: ${REDIS_HOST:localhost}
+      host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
 
 #  OpenTelemetry
@@ -39,7 +36,7 @@ management:
       probability: 1.0
   otlp:
     tracing:
-      endpoint: ${OTLP_ENDPOINT:http://localhost:4317}
+      endpoint: ${OTLP_ENDPOINT:http://otel-collector:4317}
       transport: grpc
 
 app:
@@ -65,5 +62,5 @@ app:
 grpc:
   client:
     user-service:
-      address: ${USER_SERVICE_ADDRESS:static://localhost:9090}
+      address: ${USER_SERVICE_ADDRESS:static://user-service:8081}
       negotiation-type: plaintext
