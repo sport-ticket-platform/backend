@@ -23,18 +23,19 @@ CREATE TYPE user_role AS ENUM (
 CREATE TABLE users
 (
     user_id            BIGSERIAL PRIMARY KEY,
-    first_name         varchar(50)                           NOT NULL,
-    last_name          varchar(50)                           NOT NULL,
-    role               user_role                             NOT NULL DEFAULT 'USER',
-    email              varchar(255)                          NOT NULL UNIQUE,
-    email_verified     bool        DEFAULT false             NOT NULL,
+    first_name         varchar(50)                              NOT NULL,
+    last_name          varchar(50)                              NOT NULL,
+    role               user_role                                NOT NULL DEFAULT 'USER',
+    email              varchar(255)                             NOT NULL UNIQUE,
+    email_verified     bool           DEFAULT false             NOT NULL,
     phone_number       varchar(20) UNIQUE,
-    phone_verified     bool        DEFAULT false             NOT NULL,
-    registration_date  timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    password           varchar(255)                          NOT NULL,
+    phone_verified     bool           DEFAULT false             NOT NULL,
+    registration_date  timestamptz    DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    password           varchar(255)                             NOT NULL,
+    balance            numeric(12, 2) DEFAULT 0                 NOT NULL,
     city_id            INT REFERENCES city (city_id),
-    is_active          bool        DEFAULT true              NOT NULL,
-    two_factor_enabled bool        DEFAULT false             NOT NULL
+    is_active          bool           DEFAULT true              NOT NULL,
+    two_factor_enabled bool           DEFAULT false             NOT NULL
 );
 
 CREATE TABLE wallet
@@ -321,17 +322,18 @@ VALUES (1, 'Football'),
 
 -- Passwords represent hashed versions (e.g. bcrypt/argon2) for realism
 INSERT INTO users (user_id, first_name, last_name, role, email, email_verified, phone_number, phone_verified, password,
-                   city_id, is_active, two_factor_enabled)
-VALUES (1, 'Admin', 'User', 'ADMIN', 'admin@ticketmaster.local', true, '+1000000000', true,
-        '$2a$10$xyzHashedStringForAdmin', 1, true, true),
-       (2, 'John', 'Doe', 'USER', 'johndoe@example.com', true, '+12125551234', true, '$2a$10$xyzHashedStringForJohn', 1,
+                   balance, city_id, is_active, two_factor_enabled)
+VALUES (1, 'Admin', 'User', 'ADMIN', 'admin@ticketmaster.local', true, '09360110494', true,
+        '$2a$10$xyzHashedStringForAdmin', 0.00, 1, true, true),
+       (2, 'John', 'Doe', 'USER', 'johndoe@example.com', true, '+9360110495', true, '$2a$10$xyzHashedStringForJohn',
+        250.00, 1,
         true, false),
-       (3, 'Jane', 'Smith', 'USER', 'janesmith@example.com', true, '+13235559876', false,
-        '$2a$10$xyzHashedStringForJane', 2, true, false),
-       (4, 'Alice', 'Johnson', 'USER', 'alice.j@example.co.uk', true, '+442079460958', true,
-        '$2a$10$xyzHashedStringForAlice', 3, true, true),
-       (5, 'Support', 'Staff', 'SUPPORT', 'support@ticketmaster.local', true, '+1000000001', true,
-        '$2a$10$xyzHashedStringForSupport', 1, true, true);
+       (3, 'Jane', 'Smith', 'USER', 'janesmith@example.com', true, '09360110496', false,
+        '$2a$10$xyzHashedStringForJane', 50.00, 2, true, false),
+       (4, 'Alice', 'Johnson', 'USER', 'alice.j@example.co.uk', true, '09360110498', true,
+        '$2a$10$xyzHashedStringForAlice', 1000.00, 3, true, true),
+       (5, 'Support', 'Staff', 'SUPPORT', 'support@ticketmaster.local', true, '09360110499', true,
+        '$2a$10$xyzHashedStringForSupport', 0.00, 1, true, true);
 
 INSERT INTO wallet (wallet_id, user_id, balance, is_active)
 VALUES (1, 2, 250.00, true),
