@@ -6,6 +6,8 @@
     container_name: notification-service
     ports:
       - "8080:8080"
+    secrets:
+      - gmail_app_password
     environment:
       RabbitMq__HostName: rabbitmq
       RabbitMq__Port: 5672
@@ -13,6 +15,7 @@
       RabbitMq__Password: guest
       RabbitMq__VirtualHost: /
       RabbitMq__EmailQueueName: emailQueue
+      Email__AppPasswordFile: /run/secrets/gmail_app_password
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -22,8 +25,8 @@
     container_name: rabbitmq
     hostname: rabbitmq
     ports:
-      - "5672:5672"    
-      - "15672:15672"  
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -35,6 +38,10 @@
       interval: 10s
       timeout: 5s
       retries: 5
+
+secrets:
+  gmail_app_password:
+    file: ./secrets/gmail_app_password.txt
 
 volumes:
   rabbitmq_data:
