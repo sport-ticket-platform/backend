@@ -23,13 +23,11 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
-  # Connect to redis
   data:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
 
-#  OpenTelemetry
 management:
   tracing:
     sampling:

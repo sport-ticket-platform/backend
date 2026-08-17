@@ -51,7 +51,8 @@ public class JwtTokenProvider {
      */
     @PostConstruct
     public void init() {
-        log.info("Initializing JWT infrastructure(public and private kay)...");
+        log.info("Initializing JWT infrastructure (public and private key)...");
+
         try {
             this.privateKey = loadPrivateKey(appPrp.getJwt().getPrivateKey());
             this.publicKey = loadPublicKey(appPrp.getJwt().getPublicKey());
@@ -59,6 +60,7 @@ public class JwtTokenProvider {
             this.jwtParser = Jwts.parser()
                     .verifyWith(publicKey)
                     .requireIssuer(appPrp.getJwt().getIssuer())
+                    .requireAudience(appPrp.getJwt().getAudience())
                     .build();
 
             log.info("JWT RS256 infrastructure initialized successfully.");
@@ -76,6 +78,7 @@ public class JwtTokenProvider {
     public String generateToken(CustomUserDetails userDetails) {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .map(role -> role.startsWith("ROLE_") ? role.substring(5) : role)
                 .collect(Collectors.toList());
 
         Long userId = userDetails.getId();
