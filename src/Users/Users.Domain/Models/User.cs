@@ -15,7 +15,7 @@ public class User
     public string? PhoneNumber { get; private set; }
     public bool IsPhoneNumberVerified { get; private set; } = false;
 
-    public DateTimeOffset RegistrationDate { get; private set; } = DateTimeOffset.Now;
+    public DateTimeOffset RegistrationDate { get; private set; } = DateTimeOffset.UtcNow;
     public string PasswordHash { get; private set; }
     public decimal Balance { get; private set; } = default;
     public int? CityId { get; private set; } = default;

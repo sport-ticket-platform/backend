@@ -25,6 +25,8 @@ using UserService.Users.Domain.Repositories;
 using UserService.Users.Infrastructure.DbContext;
 using UserService.Users.Infrastructure.Repositories;
 
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 
