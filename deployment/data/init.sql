@@ -324,16 +324,16 @@ VALUES (1, 'Football'),
 INSERT INTO users (user_id, first_name, last_name, role, email, email_verified, phone_number, phone_verified, password,
                    balance, city_id, is_active, two_factor_enabled)
 VALUES (1, 'Admin', 'User', 'ADMIN', 'admin@ticketmaster.local', true, '09360110494', true,
-        '$2a$10$xyzHashedStringForAdmin', 0.00, 1, true, true),
-       (2, 'John', 'Doe', 'USER', 'johndoe@example.com', true, '+9360110495', true, '$2a$10$xyzHashedStringForJohn',
+        '$2a$10$vFg4IpZ6omF/09EZB2Hefu5Atmj16fRnxDX8yfqmjxetE/6LrYtBq', 0.00, 1, true, true),
+       (2, 'John', 'Doe', 'USER', 'johndoe@example.com', true, '+9360110495', true, '$2a$10$vFg4IpZ6omF/09EZB2Hefu5Atmj16fRnxDX8yfqmjxetE/6LrYtBq',
         250.00, 1,
         true, false),
        (3, 'Jane', 'Smith', 'USER', 'janesmith@example.com', true, '09360110496', false,
-        '$2a$10$xyzHashedStringForJane', 50.00, 2, true, false),
+        '$2a$10$vFg4IpZ6omF/09EZB2Hefu5Atmj16fRnxDX8yfqmjxetE/6LrYtBq', 50.00, 2, true, false),
        (4, 'Alice', 'Johnson', 'USER', 'alice.j@example.co.uk', true, '09360110498', true,
-        '$2a$10$xyzHashedStringForAlice', 1000.00, 3, true, true),
+        '$2a$10$vFg4IpZ6omF/09EZB2Hefu5Atmj16fRnxDX8yfqmjxetE/6LrYtBq', 1000.00, 3, true, true),
        (5, 'Support', 'Staff', 'SUPPORT', 'support@ticketmaster.local', true, '09360110499', true,
-        '$2a$10$xyzHashedStringForSupport', 0.00, 1, true, true);
+        '$2a$10$vFg4IpZ6omF/09EZB2Hefu5Atmj16fRnxDX8yfqmjxetE/6LrYtBq', 0.00, 1, true, true);
 
 INSERT INTO wallet (wallet_id, user_id, balance, is_active)
 VALUES (1, 2, 250.00, true),

@@ -70,11 +70,6 @@ public class JwtTokenProvider {
         }
     }
 
-    public String generateToken(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return generateToken(userDetails);
-    }
-
     public String generateToken(CustomUserDetails userDetails) {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -84,7 +79,7 @@ public class JwtTokenProvider {
 
         Date now = new Date();
         Date expiryDate = new Date(
-                now.getTime() + appPrp.getJwt().getAccessTokenExpirationSec() * 1_000_000
+                now.getTime() + appPrp.getJwt().getAccessTokenExpirationSec() * 1_000
         );
 
         return Jwts.builder()

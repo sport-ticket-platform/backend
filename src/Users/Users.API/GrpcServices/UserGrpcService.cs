@@ -29,16 +29,18 @@ public class UserGrpcService : Grpc.UserService.UserServiceBase
         var ct = context.CancellationToken;
 
         var user = await _userService.GetUserByEmail(request.Email, ct);
-        return new UserLoginInfoResponse()
+        var response = new UserLoginInfoResponse()
         {
             Id = user.UserId,
-            Email = user.Email,
-            Phone = user.PhoneNumber,
-            Password = user.PasswordHash,
+            Email = user.Email ?? string.Empty,
+            Password = user.PasswordHash ?? string.Empty,
             Role = user.Role.ToString(),
             IsTwoFactorEnabled = user.IsTwoFactorEnabled,
             Status = user.IsActive
         };
+        if (!string.IsNullOrEmpty(user.PhoneNumber))
+            response.Phone = user.PhoneNumber;
+        return response;
     }
 
     public override async Task<UserLoginInfoResponse> GetUserByPhone(GetUserLoginInfoByPhoneRequest request,
@@ -52,23 +54,25 @@ public class UserGrpcService : Grpc.UserService.UserServiceBase
         var ct = context.CancellationToken;
         var user = await _userService.GetUserByPhone(request.Phone, ct);
 
-        return new UserLoginInfoResponse()
+        var response = new UserLoginInfoResponse()
         {
             Id = user.UserId,
-            Email = user.Email,
-            Phone = user.PhoneNumber,
-            Password = user.PasswordHash,
+            Email = user.Email ?? string.Empty,
+            Password = user.PasswordHash ?? string.Empty,
             Role = user.Role.ToString(),
             IsTwoFactorEnabled = user.IsTwoFactorEnabled,
             Status = user.IsActive
         };
+        if (!string.IsNullOrEmpty(user.PhoneNumber))
+            response.Phone = user.PhoneNumber;
+        return response;
     }
 
     public override async Task<UserLoginInfoResponse> GetUserById(GetUserLoginInfoByIdRequest request,
         ServerCallContext context)
     {
         _logger.LogInformation("fetching user by ID {userId}",request.Id);
-        
+
         if (long.IsNegative(request.Id))
             throw new RpcException(new Status(StatusCode.InvalidArgument, "user ID must be a positive number."));
 
@@ -77,13 +81,13 @@ public class UserGrpcService : Grpc.UserService.UserServiceBase
         var response = new UserLoginInfoResponse()
         {
             Id = user.UserId,
-            Email = user.Email,
-            Password = user.PasswordHash,
+            Email = user.Email ?? string.Empty,
+            Password = user.PasswordHash ?? string.Empty,
             Role = user.Role.ToString(),
             IsTwoFactorEnabled = user.IsTwoFactorEnabled,
             Status = user.IsActive
         };
-        if (response.HasPhone)
+        if (!string.IsNullOrEmpty(user.PhoneNumber))
             response.Phone = user.PhoneNumber;
         return response;
     }
