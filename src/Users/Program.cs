@@ -134,6 +134,7 @@ builder.Services.AddOpenTelemetry()
 
 // ---------- Logging ----------
 builder.Logging.ClearProviders();
+builder.Logging.AddConsole(); // اضافه کردن لاگر کنسول برای چاپ در Rider/Terminal
 builder.Logging.AddOpenTelemetry(logging =>
 {
     logging.SetResourceBuilder(resourceBuilder);
