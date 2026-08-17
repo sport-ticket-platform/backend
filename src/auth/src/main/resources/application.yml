@@ -1,31 +1,35 @@
 server:
   address: 0.0.0.0
-  port: 8080
+  port: 7070
 
 spring:
   application:
     name: auth-service
+
   datasource:
-    url: ${DB_URL:jdbc:postgresql://postgres:5432/sportik-backend}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/sportik-backend}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
+
   jpa:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
+
   output:
     ansi:
       enabled: always
+
   rabbitmq:
-    host: ${RABBITMQ_HOST:rabbitmq}
+    host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
   data:
     redis:
-      host: ${REDIS_HOST:redis}
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
 management:
@@ -34,7 +38,7 @@ management:
       probability: 1.0
   otlp:
     tracing:
-      endpoint: ${OTLP_ENDPOINT:http://otel-collector:4317}
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4317}
       transport: grpc
 
 app:
@@ -54,11 +58,12 @@ app:
       audience: frontend
 
     mfa_token_ttl_min: 2
+
   rabbitmq:
     email-queue: emailQueue
 
 grpc:
   client:
     user-service:
-      address: ${USER_SERVICE_ADDRESS:static://user-service:8081}
+      address: ${USER_SERVICE_ADDRESS:static://localhost:8081}
       negotiation-type: plaintext

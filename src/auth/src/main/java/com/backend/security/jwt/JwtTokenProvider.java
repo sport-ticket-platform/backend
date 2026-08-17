@@ -70,15 +70,9 @@ public class JwtTokenProvider {
         }
     }
 
-    public String generateToken(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return generateToken(userDetails);
-    }
-
     public String generateToken(CustomUserDetails userDetails) {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .map(role -> role.startsWith("ROLE_") ? role.substring(5) : role)
                 .collect(Collectors.toList());
 
         Long userId = userDetails.getId();

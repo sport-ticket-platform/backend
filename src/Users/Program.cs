@@ -25,6 +25,8 @@ using UserService.Users.Domain.Repositories;
 using UserService.Users.Infrastructure.DbContext;
 using UserService.Users.Infrastructure.Repositories;
 
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -134,6 +136,7 @@ builder.Services.AddOpenTelemetry()
 
 // ---------- Logging ----------
 builder.Logging.ClearProviders();
+builder.Logging.AddConsole(); // اضافه کردن لاگر کنسول برای چاپ در Rider/Terminal
 builder.Logging.AddOpenTelemetry(logging =>
 {
     logging.SetResourceBuilder(resourceBuilder);
