@@ -76,7 +76,7 @@ public class EventController : ControllerBase
 
     [Authorize(policy:"RequireUser")]
     [HttpGet("match/configs/seats")]
-    public async Task<IActionResult> GetSeats(GetSeatsByConfigQuery query)
+    public async Task<IActionResult> GetSeats([FromQuery] GetSeatsByConfigQuery query)
     {
         _logger.LogInformation("getting all the seats for the config ID {configId}",query.ConfigIds);
         var seats = await _sender.Send(query);

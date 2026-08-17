@@ -82,7 +82,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireUser", policy =>
-        policy.Requirements.Add(new RoleRequirement(Role.USER)));
+        policy.Requirements.Add(new RoleRequirement(Role.USER, Role.ADMIN, Role.SUPPORT)));
 
     options.AddPolicy("RequireAdmin", policy =>
         policy.Requirements.Add(new RoleRequirement(Role.ADMIN)));

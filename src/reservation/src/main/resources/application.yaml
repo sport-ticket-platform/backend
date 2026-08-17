@@ -11,7 +11,7 @@ spring:
     name: reservation-service
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/sportik-backend}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/sportik-backend}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:taha1111}
 
@@ -49,4 +49,4 @@ app:
       - /api/reservations/mock-gateway/info/**
     jwt:
       public-key: classpath:keys/public_key.pem
-      issuer: backend-service
+      issuer: auth-service

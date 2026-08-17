@@ -25,7 +25,13 @@ public class RoleHandler : AuthorizationHandler<RoleRequirement>
 
         foreach (var claim in claims)
         {
-            if (Enum.TryParse<Role>(claim.Value, ignoreCase: true, out var role)
+            var roleValue = claim.Value;
+            if (roleValue.StartsWith("ROLE_", StringComparison.OrdinalIgnoreCase))
+            {
+                roleValue = roleValue.Substring(5);
+            }
+
+            if (Enum.TryParse<Role>(roleValue, ignoreCase: true, out var role)
                 && Enum.IsDefined(typeof(Role), role))
             {
                 yield return role;
