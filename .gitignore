@@ -1,17 +1,41 @@
+# =========================
+# Java / Maven
+# =========================
 HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# Gradle
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# =========================
+# .NET
+# =========================
+**/bin/
+**/obj/
+
+# =========================
+# OS
+# =========================
 .DS_Store
 **/.DS_Store
+
+# =========================
+# Project-specific files
+# =========================
 /src/Users/compose.yaml
 /src/Users/init.sql
 /src/Events/EventService/init.sql
 /src/Events/EventService/compose.yaml
 /deployment/secrets/gmail_app_password.txt
-### STS ###
+
+# =========================
+# Spring Tool Suite
+# =========================
 .apt_generated
 .classpath
 .factorypath
@@ -20,25 +44,29 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
-.idea
-.idea/*
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# =========================
+# NetBeans
+# =========================
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
+# =========================
+# VS Code
+# =========================
 .vscode/
 
-# Environments
+# =========================
+# Environment files
+# =========================
 **/.env
